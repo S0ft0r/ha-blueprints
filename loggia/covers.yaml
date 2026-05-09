@@ -76,7 +76,7 @@ blueprint:
             number:
               min: 0
               max: 359
-              step:
+              step: 1
               unit_of_measurement: '°'
               mode: slider
           
