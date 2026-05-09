@@ -92,7 +92,7 @@ blueprint:
               filter:
               - domain:
                 - sensor
-              multiply: false
+              multiple: false
           
 mode: restart
 max_exceeded: silent
