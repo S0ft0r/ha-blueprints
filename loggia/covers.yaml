@@ -79,6 +79,12 @@ blueprint:
               step: 1
               unit_of_measurement: '°'
               mode: slider
+        alarm_time:
+          name: Задержка открытия
+          description: "Задержка открытия жалюзи после срабатывание будильника"
+          default: "00:10:00"
+          selector:
+            time: {}
           
 mode: restart
 max_exceeded: silent
