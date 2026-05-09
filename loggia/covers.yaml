@@ -95,6 +95,18 @@ blueprint:
           default: "00:10:00"
           selector:
             time: {}
+        sun_elevation:
+          name: Высота солнца
+          description: "При защите от прямых лучей солнца для автоматического открытия жалюзи"
+          default: 0
+          selector:
+            number:
+              min: 0
+              max: 45
+              step: 1
+              unit_of_measurement: '°'
+              mode: slider
+         
           
 mode: restart
 max_exceeded: silent
