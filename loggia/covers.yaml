@@ -58,7 +58,9 @@ blueprint:
       name: "Вспомогательное"
       input:
         down_limit:
-          name: Нижний лимит при закрытии жалюзи 
+          name: Лимит 
+          description: "Нижний лимит при закрытии жалюзи"
+          default: 0
           selector:
             number:
               min: 0
@@ -66,6 +68,17 @@ blueprint:
               step: 1
               unit_of_measurement: '%'
               mode: slider
+        sun_azimut:
+          name: Азимут 
+          description: "Азимут солнца, для автоматического закрытия жалюзи, когда солнце начинает светить в окно"
+          default: 0
+            selector:
+              number:
+                min: 0
+                max: 359
+                step:
+                unit_of_measurement: '°'
+                mode: slider
           
 mode: restart
 max_exceeded: silent
