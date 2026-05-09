@@ -87,10 +87,11 @@ blueprint:
             time: {}
         alarm_sensor:
           name: Время будильника
-          entity:
-            filter:
-            - domain:
-              - sensor
+          selector:
+            entity:
+              filter:
+              - domain:
+                - sensor
           
 mode: restart
 max_exceeded: silent
