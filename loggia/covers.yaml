@@ -80,19 +80,21 @@ blueprint:
               unit_of_measurement: '°'
               mode: slider
         alarm_sensor:
-          name: Время будильника
+          name: Не включать до
+          description: >-
+            Датчик, определяющий время срабатывания будильника
           selector:
             entity:
               filter:
               - domain: sensor
+                device_class: timestamp
               multiple: false
         alarm_time:
           name: Задержка открытия
           description: "Задержка открытия жалюзи после срабатывание будильника"
           default: "00:10:00"
           selector:
-            time: {}
-          
+            time: {}          
 mode: restart
 max_exceeded: silent
 trigger:
