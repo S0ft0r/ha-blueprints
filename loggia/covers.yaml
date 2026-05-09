@@ -72,13 +72,13 @@ blueprint:
           name: Азимут 
           description: "Азимут солнца, для автоматического закрытия жалюзи, когда солнце начинает светить в окно"
           default: 0
-            selector:
-              number:
-                min: 0
-                max: 359
-                step:
-                unit_of_measurement: '°'
-                mode: slider
+          selector:
+            number:
+              min: 0
+              max: 359
+              step:
+              unit_of_measurement: '°'
+              mode: slider
           
 mode: restart
 max_exceeded: silent
