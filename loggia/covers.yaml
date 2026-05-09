@@ -57,6 +57,16 @@ blueprint:
     helpers:
       name: "Вспомогательное"
       input:
+        set_up_time:
+          name: Время открытия жалюзи
+          default: "08:00:00"
+          selector:
+            time: {}
+        set_down_time:
+          name: Время Закрытия жалюзи
+          default: "20:00:00"
+          selector:
+            time: {}
         down_limit:
           name: Нижний предел 
           description: "Нижний предел при закрытии жалюзи"
@@ -80,7 +90,7 @@ blueprint:
               unit_of_measurement: '°'
               mode: slider
         alarm_sensor:
-          name: Не включать до
+          name: Не поднимать до
           description: >-
             Датчик, определяющий время срабатывания будильника
           selector:
