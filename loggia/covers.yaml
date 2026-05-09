@@ -2,7 +2,7 @@ blueprint:
   name: Управление жалюзи
   description: Управление жалюзи по времени, солнцу, слайдеру
   domain: automation
-  source_url: https://github.com/S0ft0r/HA-Blueprints/loggia/covers.yaml
+  source_url: https://raw.githubusercontent.com/S0ft0r/ha-blueprints/refs/heads/main/loggia/covers.yaml
   author: Softor
 
   input:
