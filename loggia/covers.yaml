@@ -85,6 +85,12 @@ blueprint:
           default: "00:10:00"
           selector:
             time: {}
+        alarm_sensor:
+          name: Время будильника
+          entity:
+            filter:
+            - domain:
+              - sensor
           
 mode: restart
 max_exceeded: silent
