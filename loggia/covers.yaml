@@ -15,12 +15,12 @@ blueprint:
             - cover
           reorder: false
           multiple: false
-    feature_section:
+    oprions:
       name: Настройки автоматизации
       icon: mdi:window-shutter-cog
       collapsed: false
       input:
-        auto_options:
+        feature:
           name: Настройки управления жалюзи
           description: Какое-то объяснение
           default:
@@ -29,18 +29,18 @@ blueprint:
             select:
               options:
               - label: Открытие по времени
-                value: auto_up_enabled
+                value: feature_up_enabled
               - label: Закрытие по времени
-                value: auto_down_enabled
+                value: feature_down_enabled
               - label: Открытие/закрытие по солнцу
-                value: auto_sun_enabled
+                value: feature_sun_enabled
               - label: Защита от прямых лучей солнца
-                value: auto_sun_protect
+                value: feature_sun_protect
               multiple: true
               sort: false
               custom_value: false
               mode: list
-        individual_config:
+        extra:
           name: Дополнительные настройки
           description: Какое-то объяснение для дополнительных настроек
           default: []
@@ -48,12 +48,15 @@ blueprint:
             select:
               options:
               - label: Задержка открытия до срабатывания будильника
-                value: auto_sun_pause_enabled
+                value: extra_sun_pause_enabled
               - label: Ограничение закрытия жалюзи %
-                value: auto_limit_down
+                value: extra_limit_down
+              - label: Учитывать погодный прогноз 
+                value: extra_limit_down
               sort: false
-              multiple: false
+              multiple: true
               custom_value: false
+              mode: list
     helpers:
       name: "Вспомогательное"
       input:
@@ -116,6 +119,15 @@ blueprint:
               step: 1
               unit_of_measurement: '°'
               mode: slider
+        forecast_sensor:
+          name: Прогнозный сенсор
+          description: >-
+            Сенсор, определяющий прогноз погоды
+          selector:
+            entity:
+              filter:
+              - domain: weather
+              multiple: false
          
           
 mode: restart
