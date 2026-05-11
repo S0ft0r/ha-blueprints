@@ -133,6 +133,9 @@ blueprint:
     #   description: "Прогноз погоды, при котором управляются жалюзи"
     #   input:
         forecasts:
+          name: Прогноз погоды
+          description: >-
+            Прогноз погоды, при котором управляются жалюзи
           selector:
             select:
               options:
