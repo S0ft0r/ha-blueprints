@@ -128,10 +128,10 @@ blueprint:
               filter:
               - domain: weather
               multiple: false
-    forecast:
-      name: "Погода"
-      description: "Прогноз погоды, при котором управляются жалюзи"
-      input:
+    # forecast:
+    #   name: "Погода"
+    #   description: "Прогноз погоды, при котором управляются жалюзи"
+    #   input:
         forecasts:
           selector:
             select:
