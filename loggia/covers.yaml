@@ -128,10 +128,45 @@ blueprint:
               filter:
               - domain: weather
               multiple: false
+    forecast:
+      name: "Погода"
+      description: "Прогноз погоды, при котором управляются жалюзи"
+      input:
+        forecasts:
+          selector:
+            select:
+              options:
+              - label: Облачно
+                value: cloudy
+              - label: Туман
+                value: fog
+              - label: Град
+                value: hail
+              - label: Гроза
+                value: lightning
+              - label: Дождь с грозой
+                value: lightning-rainy
+              - label: Переменная облачность
+                value: partlycloudy
+              - label: Ливень
+                value: pouring
+              - label: Дождливо
+                value: rainy
+              - label: Снег
+                value: snowy
+              - label: Дождь со снегом
+                value: snowy-rainy
+              - label: Ясно
+                value: sunny
+              sort: false
+              multiple: true
+              custom_value: false
+              mode: list
+
+
+#trigger_variables:
          
-          
-mode: restart
-max_exceeded: silent
+
 trigger:
   platform: state
   entity_id: sun.sun
@@ -140,3 +175,6 @@ trigger:
 action:
   service: light.turn_on
   target: light.light
+          
+mode: restart
+max_exceeded: silent
