@@ -11,9 +11,10 @@ blueprint:
       description: Какими жалюзи необходимо управлять?
       selector:
         entity:
-          - domain: cover
-          - domain: group
-            device_class: blind
+          domain: cover
+        entity:
+          domain: group
+          device_class: blind
         reorder: false
         multiple: false
 
