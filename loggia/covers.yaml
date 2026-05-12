@@ -217,7 +217,8 @@ actions:
           - action: cover.set_cover_position
             data:
               position: 100
-            entity_id:  "{{ repeat.item if repeat is defined else '' }}"
+            target:
+              entity_id:  "{{ repeat.item if repeat is defined else '' }}"
 
 
           
