@@ -10,8 +10,9 @@ blueprint:
       description: Какими жалюзи необходимо управлять?
       selector:
         entity:
-          domain: cover
-          device_class: blind
+          filter:
+          - domain: cover
+            device_class: blind
           reorder: false
           multiple: false
     options:
