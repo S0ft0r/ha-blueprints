@@ -4,16 +4,20 @@ blueprint:
   domain: automation
   source_url: https://github.com/S0ft0r/ha-blueprints/blob/main/loggia/covers.yaml
   author: Softor
+
   input:
     blind:
       name: Жалюзи
       description: Какими жалюзи необходимо управлять?
       selector:
         entity:
-          filter:
           - domain: cover
-          reorder: false
-          multiple: false
+          - domain: group
+            device_class: blind
+        reorder: false
+        multiple: false
+
+
     options:
       name: Настройки автоматизации
       icon: mdi:window-shutter-cog
@@ -34,6 +38,7 @@ blueprint:
               multiple: false
               sort: false
               custom_value: false
+
         extra:
           name: Дополнительные настройки
           description: Какое-то объяснение для дополнительных настроек
@@ -53,6 +58,7 @@ blueprint:
               multiple: true
               custom_value: false
               mode: list
+
     time_section:
       name: "Настройки управления по времени"
       icon: mdi:clock-time-eight-outline
@@ -67,6 +73,8 @@ blueprint:
           default: "20:00:00"
           selector:
             time: {}
+
+
     sun_section:
       name: "Настройки управления по солнцу"
       icon: mdi:weather-sunny
@@ -81,6 +89,7 @@ blueprint:
               filter:
                 - domain:
                     - sun
+
         sun_azimut:
           name: Азимут солнца
           description: >-
@@ -93,6 +102,7 @@ blueprint:
               step: 1
               unit_of_measurement: '°'
               mode: slider
+
         sun_elevation:
           name: Высота солнца
           description: >-
@@ -105,6 +115,8 @@ blueprint:
               step: 1
               unit_of_measurement: '°'
               mode: slider
+
+
     options_section:
       name: "Дополнительные настройки"
       icon: mdi:cog
@@ -120,6 +132,7 @@ blueprint:
               step: 1
               unit_of_measurement: '%'
               mode: slider
+
         alarm_sensor:
           name: Не поднимать до
           description: >-
@@ -131,6 +144,7 @@ blueprint:
               - domain: sensor
                 device_class: timestamp
               multiple: false
+
         alarm_time:
           name: Задержка открытия
           description: "Задержка открытия жалюзи после срабатывание будильника"
@@ -147,10 +161,7 @@ blueprint:
               filter:
               - domain: weather
               multiple: false
-    # forecast:
-    #   name: "Погода"
-    #   description: "Прогноз погоды, при котором управляются жалюзи"
-    #   input:
+
         forecasts:
           name: Прогноз погоды
           description: >-
@@ -215,7 +226,6 @@ triggers:
       {{ is_forecast_enabled }}
 
 
-
 action:
   - variables: 
     trigger_id: "{{ trigger.id }}" 
@@ -228,7 +238,7 @@ action:
         data:
           position: 100
         target:
-          entity_id:  cover.blinds_balcony_fasad_center_left
+          entity_id:  blind_entities
           
 mode: parallel
 max_exceeded: silent
