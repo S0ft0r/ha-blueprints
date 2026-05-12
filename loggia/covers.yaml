@@ -59,26 +59,15 @@ blueprint:
       icon: mdi:clock-time-eight-outline
       input:
         set_up_time:
-          name: Время открытия жалюзи
+          name: Открыть жалюзи в
           default: "08:00:00"
           selector:
             time: {}
         set_down_time:
-          name: Время Закрытия жалюзи
+          name: Закрыть жалюзи в
           default: "20:00:00"
           selector:
             time: {}
-        down_limit:
-          name: Нижний предел 
-          description: "Нижний предел при закрытии жалюзи - если нет нужды закрывать жалюзи до конца."
-          default: 0
-          selector:
-            number:
-              min: 0
-              max: 100
-              step: 1
-              unit_of_measurement: '%'
-              mode: slider
     sun_section:
       name: "Настройки управления по солнцу"
       icon: mdi:weather-sunny
@@ -121,6 +110,17 @@ blueprint:
       name: "Дополнительные настройки"
       icon: mdi:cog
       input:
+        down_limit:
+          name: Нижний предел 
+          description: "Нижний предел при закрытии жалюзи - если нет нужды закрывать жалюзи до конца."
+          default: 0
+          selector:
+            number:
+              min: 0
+              max: 100
+              step: 1
+              unit_of_measurement: '%'
+              mode: slider
         alarm_sensor:
           name: Не поднимать до
           description: >-
@@ -209,19 +209,12 @@ triggers:
     id: "time_down"
 
 
-actions:
-  - if:
-    - "{{ trigger_id | regex_match('time_up') }}"
-    then:
-      - action:
-        - repeat:
-          for_each: "{{ blind_entities | list }}"
-          sequence:
-            - service: cover.set_cover_position
-              data:
-                position: 100
-              target:
-                entity_id:  "{{ repeat.item if repeat is defined else '' }}"
+action:
+  - service: cover.set_cover_position
+    data:
+      position: 100
+    target:
+      entity_id:  cover.blinds_balcony_fasad_center_left
 
 
           
