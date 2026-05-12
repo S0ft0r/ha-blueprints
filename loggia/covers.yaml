@@ -35,7 +35,6 @@ blueprint:
               multiple: true
               sort: false
               custom_value: false
-#              mode: list
         extra:
           name: Дополнительные настройки
           description: Какое-то объяснение для дополнительных настроек
