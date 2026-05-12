@@ -24,18 +24,14 @@ blueprint:
           name: Настройки управления жалюзи
           description: Какое-то объяснение
           default:
-          - auto_sun_enabled
+          - feature_sun_enabled
           selector:
             select:
               options:
-              - label: Открытие по времени
-                value: feature_up_enabled
-              - label: Закрытие по времени
-                value: feature_down_enabled
+              - label: Открытие/закрытие по времени
+                value: feature_time_enabled
               - label: Открытие/закрытие по солнцу
                 value: feature_sun_enabled
-              - label: Защита от прямых лучей солнца
-                value: feature_sun_protect
               multiple: true
               sort: false
               custom_value: false
@@ -51,6 +47,8 @@ blueprint:
                 value: extra_sun_pause_enabled
               - label: Ограничение закрытия жалюзи %
                 value: extra_limit_down
+              - label: Защита от прямых лучей солнца
+                value: extra_sun_protect
               - label: Учитывать погодный прогноз 
                 value: extra_limit_down
               sort: false
@@ -159,14 +157,35 @@ blueprint:
               mode: list
 
 
-#trigger_variables:
+trigger_variables:
+  is_feature_time_enabled: >-
+    {{ 'feature_time_enabled' in feature }}
+  is_feature_sun_enabled: >-
+    {{ 'feature_sun_enabled' in feature }}
+
+  set_up_time: !input set_up_time
+  set_down_time: !input set_down_time
+
+
+variables: []
          
 
-trigger:
-  platform: state
-  entity_id: sun.sun
-  from: 'off'
-  to: 'on'
+triggers:
+  - trigger: template
+    value_template: >-
+      {{ now() == set_up_time | as_datetime | as_local }}
+    enabled: >-
+      {{ is_feature_time_enabled }}
+    id: "time_up"
+
+  - trigger: template
+    value_template: >-
+      {{ now() == set_down_time | as_datetime | as_local }}
+    enabled: >-
+      {{ is_feature_time_enabled }}
+    id: "time_down"
+
+
 action:
   service: light.turn_on
   target: light.light
