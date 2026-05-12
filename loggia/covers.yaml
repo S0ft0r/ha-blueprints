@@ -72,7 +72,7 @@ blueprint:
             time: {}
         down_limit:
           name: Нижний предел 
-          description: "Нижний предел при закрытии жалюзи"
+          description: "Нижний предел при закрытии жалюзи - если нет нужды закрывать жалюзи до конца."
           default: 0
           selector:
             number:
@@ -83,7 +83,8 @@ blueprint:
               mode: slider
         sun_azimut:
           name: Азимут солнца
-          description: "При защите от прямых лучей солнца для автоматического закрытия жалюзи"
+          description: >-
+            Угол между направлением на север и направлением на солнце. Для автоматического закрытия жалюзи при включенной опции защиты от прямых лучей солнца.
           default: 0
           selector:
             number:
@@ -110,7 +111,8 @@ blueprint:
             time: {}
         sun_elevation:
           name: Высота солнца
-          description: "При защите от прямых лучей солнца для автоматического открытия жалюзи"
+          description: >-
+            Угол возвышения солнца на горизонтом. Для автоматического открытия жалюзи при включенной защите от прямых лучей солнца
           default: 0
           selector:
             number:
@@ -135,21 +137,21 @@ blueprint:
         forecasts:
           name: Прогноз погоды
           description: >-
-            Прогноз погоды, при котором управляются срабатывает защита от прямых лучей 
+            Прогноз погоды, при котором срабатывает защита от попадания прямых лучей 
           default: 
             - forecast_sunny
             - forecast_partlycloudy
           selector:
             select:
               options:
+              - label: Ясно
+                value: forecast_sunny
+              - label: Переменная облачность
+                value: forecast_partlycloudy
               - label: Облачно
                 value: forecast_cloudy
               - label: Туман
                 value: forecast_fog
-              - label: Переменная облачность
-                value: forecast_partlycloudy
-              - label: Ясно
-                value: forecast_sunny
               sort: false
               multiple: true
               custom_value: false
