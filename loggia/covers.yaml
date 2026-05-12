@@ -15,12 +15,12 @@ blueprint:
             - cover
           reorder: false
           multiple: false
-    oprions:
+    options:
       name: Настройки автоматизации
       icon: mdi:window-shutter-cog
       collapsed: false
       input:
-        feature:
+        features:
           name: Настройки управления жалюзи
           description: Какое-то объяснение
           default:
@@ -35,7 +35,7 @@ blueprint:
               multiple: true
               sort: false
               custom_value: false
-              mode: list
+#              mode: list
         extra:
           name: Дополнительные настройки
           description: Какое-то объяснение для дополнительных настроек
@@ -61,12 +61,12 @@ blueprint:
       input:
         set_up_time:
           name: Время открытия жалюзи
-          default: ""
+          default: "08:00:00"
           selector:
             time: {}
         set_down_time:
           name: Время Закрытия жалюзи
-          default: ""
+          default: "20:00:00"
           selector:
             time: {}
         down_limit:
@@ -177,9 +177,9 @@ blueprint:
 
 trigger_variables:
   is_feature_time_enabled: >-
-    {{ 'feature_time_enabled' in feature }}
+    {{ 'feature_time_enabled' in features }}
   is_feature_sun_enabled: >-
-    {{ 'feature_sun_enabled' in feature }}
+    {{ 'feature_sun_enabled' in features }}
 
   set_up_time: !input set_up_time
   set_down_time: !input set_down_time
