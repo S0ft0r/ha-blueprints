@@ -135,32 +135,21 @@ blueprint:
         forecasts:
           name: Прогноз погоды
           description: >-
-            Прогноз погоды, при котором управляются жалюзи
+            Прогноз погоды, при котором управляются срабатывает защита от прямых лучей 
+          default: 
+            - forecast_sunny
+            - forecast_partlycloudy
           selector:
             select:
               options:
               - label: Облачно
-                value: cloudy
+                value: forecast_cloudy
               - label: Туман
-                value: fog
-              - label: Град
-                value: hail
-              - label: Гроза
-                value: lightning
-              - label: Дождь с грозой
-                value: lightning-rainy
+                value: forecast_fog
               - label: Переменная облачность
-                value: partlycloudy
-              - label: Ливень
-                value: pouring
-              - label: Дождливо
-                value: rainy
-              - label: Снег
-                value: snowy
-              - label: Дождь со снегом
-                value: snowy-rainy
+                value: forecast_partlycloudy
               - label: Ясно
-                value: sunny
+                value: forecast_sunny
               sort: false
               multiple: true
               custom_value: false
