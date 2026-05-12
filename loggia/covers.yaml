@@ -12,7 +12,6 @@ blueprint:
         entity:
           filter:
           - domain: cover
-            device_class: blind
           reorder: false
           multiple: false
     options:
