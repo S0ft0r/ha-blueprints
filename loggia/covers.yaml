@@ -239,7 +239,7 @@ action:
           data:
             position: 99
           target:
-            entity_id:  blind_entities
+            entity_id: !input blind
           
 mode: parallel
 max_exceeded: silent
