@@ -126,7 +126,7 @@ blueprint:
           description: >-
             Датчик, определяющий время срабатывания будильника
           default: {}
-          selector:
+          selector: 
             entity:
               filter:
               - domain: sensor
