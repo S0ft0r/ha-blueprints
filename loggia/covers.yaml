@@ -211,10 +211,13 @@ actions:
   - if:
     - "{{ trigger_id | regex_match('time_up') }}"
     then:
-      - action: cover.set_cover_position
-        data:
-          position: 100
-        entity_id: blind_entities
+      - repeat:
+        for_each: "{{ blind_entities | list }}"
+        sequence:
+          - action: cover.set_cover_position
+            data:
+              position: 100
+            entity_id:  "{{ repeat.item if repeat is defined else '' }}"
 
 
           
