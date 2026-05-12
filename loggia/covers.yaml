@@ -59,15 +59,16 @@ blueprint:
               mode: list
     helpers:
       name: "Вспомогательное"
+      icon: mdi:cog
       input:
         set_up_time:
           name: Время открытия жалюзи
-          default: "08:00:00"
+          default: ""
           selector:
             time: {}
         set_down_time:
           name: Время Закрытия жалюзи
-          default: "20:00:00"
+          default: ""
           selector:
             time: {}
         down_limit:
