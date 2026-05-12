@@ -87,7 +87,7 @@ blueprint:
         default_sun_sensor:
           name: "Датчик солнца"
           description: >-
-            Что-то
+            Датчик, по которому определяется положение солнца
           default: "sun.sun"
           selector:
             entity:
