@@ -125,7 +125,7 @@ blueprint:
           name: Не поднимать до
           description: >-
             Датчик, определяющий время срабатывания будильника
-          default: { entity_id: [] }
+          default: {}
           selector:
             entity:
               filter:
@@ -142,7 +142,7 @@ blueprint:
           name: Прогнозный сенсор
           description: >-
             Сенсор, определяющий прогноз погоды
-          default: { entity_id: [] }
+          default: {}
           selector:
             entity:
               filter:
