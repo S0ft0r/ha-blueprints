@@ -185,6 +185,7 @@ trigger_variables:
 
 
 variables: 
+  blind_entities: "{{ expand(blind) | map(attribute='entity_id') | list }}"
   current_sun_azimuth: "{{ state_attr(default_sun_sensor, 'azimuth') }}"
   current_sun_elevation: "{{ state_attr(default_sun_sensor, 'elevation') }}"
 
@@ -206,9 +207,16 @@ triggers:
     id: "time_down"
 
 
-action:
-  service: light.turn_on
-  target: light.light
+actions:
+  - if:
+    - "{{ trigger_id | regex_match('time_up') }}"
+    then:
+      - action: cover.set_cover_position
+        data:
+          position: 100
+        entity_id: blind_entities
+
+
           
 mode: parallel
 max_exceeded: silent
