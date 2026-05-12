@@ -213,19 +213,20 @@ triggers:
       {{ now() == set_up_time | as_datetime | as_local }}
     enabled: >-
       {{ is_feature_time_enabled }}
-    id: "time_up"
+    id: "time_up_trigger"
 
   - trigger: template
     value_template: >-
       {{ now() == set_down_time | as_datetime | as_local }}
     enabled: >-
       {{ is_feature_time_enabled }}
-    id: "time_down"
+    id: "time_down_trigger"
 
   - trigger: state
     entity_id: forecast_entity
     enabled: >-
       {{ is_forecast_enabled }}
+    id: "forecast_trigger"
 
 
 action:
