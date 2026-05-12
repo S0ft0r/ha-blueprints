@@ -12,9 +12,8 @@ blueprint:
       selector:
         entity:
           filter:
-          - domain: cover
-          - domain: group
-            device_class: blind
+            - domain: 
+              - cover
           reorder: false
           multiple: false
 
@@ -26,16 +25,16 @@ blueprint:
       input:
         features:
           name: Настройки управления жалюзи
-          description: Какое-то объяснение
+          description: Выбор между открытием/закрытием жалюзи по времени и по рассвету/закату солнца.
           default:
-          - feature_sun_enabled
+            - feature_sun_enabled
           selector:
             select:
               options:
-              - label: Открытие/закрытие по времени
-                value: feature_time_enabled
-              - label: Открытие/закрытие по солнцу
-                value: feature_sun_enabled
+                - label: Открытие/закрытие по времени
+                  value: feature_time_enabled
+                - label: Открытие/закрытие по солнцу
+                  value: feature_sun_enabled
               multiple: false
               sort: false
               custom_value: false
@@ -47,14 +46,14 @@ blueprint:
           selector:
             select:
               options:
-              - label: Задержка открытия до срабатывания будильника
-                value: extra_sun_pause_enabled
-              - label: Ограничение закрытия жалюзи %
-                value: extra_limit_down
-              - label: Защита от прямых лучей солнца
-                value: extra_sun_protect
-              - label: Учитывать погодный прогноз 
-                value: extra_forecast
+                - label: Задержка открытия до срабатывания будильника
+                  value: extra_sun_pause_enabled
+                - label: Ограничение закрытия жалюзи %
+                  value: extra_limit_down
+                - label: Защита от прямых лучей солнца
+                  value: extra_sun_protect
+                - label: Учитывать погодный прогноз 
+                  value: extra_forecast
               sort: false
               multiple: true
               custom_value: false
@@ -90,6 +89,9 @@ blueprint:
               filter:
                 - domain:
                     - sun
+              multiple: false
+              sort: false
+              custom_value: false
 
         sun_azimut:
           name: Азимут солнца
@@ -142,8 +144,8 @@ blueprint:
           selector: 
             entity:
               filter:
-              - domain: sensor
-                device_class: timestamp
+                - domain: sensor
+                  device_class: timestamp
               multiple: false
 
         alarm_time:
@@ -160,7 +162,8 @@ blueprint:
           selector:
             entity:
               filter:
-              - domain: weather
+                - domain: 
+                  - weather
               multiple: false
 
         forecasts:
@@ -173,14 +176,14 @@ blueprint:
           selector:
             select:
               options:
-              - label: Ясно
-                value: forecast_sunny
-              - label: Переменная облачность
-                value: forecast_partlycloudy
-              - label: Облачно
-                value: forecast_cloudy
-              - label: Туман
-                value: forecast_fog
+                - label: Ясно
+                  value: forecast_sunny
+                - label: Переменная облачность
+                  value: forecast_partlycloudy
+                - label: Облачно
+                  value: forecast_cloudy
+                - label: Туман
+                  value: forecast_fog
               sort: false
               multiple: true
               custom_value: false
