@@ -32,7 +32,7 @@ blueprint:
                 value: feature_time_enabled
               - label: Открытие/закрытие по солнцу
                 value: feature_sun_enabled
-              multiple: true
+              multiple: false
               sort: false
               custom_value: false
         extra:
