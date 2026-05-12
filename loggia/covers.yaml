@@ -80,6 +80,16 @@ blueprint:
               step: 1
               unit_of_measurement: '%'
               mode: slider
+        default_sun_sensor:
+          name: "Датчик солнца"
+          description: >-
+            Что-то
+          default: "sun.sun"
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - sun
         sun_azimut:
           name: Азимут солнца
           description: >-
@@ -89,6 +99,18 @@ blueprint:
             number:
               min: 0
               max: 359
+              step: 1
+              unit_of_measurement: '°'
+              mode: slider
+        sun_elevation:
+          name: Высота солнца
+          description: >-
+            Угол возвышения солнца на горизонтом. Для автоматического открытия жалюзи при включенной защите от прямых лучей солнца
+          default: 0
+          selector:
+            number:
+              min: 0
+              max: 45
               step: 1
               unit_of_measurement: '°'
               mode: slider
@@ -108,18 +130,6 @@ blueprint:
           default: "00:10:00"
           selector:
             time: {}
-        sun_elevation:
-          name: Высота солнца
-          description: >-
-            Угол возвышения солнца на горизонтом. Для автоматического открытия жалюзи при включенной защите от прямых лучей солнца
-          default: 0
-          selector:
-            number:
-              min: 0
-              max: 45
-              step: 1
-              unit_of_measurement: '°'
-              mode: slider
         forecast_sensor:
           name: Прогнозный сенсор
           description: >-
@@ -167,7 +177,10 @@ trigger_variables:
   set_down_time: !input set_down_time
 
 
-variables: []
+variables: 
+  current_sun_azimuth: "{{ state_attr(default_sun_sensor, 'azimuth') }}"
+  current_sun_elevation: "{{ state_attr(default_sun_sensor, 'elevation') }}"
+
          
 
 triggers:
@@ -190,5 +203,5 @@ action:
   service: light.turn_on
   target: light.light
           
-mode: restart
+mode: parallel
 max_exceeded: silent
