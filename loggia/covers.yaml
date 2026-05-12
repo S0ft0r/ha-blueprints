@@ -12,11 +12,13 @@ blueprint:
       selector:
         entity:
           domain: cover
+          reorder: false
+          multiple: false
         entity:
           domain: group
           device_class: blind
-        reorder: false
-        multiple: false
+          reorder: false
+          multiple: false
 
 
     options:
