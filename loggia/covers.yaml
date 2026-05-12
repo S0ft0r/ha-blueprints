@@ -79,7 +79,7 @@ blueprint:
       name: "Настройки управления по солнцу"
       icon: mdi:weather-sunny
       input:
-        default_sun_sensor:
+        sun_sensor:
           name: "Датчик солнца"
           description: >-
             Датчик, по которому определяется положение солнца
@@ -90,8 +90,6 @@ blueprint:
                 - domain:
                     - sun
               multiple: false
-              sort: false
-              custom_value: false
 
         sun_azimut:
           name: Азимут солнца
