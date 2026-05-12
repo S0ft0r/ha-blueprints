@@ -10,9 +10,8 @@ blueprint:
       description: Какими жалюзи необходимо управлять?
       selector:
         entity:
-          filter:
-          - domain:
-            - cover
+          domain: cover
+          device_class: blind
           reorder: false
           multiple: false
     options:
@@ -49,7 +48,7 @@ blueprint:
               - label: Защита от прямых лучей солнца
                 value: extra_sun_protect
               - label: Учитывать погодный прогноз 
-                value: extra_limit_down
+                value: extra_forecast
               sort: false
               multiple: true
               custom_value: false
@@ -181,6 +180,8 @@ trigger_variables:
     {{ 'feature_time_enabled' in features }}
   is_feature_sun_enabled: >-
     {{ 'feature_sun_enabled' in features }}
+  is_forecast_enabled: >-
+    {{ 'extra_forecast' in extra }}
 
   set_up_time: !input set_up_time
   set_down_time: !input set_down_time
@@ -188,11 +189,11 @@ trigger_variables:
 
 variables: 
   blind_entities: "{{ expand(blind) | map(attribute='entity_id') | list }}"
+  forecast_entity: "{{ forecast_sensor }}"
   current_sun_azimuth: "{{ state_attr(default_sun_sensor, 'azimuth') }}"
   current_sun_elevation: "{{ state_attr(default_sun_sensor, 'elevation') }}"
 
          
-
 triggers:
   - trigger: template
     value_template: >-
@@ -208,15 +209,26 @@ triggers:
       {{ is_feature_time_enabled }}
     id: "time_down"
 
+  - trigger: state
+    entity_id: forecast_entity
+    enabled: >-
+      {{ is_forecast_enabled }}
+
+
 
 action:
-  - service: cover.set_cover_position
-    data:
-      position: 100
-    target:
-      entity_id:  cover.blinds_balcony_fasad_center_left
-
-
+  - variables: 
+    trigger_id: "{{ trigger.id }}" 
+  
+  - choose:
+    - condition: trigger
+      id: time_up
+    sequence:
+      - service: cover.set_cover_position
+        data:
+          position: 100
+        target:
+          entity_id:  cover.blinds_balcony_fasad_center_left
           
 mode: parallel
 max_exceeded: silent
