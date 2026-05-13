@@ -15,7 +15,7 @@ blueprint:
             - domain: 
               - cover
           reorder: false
-          multiple: false
+          multiple: true
 
 
     options:
