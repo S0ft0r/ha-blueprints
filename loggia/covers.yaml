@@ -203,7 +203,7 @@ trigger_variables:
 
 #  set_up_time: !input set_up_time
 #  set_down_time: !input set_down_time
-  down_limit: !input down_limit
+#  down_limit: !input down_limit
   alarm_delay: !input alarm_delay
   sun_azimut: !input sun_azimut
   sun_elevation: !input sun_elevation
@@ -223,7 +223,6 @@ trigger:
       {{ is_feature_time_enabled }}
     id: "time_up_trigger"
 
-  - trigger: template
   - platform: time
     at: !input set_down_time
     enabled: >-
