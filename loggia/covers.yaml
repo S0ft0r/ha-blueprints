@@ -231,11 +231,11 @@ triggers:
       {{ is_feature_time_enabled }}
     id: "time_down_trigger"
 
-  - trigger: state
-    entity_id: forecast_entity
-    enabled: >-
-      {{ is_forecast_enabled }}
-    id: "forecast_trigger"
+  # - trigger: state
+  #   entity_id: forecast_entity
+  #   enabled: >-
+  #     {{ is_forecast_enabled }}
+  #   id: "forecast_trigger"
 
 
 actions:
