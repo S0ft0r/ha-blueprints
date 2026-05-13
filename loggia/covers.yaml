@@ -216,17 +216,16 @@ variables:
   current_sun_elevation: "{{ state_attr(sun_sensor, 'elevation') }}"
 
          
-triggers:
-  - trigger: template
-    value_template: >-
-      {{ as_timestamp(now())|timestamp_custom("%H:%M") == as_timestamp(today_at(set_up_time))|timestamp_custom("%H:%M") }}
+trigger:
+  - platform: time
+    at: set_up_time
     enabled: >-
       {{ is_feature_time_enabled }}
     id: "time_up_trigger"
 
   - trigger: template
-    value_template: >-
-      {{ as_timestamp(now())|timestamp_custom("%H:%M") == as_timestamp(today_at(set_down_time))|timestamp_custom("%H:%M") }}
+  - platform: time
+    at: set_down_time
     enabled: >-
       {{ is_feature_time_enabled }}
     id: "time_down_trigger"
