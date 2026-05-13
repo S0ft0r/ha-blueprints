@@ -205,7 +205,7 @@ trigger_variables:
 #  set_down_time: !input set_down_time
 #  down_limit: !input down_limit
   alarm_delay: !input alarm_delay
-  
+
   sun_azimut: !input sun_azimut
   sun_elevation: !input sun_elevation
 
@@ -216,19 +216,37 @@ variables:
   current_sun_azimuth: "{{ state_attr(sun_sensor, 'azimuth') }}"
   current_sun_elevation: "{{ state_attr(sun_sensor, 'elevation') }}"
 
-         
-trigger:
-  - platform: time
+
+
+triggers:
+  - trigger: time
     at: !input set_up_time
     enabled: >-
       {{ is_feature_time_enabled }}
     id: "time_up_trigger"
 
-  - platform: time
-    at: !input set_down_time
-    enabled: >-
-      {{ is_feature_time_enabled }}
-    id: "time_down_trigger"
+actions:
+  - repeat:
+      for_each: "{{ blind_entities }}"
+      sequence:
+        - service: cover.set_cover_position
+          data:
+            position: 99
+          target:
+            entity_id: "{{ repeat.item }}"
+
+# trigger:
+#   - platform: time
+#     at: !input set_up_time
+#     enabled: >-
+#       {{ is_feature_time_enabled }}
+#     id: "time_up_trigger"
+
+#   - platform: time
+#     at: !input set_down_time
+#     enabled: >-
+#       {{ is_feature_time_enabled }}
+#     id: "time_down_trigger"
 
   # - trigger: state
   #   entity_id: forecast_entity
@@ -237,25 +255,25 @@ trigger:
   #   id: "forecast_trigger"
 
 
-actions:
-  - choose:
-    - conditions:
-        - "{{ trigger.id == 'time_up_trigger' }}"
-      sequence:
-        - service: cover.set_cover_position
-          data:
-            position: 100
-          target:
-            entity_id: "{{ blind_entities }}"
+# actions:
+#   - choose:
+#     - conditions:
+#         - "{{ trigger.id == 'time_up_trigger' }}"
+#       sequence:
+#         - service: cover.set_cover_position
+#           data:
+#             position: 100
+#           target:
+#             entity_id: "{{ blind_entities }}"
 
-    - conditions:
-        - "{{ trigger.id == 'time_down_trigger' }}"
-      sequence:
-        - service: cover.set_cover_position
-          data:
-            position: !input down_limit
-          target:
-            entity_id: "{{ blind_entities }}"
+#     - conditions:
+#         - "{{ trigger.id == 'time_down_trigger' }}"
+#       sequence:
+#         - service: cover.set_cover_position
+#           data:
+#             position: !input down_limit
+#           target:
+#             entity_id: "{{ blind_entities }}"
 
 
 
