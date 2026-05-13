@@ -248,6 +248,15 @@ actions:
           target:
             entity_id: "{{ blind_entities }}"
 
+    - conditions:
+        - "{{ trigger.id == 'time_down_trigger' }}"
+      sequence:
+        - service: cover.set_cover_position
+          data:
+            position: !input down_limit
+          target:
+            entity_id: "{{ blind_entities }}"
+
 
 
           
