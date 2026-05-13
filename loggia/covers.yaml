@@ -201,8 +201,8 @@ trigger_variables:
   sun_sensor: !input sun_sensor
   forecast_sensor: !input forecast_sensor
 
-  set_up_time: !input set_up_time
-  set_down_time: !input set_down_time
+#  set_up_time: !input set_up_time
+#  set_down_time: !input set_down_time
   down_limit: !input down_limit
   alarm_delay: !input alarm_delay
   sun_azimut: !input sun_azimut
@@ -218,14 +218,14 @@ variables:
          
 trigger:
   - platform: time
-    at: set_up_time
+    at: !input set_up_time
     enabled: >-
       {{ is_feature_time_enabled }}
     id: "time_up_trigger"
 
   - trigger: template
   - platform: time
-    at: set_down_time
+    at: !input set_down_time
     enabled: >-
       {{ is_feature_time_enabled }}
     id: "time_down_trigger"
