@@ -247,8 +247,7 @@ actions:
           data:
             position: 100
           target:
-            entity_id:
-              - "{{ blind_entities }}"
+            entity_id: "{{ blind_entities }}"
 
 
 
