@@ -32,9 +32,9 @@ blueprint:
             select:
               options:
                 - label: Открытие/закрытие по времени
-                  value: feature_time_enabled
+                  value: feature_time
                 - label: Открытие/закрытие по солнцу
-                  value: feature_sun_enabled
+                  value: feature_sun
               multiple: false
               sort: false
               custom_value: false
@@ -47,7 +47,7 @@ blueprint:
             select:
               options:
                 - label: Задержка открытия до срабатывания будильника
-                  value: extra_sun_pause_enabled
+                  value: extra_alarm_pause
                 - label: Ограничение закрытия жалюзи %
                   value: extra_limit_down
                 - label: Защита от прямых лучей солнца
@@ -146,12 +146,13 @@ blueprint:
                   device_class: timestamp
               multiple: false
 
-        alarm_time:
+        alarm_delay:
           name: Задержка открытия
           description: "Задержка открытия жалюзи после срабатывание будильника"
           default: "00:10:00"
           selector:
             time: {}
+
         forecast_sensor:
           name: Прогнозный сенсор
           description: >-
@@ -189,15 +190,23 @@ blueprint:
 
 
 trigger_variables:
-  is_feature_time_enabled: >-
-    {{ 'feature_time_enabled' in features }}
-  is_feature_sun_enabled: >-
-    {{ 'feature_sun_enabled' in features }}
-  is_forecast_enabled: >-
-    {{ 'extra_forecast' in extra }}
+  is_feature_time_enabled: "{{ 'feature_time' in features }}"
+  is_feature_sun_enabled: "{{ 'feature_sun' in features }}"
+  is_forecast_enabled: "{{ 'extra_forecast' in extra }}"
+  is_sun_protect_enabled: "{{ 'extra_sun_protect' in extra }}"
+  is_limit_enabled: "{{ 'extra_limit_down' in extra }}"
+  is_alarm_pause_enabled: "{{ 'extra_alarm_pause' in extra }}"
+
+  blind: !input blind
+  sun_sensor: !input sun_sensor
+  forecast_sensor: !input forecast_sensor
 
   set_up_time: !input set_up_time
   set_down_time: !input set_down_time
+  down_limit: !input down_limit
+  alarm_delay: !input alarm_delay
+  sun_azimut: !input sun_azimut
+  sun_elevation: !input sun_elevation
 
 
 variables: 
@@ -229,17 +238,20 @@ triggers:
     id: "forecast_trigger"
 
 
-action:
+actions:
   - choose:
     - conditions:
-      - condition: trigger
-        id: time_up_trigger
+        - "{{ trigger.id == 'time_up_trigger' }}"
       sequence:
         - service: cover.set_cover_position
           data:
-            position: 99
+            position: 100
           target:
-            entity_id: !input blind
+            entity_id:
+              - "{{ blind_entities }}"
+
+
+
           
 mode: parallel
 max_exceeded: silent
