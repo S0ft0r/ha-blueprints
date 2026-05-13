@@ -205,6 +205,7 @@ trigger_variables:
 #  set_down_time: !input set_down_time
 #  down_limit: !input down_limit
   alarm_delay: !input alarm_delay
+  
   sun_azimut: !input sun_azimut
   sun_elevation: !input sun_elevation
 
