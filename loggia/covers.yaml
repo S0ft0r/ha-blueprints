@@ -211,7 +211,7 @@ trigger_variables:
 
 variables: 
   blind_entities: "{{ expand(blind) | map(attribute='entity_id') | list }}"
-  forecast_entity: "{{ forecast_sensor }}"
+#  forecast_entity: "{{ forecast_sensor }}"
   current_sun_azimuth: "{{ state_attr(sun_sensor, 'azimuth') }}"
   current_sun_elevation: "{{ state_attr(sun_sensor, 'elevation') }}"
 
