@@ -219,14 +219,14 @@ variables:
 triggers:
   - trigger: template
     value_template: >-
-      {{ now() == set_up_time | as_datetime | as_local }}
+      {{ as_timestamp(now())|timestamp_custom("%H:%M") == as_timestamp(today_at(set_up_time))|timestamp_custom("%H:%M") }}
     enabled: >-
       {{ is_feature_time_enabled }}
     id: "time_up_trigger"
 
   - trigger: template
     value_template: >-
-      {{ now() == set_down_time | as_datetime | as_local }}
+      {{ as_timestamp(now())|timestamp_custom("%H:%M") == as_timestamp(today_at(set_down_time))|timestamp_custom("%H:%M") }}
     enabled: >-
       {{ is_feature_time_enabled }}
     id: "time_down_trigger"
