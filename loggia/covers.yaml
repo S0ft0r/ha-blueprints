@@ -17,12 +17,12 @@ blueprint:
           reorder: false
           multiple: true
 
-    options_section:
+    automation_section:
       name: Настройки автоматизации
       icon: mdi:window-shutter-cog
       collapsed: false
       input:
-        options:
+        automation_options:
           name: Настройки управления жалюзи
           description: Выбор между открытием/закрытием жалюзи по времени и по рассвету/закату солнца.
           default:
