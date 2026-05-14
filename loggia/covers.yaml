@@ -62,7 +62,7 @@ blueprint:
           name: Прогнозный сенсор
           description: >-
             Сенсор, определяющий прогноз погоды
-          default: 
+          default: []
           selector:
             entity:
               filter:
@@ -148,7 +148,7 @@ blueprint:
           name: Не поднимать до
           description: >-
             Датчик, определяющий время срабатывания будильника
-          default: 
+          default: []
           selector: 
             entity:
               filter:
@@ -194,7 +194,7 @@ trigger_variables:
   forecast_sensor:    !input forecast_sensor
   sun_sensor:         !input sun_sensor
 
-#  forecasts:          !input forecasts
+  forecasts:          !input forecasts
   alarm_delay:        !input alarm_delay
   
   is_automation_time_enabled:  "{{ 'options_time' in automation_options }}"
@@ -225,7 +225,7 @@ triggers:
 
   - trigger: state
     entity_id: !input forecast_sensor
-    id:       sunset_trigger
+    id:       forecast_trigger
     enabled:  "{{ is_forecast_enabled }}"
 
 
