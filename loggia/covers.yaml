@@ -70,19 +70,19 @@ blueprint:
               mode: slider
 
 trigger_variables:
-  is_options_time_enabled:  "{{ 'options_time' in options }}"
-  is_options_sun_enabled:   "{{ 'options_sun'  in options }}"
+  is_automation_time_enabled:  "{{ 'options_time' in automation_options }}"
+  is_automation_sun_enabled:   "{{ 'options_sun'  in automation_options }}"
 
 triggers:
   - trigger:  time
     at:       !input set_up_time
     id:       up_time_trigger
-    enabled:  "{{ is_options_time_enabled }}"
+    enabled:  "{{ is_automation_time_enabled }}"
 
   - trigger:  time
     at:       !input set_down_time
     id:       down_time_trigger
-    enabled:  "{{ is_options_time_enabled }}"
+    enabled:  "{{ is_automation_time_enabled }}"
 
 
 # conditions:
