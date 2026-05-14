@@ -236,12 +236,12 @@ triggers:
     enabled:        "{{ is_forecast_enabled }}"
 
   - trigger:        template
-    value_template: "{{ state_attr('sun_sensor','azimuth') | float > sun_azimut }}"
+    value_template: "{{ state_attr(sun_sensor,'azimuth') | float > sun_azimut }}"
     id:             sun_azimut_trigger
     enabled:        "{{ is_sun_protect_enabled }}"
 
   - trigger:        template
-    value_template: "{{ state_attr('sun_sensor','elevation') | float > sun_elevation }}"
+    value_template: "{{ state_attr(sun_sensor,'elevation') | float > sun_elevation }}"
     id:             sun_elevation_trigger
     enabled:        "{{ is_sun_protect_enabled }}"
 
@@ -273,7 +273,7 @@ actions:
                   {% set h = alarm_delay.split(':')[0] | int %}
                   {% set m = alarm_delay.split(':')[1] | int %}
                   {% set s = alarm_delay.split(':')[2] | int %}
-                  {{ now() >= states('sensor.do_not_blinds_open_until') | as_datetime |
+                  {{ now() >= states(do_not_blinds_open_until_sensor) | as_datetime |
                     as_local + timedelta(hours=h, minutes=m, seconds=s) }}
           - action: cover.set_cover_position
             metadata: {}
@@ -323,7 +323,7 @@ actions:
             id:
               - sun_azimut_trigger
           - condition: template
-            value_template: "{{ state_attr('sun_sensor','elevation') | float > sun_elevation }}"
+            value_template: "{{ state_attr(sun_sensor,'elevation') | float > sun_elevation }}"
         sequence:
           - action: cover.set_cover_position
             metadata: {}
