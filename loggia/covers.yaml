@@ -232,12 +232,12 @@ triggers:
     enabled:        "{{ is_forecast_enabled }}"
 
   - trigger:        template
-    value_template: "{{ state_attr('sun_sensor','azimuth') | float > sun_azimut }}
+    value_template: "{{ state_attr('sun_sensor','azimuth') | float > sun_azimut }}"
     id:             sun_azimut_trigger
     enabled:        "{{ is_sun_protect_enabled }}"
 
   - trigger:        template
-    value_template: "{{ state_attr('sun_sensor','elevation') | float > sun_elevation }}
+    value_template: "{{ state_attr('sun_sensor','elevation') | float > sun_elevation }}"
     id:             sun_elevation_trigger
     enabled:        "{{ is_sun_protect_enabled }}"
 
