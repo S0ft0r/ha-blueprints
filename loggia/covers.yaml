@@ -17,6 +17,27 @@ blueprint:
           reorder: false
           multiple: true
 
+    options_section:
+      name: Настройки автоматизации
+      icon: mdi:window-shutter-cog
+      collapsed: false
+      input:
+        options:
+          name: Настройки управления жалюзи
+          description: Выбор между открытием/закрытием жалюзи по времени и по рассвету/закату солнца.
+          default:
+            - options_sun
+          selector:
+            select:
+              options:
+                - label: Открытие/закрытие по времени
+                  value: options_time
+                - label: Открытие/закрытие по солнцу
+                  value: options_sun
+              multiple: false
+              sort: false
+              custom_value: false
+
     time_section:
       name: "Настройки управления по времени"
       icon: mdi:clock-time-eight-outline
@@ -48,15 +69,21 @@ blueprint:
               unit_of_measurement: "%"
               mode: slider
 
-triggers:
-  - trigger: time
-    at: !input set_up_time
-    id: up_time_trigger
+trigger_variables:
+  is_options_time_enabled:  "{{ 'options_time' in options }}"
+  is_options_sun_enabled:   "{{ 'options_sun'  in options }}"
 
-  - trigger: time
-    at: !input set_down_time
-    id: down_time_trigger
-    
+triggers:
+  - trigger:  time
+    at:       !input set_up_time
+    id:       up_time_trigger
+    enabled:  "{{ is_options_time_enabled }}"
+
+  - trigger:  time
+    at:       !input set_down_time
+    id:       down_time_trigger
+    enabled:  "{{ is_options_time_enabled }}"
+
 
 # conditions:
 #   - condition: and
@@ -71,18 +98,29 @@ triggers:
 #           - "on"
 
 actions:
-  - action: cover.set_cover_position
-    metadata: {}
-    target:
-      entity_id: !input blind
-    data:
-      position: 99
+  - choose:
+      - conditions:
+          - condition: trigger
+            id:
+              - up_time_trigger
+        sequence:
+          - action: cover.set_cover_position
+            metadata: {}
+            target:
+              entity_id: !input blind
+            data:
+              position: 99
 
-  - action: cover.set_cover_position
-    metadata: {}
-    target:
-      entity_id: !input blind
-    data:
-      position: !input down_limit
+      - conditions:
+          - condition: trigger
+            id:
+              - down_time_trigger
+        sequence:
+          - action: cover.set_cover_position
+            metadata: {}
+            target:
+              entity_id: !input blind
+            data:
+              position: !input down_limit
 
 mode: single
