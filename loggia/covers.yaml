@@ -78,17 +78,17 @@ blueprint:
       name: "Настройки управления по солнцу"
       icon: mdi:weather-sunny
       input:
-        # sun_sensor:
-        #   name: "Датчик солнца"
-        #   description: >-
-        #     Датчик, по которому определяется положение солнца
-        #   default: "sun.sun"
-        #   selector:
-        #     entity:
-        #       filter:
-        #         - domain:
-        #             - sun
-        #       multiple: false
+        sun_sensor:
+          name: "Датчик солнца"
+          description: >-
+            Датчик, по которому определяется положение солнца
+          default: "sun.sun"
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - sun
+              multiple: false
 
         sun_azimut:
           name: Азимут солнца
@@ -151,17 +151,17 @@ blueprint:
           selector:
             time: {}
 
-        # forecast_sensor:
-        #   name: Прогнозный сенсор
-        #   description: >-
-        #     Сенсор, определяющий прогноз погоды
-        #   default: 
-        #   selector:
-        #     entity:
-        #       filter:
-        #         - domain: 
-        #           - weather
-        #       multiple: false
+        forecast_sensor:
+          name: Прогнозный сенсор
+          description: >-
+            Сенсор, определяющий прогноз погоды
+          default: 
+          selector:
+            entity:
+              filter:
+                - domain: 
+                  - weather
+              multiple: false
 
         forecasts:
           name: Прогноз погоды
@@ -191,8 +191,8 @@ trigger_variables:
   automation_options: !input automation_options
   automation_extra:   !input automation_extra
 
-  forecast_sensor:    "{{ (states | selectattr('entity_id', 'search', '^weather') | map(attribute='entity_id') | list)[0] }}"
-  sun_sensor:         "{{ (states | selectattr('entity_id', 'search', '^sun') | map(attribute='entity_id') | list)[0] }}"
+  forecast_sensor:    !input forecast_sensor
+  sun_sensor:         !input sun_sensor
 
 #  forecasts:          !input forecasts
   alarm_delay:        !input alarm_delay
@@ -200,7 +200,7 @@ trigger_variables:
   is_automation_time_enabled:  "{{ 'options_time' in automation_options }}"
   is_automation_sun_enabled:   "{{ 'options_sun'  in automation_options }}"
 
-  is_forecast_enabled:         "{{ not forecast_sensor == '' and 'extra_forecast' in automation_extra }}"
+  is_forecast_enabled:         "{{ forecast_sensor != [] }} and 'extra_forecast' in automation_extra }}"
 
 triggers:
   - trigger:  time
@@ -224,7 +224,7 @@ triggers:
     enabled:  "{{ is_automation_sun_enabled }}"
 
   - trigger: state
-    entity_id: forecast_sensor
+    entity_id: !input forecast_sensor
     id:       sunset_trigger
     enabled:  "{{ is_forecast_enabled }}"
 
