@@ -58,6 +58,18 @@ blueprint:
               custom_value: false
               mode: list
 
+        forecast_sensor:
+          name: Прогнозный сенсор
+          description: >-
+            Сенсор, определяющий прогноз погоды
+          default: 
+          selector:
+            entity:
+              filter:
+                - domain: 
+                  - weather
+              multiple: false
+
     time_section:
       name: "Настройки управления по времени"
       icon: mdi:clock-time-eight-outline
@@ -150,18 +162,6 @@ blueprint:
           default: "00:10:00"
           selector:
             time: {}
-
-        forecast_sensor:
-          name: Прогнозный сенсор
-          description: >-
-            Сенсор, определяющий прогноз погоды
-          default: 
-          selector:
-            entity:
-              filter:
-                - domain: 
-                  - weather
-              multiple: false
 
         forecasts:
           name: Прогноз погоды
