@@ -1,7 +1,7 @@
 blueprint:
   name: Управление жалюзи
   description: |
-    # Управление жалюзи по времени или положению солнца. 
+    Управление жалюзи по времени или положению солнца. 
     
   domain: automation
   source_url: https://github.com/S0ft0r/ha-blueprints/blob/main/loggia/covers.yaml
@@ -129,6 +129,21 @@ blueprint:
               step: 1
               unit_of_measurement: '°'
               mode: slider
+        blind_for_protect:
+          name: Жалюзи
+          description: |
+            Какими жалюзи необходимо управлять для защиты от прямых лучей солнца?
+            <details>
+            Параметр не обязателен.
+            Если ничего не выбрано, то используются все жалюзи
+            </details>
+          selector:
+            entity:
+              filter:
+                - domain: 
+                  - cover
+              reorder: false
+              multiple: true
 
     options_section:
       name: "Дополнительные настройки"
