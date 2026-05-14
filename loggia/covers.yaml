@@ -38,6 +38,26 @@ blueprint:
               sort: false
               custom_value: false
 
+        automation_extra:
+          name: Дополнительные настройки
+          description: Какое-то объяснение для дополнительных настроек
+          default: []
+          selector:
+            select:
+              options:
+                - label: Задержка открытия до срабатывания будильника
+                  value: extra_alarm_pause
+                - label: Ограничение закрытия жалюзи %
+                  value: extra_limit_down
+                - label: Защита от прямых лучей солнца
+                  value: extra_sun_protect
+                - label: Учитывать погодный прогноз 
+                  value: extra_forecast
+              sort: false
+              multiple: true
+              custom_value: false
+              mode: list
+
     time_section:
       name: "Настройки управления по времени"
       icon: mdi:clock-time-eight-outline
@@ -52,6 +72,49 @@ blueprint:
           default: "20:00:00"
           selector:
             time: {}
+
+
+    sun_section:
+      name: "Настройки управления по солнцу"
+      icon: mdi:weather-sunny
+      input:
+        sun_sensor:
+          name: "Датчик солнца"
+          description: >-
+            Датчик, по которому определяется положение солнца
+          default: "sun.sun"
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - sun
+              multiple: false
+
+        sun_azimut:
+          name: Азимут солнца
+          description: >-
+            Угол между направлением на север и направлением на солнце. Для автоматического закрытия жалюзи при включенной опции защиты от прямых лучей солнца.
+          default: 0
+          selector:
+            number:
+              min: 0
+              max: 359
+              step: 1
+              unit_of_measurement: '°'
+              mode: slider
+
+        sun_elevation:
+          name: Высота солнца
+          description: >-
+            Угол возвышения солнца на горизонтом. Для автоматического открытия жалюзи при включенной защите от прямых лучей солнца
+          default: 0
+          selector:
+            number:
+              min: 0
+              max: 45
+              step: 1
+              unit_of_measurement: '°'
+              mode: slider
 
     options_section:
       name: "Дополнительные настройки"
@@ -69,13 +132,70 @@ blueprint:
               unit_of_measurement: "%"
               mode: slider
 
+        alarm_sensor:
+          name: Не поднимать до
+          description: >-
+            Датчик, определяющий время срабатывания будильника
+          default: 
+          selector: 
+            entity:
+              filter:
+                - domain: sensor
+                  device_class: timestamp
+              multiple: false
+
+        alarm_delay:
+          name: Задержка открытия
+          description: "Задержка открытия жалюзи после срабатывание будильника"
+          default: "00:10:00"
+          selector:
+            time: {}
+
+        forecast_sensor:
+          name: Прогнозный сенсор
+          description: >-
+            Сенсор, определяющий прогноз погоды
+          default: 
+          selector:
+            entity:
+              filter:
+                - domain: 
+                  - weather
+              multiple: false
+
+        forecasts:
+          name: Прогноз погоды
+          description: >-
+            Прогноз погоды, при котором срабатывает защита от попадания прямых лучей 
+          default: 
+            - forecast_sunny
+            - forecast_partlycloudy
+          selector:
+            select:
+              options:
+                - label: Ясно
+                  value: forecast_sunny
+                - label: Переменная облачность
+                  value: forecast_partlycloudy
+                - label: Облачно
+                  value: forecast_cloudy
+                - label: Туман
+                  value: forecast_fog
+              sort: false
+              multiple: true
+              custom_value: false
+              mode: list
+
+
 trigger_variables:
   automation_options: !input automation_options
+  automation_extra:   !input automation_extra
+
+  forecasts:          !input forecasts
+  alarm_delay:        !input alarm_delay
   
   is_automation_time_enabled:  "{{ 'options_time' in automation_options }}"
   is_automation_sun_enabled:   "{{ 'options_sun'  in automation_options }}"
-
-
 
 
 triggers:
@@ -88,6 +208,11 @@ triggers:
     at:       !input set_down_time
     id:       down_time_trigger
     enabled:  "{{ is_automation_time_enabled }}"
+
+  - trigger:  sun
+    event:    sunrise
+    id:       sunrise_trigger
+    enabled:  "{{ is_automation_sun_enabled }}"
 
 
 # conditions:
