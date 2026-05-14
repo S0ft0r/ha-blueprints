@@ -1,6 +1,8 @@
 blueprint:
   name: Управление жалюзи
-  description: Управление жалюзи по времени, солнцу, слайдеру
+  description: |
+    # Управление жалюзи по времени или положению солнца. 
+    
   domain: automation
   source_url: https://github.com/S0ft0r/ha-blueprints/blob/main/loggia/covers.yaml
   author: Softor
@@ -40,7 +42,7 @@ blueprint:
 
         automation_extra:
           name: Дополнительные настройки
-          description: Какое-то объяснение для дополнительных настроек
+          description: Дополнительные настройки автоматизации
           default: []
           selector:
             select:
@@ -144,7 +146,7 @@ blueprint:
               unit_of_measurement: "%"
               mode: slider
 
-        alarm_sensor:
+        do_not_blind_open_until_sensor:
           name: Не поднимать до
           description: >-
             Датчик, определяющий время срабатывания будильника
@@ -191,8 +193,9 @@ trigger_variables:
   automation_options: !input automation_options
   automation_extra:   !input automation_extra
 
-  forecast_sensor:    !input forecast_sensor
-  sun_sensor:         !input sun_sensor
+  forecast_sensor:                !input forecast_sensor
+  sun_sensor:                     !input sun_sensor
+  do_not_blind_open_until_sensor: !input do_not_blind_open_until_sensor
 
   forecasts:          !input forecasts
   alarm_delay:        !input alarm_delay
@@ -204,6 +207,7 @@ trigger_variables:
 
   is_forecast_enabled:         "{{ forecast_sensor != [] and 'extra_forecast' in automation_extra }}"
   is_sun_protect_enabled:      "{{ (sun_azimut != 0 or sun_elevation != 0) and 'extra_sun_protect' in automation_extra }}"
+  is_open_until_enabled:       "{{ do_not_blind_open_until_sensor != [] and 'extra_alarm_pause' in automation_extra }}"
 
 triggers:
   - trigger:        time
@@ -242,20 +246,6 @@ triggers:
     enabled:        "{{ is_sun_protect_enabled }}"
 
 
-
-
-# conditions:
-#   - condition: and
-#     conditions:
-#       - condition: state
-#         entity_id: input_boolean.cover_balcony_auto
-#         state:
-#           - "on"
-#       - condition: state
-#         entity_id: input_boolean.cover_balcony_time
-#         state:
-#           - "on"
-
 actions:
   - choose:
       - conditions: # Время открытия
@@ -263,6 +253,28 @@ actions:
             id:
               - up_time_trigger
         sequence:
+          - action: cover.set_cover_position
+            metadata: {}
+            target:
+              entity_id: !input blind
+            data:
+              position: 99
+
+      - conditions: # Солнце взошло
+          - condition: trigger
+            id:
+              - sunrise_trigger
+        sequence:
+          - if:
+            - condition: template
+              value_template: "{{ is_open_until_enabled }}"
+            then:
+              - wait_template: >-
+                  {% set h = alarm_delay.split(':')[0] | int %}
+                  {% set m = alarm_delay.split(':')[1] | int %}
+                  {% set s = alarm_delay.split(':')[2] | int %}
+                  {{ now() >= states('sensor.do_not_blinds_open_until') | as_datetime |
+                    as_local + timedelta(hours=h, minutes=m, seconds=s) }}
           - action: cover.set_cover_position
             metadata: {}
             target:
@@ -282,7 +294,31 @@ actions:
             data:
               position: !input down_limit
 
-      - conditions: # Закрыть 
+      - conditions: # Солнце село
+          - condition: trigger
+            id:
+              - sunset_trigger
+        sequence:
+          - action: cover.set_cover_position
+            metadata: {}
+            target:
+              entity_id: !input blind
+            data:
+              position: !input down_limit
+
+      - conditions: # Открыть жалюзи при защите от прямых лучей солнца
+          - condition: trigger
+            id:
+              - sun_elevation_trigger
+        sequence:
+          - action: cover.set_cover_position
+            metadata: {}
+            target:
+              entity_id: !input blind
+            data:
+              position: 99
+
+      - conditions: # Закрыть жалюзи при защите от прямых лучей солнца
           - condition: trigger
             id:
               - sun_azimut_trigger
