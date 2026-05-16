@@ -360,7 +360,7 @@ actions:
             target:
               entity_id: >
                 blind_protected: >-   
-                  {% if blind_for_protect == [] %}
+                  {% if blind_for_protect != [] %}
                     {{ blind_for_protect }} 
                   {% else %}
                     {{ blind }}
@@ -384,7 +384,7 @@ actions:
             target:
               entity_id: >
                 blind_protected: >-   
-                  {% if blind_for_protect == [] %}
+                  {% if blind_for_protect != [] %}
                     {{ blind_for_protect }} 
                   {% else %}
                     {{ blind }}
@@ -411,7 +411,7 @@ actions:
             target:
               entity_id: >
                 blind_protected: >-   
-                  {% if blind_for_protect == [] %}
+                  {% if blind_for_protect != [] %}
                     {{ blind_for_protect }} 
                   {% else %}
                     {{ blind }}
@@ -438,7 +438,7 @@ actions:
             target:
               entity_id: >
                 blind_protected: >-   
-                  {% if blind_for_protect == [] %}
+                  {% if blind_for_protect != [] %}
                     {{ blind_for_protect }} 
                   {% else %}
                     {{ blind }}
