@@ -392,7 +392,7 @@ actions:
             - forecast_trigger
         - condition: template
           value_template: |
-            {{ if states(forecast_sensor) in forecasts }} 
+            {{ states(forecast_sensor) in forecasts }} 
         - condition: template
           value_template: |
             {{ is_sun_protect_enabled and (state_attr(sun_sensor,'azimuth') | float > sun_azimut and state_attr(sun_sensor,'elevation') | float > sun_elevation) }}
@@ -419,7 +419,7 @@ actions:
             - forecast_trigger
         - condition: template
           value_template: |
-            {{ if not states(forecast_sensor) in forecasts }} 
+            {{ states(forecast_sensor) not in forecasts }} 
         - condition: template
           value_template: |
             {{ is_sun_protect_enabled and (state_attr(sun_sensor,'azimuth') | float > sun_azimut and state_attr(sun_sensor,'elevation') | float > sun_elevation) }}
