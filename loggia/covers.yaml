@@ -314,10 +314,10 @@ actions:
               value_template: "{{ is_open_until_enabled }}"
             then:
               - wait_template: >-
-                  {% set h = alarm_delay.split(':')[0] | int %}
-                  {% set m = alarm_delay.split(':')[1] | int %}
-                  {% set s = alarm_delay.split(':')[2] | int %}
-                  {{ now() >= states(do_not_blinds_open_until_sensor) | as_datetime |
+                  {% set h = alarm_delay.split(':')[0] | int(default=0) %}
+                  {% set m = alarm_delay.split(':')[1] | int(default=0) %}
+                  {% set s = alarm_delay.split(':')[2] | int(default=0) %}
+                  {{ now() >= states(do_not_blind_open_until_sensor) | as_datetime |
                     as_local + timedelta(hours=h, minutes=m, seconds=s) }}
           - action: cover.set_cover_position
             metadata: {}
@@ -364,7 +364,7 @@ actions:
                     {{ blind_for_protect }} 
                   {% else %}
                     {{ blind }}
-                  {% endif %}"
+                  {% endif %}
             data:
               position: !input up_limit
 
@@ -388,7 +388,7 @@ actions:
                     {{ blind_for_protect }} 
                   {% else %}
                     {{ blind }}
-                  {% endif %}"
+                  {% endif %}
             data:
               position: !input down_limit
 
@@ -404,7 +404,7 @@ actions:
               {{ is_sun_protect_enabled and (state_attr(sun_sensor,'azimuth') | float > sun_azimut and state_attr(sun_sensor,'elevation') | float > sun_elevation) }}
           - condition: template
             value_template: |
-              {{ is_automation_time_enabled and (now() >= today_at(states(set_up_time)) and now() <= today_at(states(set_down_time))) }}
+              {{ is_automation_time_enabled and (now() >= today_at(set_up_time) and now() <= today_at(set_down_time)) }}
         sequence:
           - action: cover.set_cover_position
             metadata: {}
@@ -415,7 +415,7 @@ actions:
                     {{ blind_for_protect }} 
                   {% else %}
                     {{ blind }}
-                  {% endif %}"
+                  {% endif %}
             data:
               position: !input down_limit
 
@@ -431,7 +431,7 @@ actions:
               {{ is_sun_protect_enabled and (state_attr(sun_sensor,'azimuth') | float > sun_azimut and state_attr(sun_sensor,'elevation') | float > sun_elevation) }}
           - condition: template
             value_template: |
-              {{ is_automation_time_enabled and (now() >= today_at(states(set_up_time)) and now() <= today_at(states(set_down_time))) }}
+              {{ is_automation_time_enabled and (now() >= today_at(set_up_time) and now() <= today_at(set_down_time)) }}
         sequence:
           - action: cover.set_cover_position
             metadata: {}
@@ -442,7 +442,7 @@ actions:
                     {{ blind_for_protect }} 
                   {% else %}
                     {{ blind }}
-                  {% endif %}"
+                  {% endif %}
             data:
               position: !input up_limit
 
