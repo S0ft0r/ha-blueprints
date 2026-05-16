@@ -16,9 +16,6 @@ blueprint:
           filter:
             - domain: 
               - cover
-            - domain:
-              - group
-              device_class: blind
           reorder: false
           multiple: true
 
@@ -67,7 +64,7 @@ blueprint:
           name: Прогнозный сенсор
           description: |
             Сенсор, определяющий прогноз погоды.
-              * Параметр обязателен только при выборе параметра "Учитывать погодный прогноз".
+              * Параметр обязателен только при выборе параметра <em>"Учитывать погодный прогноз"</em>.
               Если ничего не выбрано, то дополнительный параметр учитываться не будет.
           default: []
           selector:
@@ -374,10 +371,13 @@ actions:
             id:
               - sun_azimut_trigger
           - condition: template
-            value_template: "{{ state_attr(sun_sensor,'elevation') | float > sun_elevation }}"
+            value_template: |
+              {{ state_attr(sun_sensor,'elevation') | float > sun_elevation }}
+          - condition: template
+            value_template: |
+              {{ is_forecast_enabled and states(forecast_sensor) in forecasts }} 
         sequence:
           - action: cover.set_cover_position
-            metadata: {}
             target:
              entity_id: >
                 blind_protected: >-   
@@ -390,18 +390,18 @@ actions:
               position: !input down_limit
 
       - conditions: # Закрыть при изменении погоды при включенном режиме защиты от прямых лучей
-        - condition: trigger
-          id:
-            - forecast_trigger
-        - condition: template
-          value_template: |
-            {{ states(forecast_sensor) in forecasts }} 
-        - condition: template
-          value_template: |
-            {{ is_sun_protect_enabled and (state_attr(sun_sensor,'azimuth') | float > sun_azimut and state_attr(sun_sensor,'elevation') | float > sun_elevation) }}
-        - condition: template
-          value_template: |
-            {{ is_automation_time_enabled and (now() >= today_at(states(set_up_time)) and now() <= today_at(states(set_down_time))) }}
+          - condition: trigger
+            id:
+              - forecast_trigger
+          - condition: template
+            value_template: |
+              {{ states(forecast_sensor) in forecasts }} 
+          - condition: template
+            value_template: |
+              {{ is_sun_protect_enabled and (state_attr(sun_sensor,'azimuth') | float > sun_azimut and state_attr(sun_sensor,'elevation') | float > sun_elevation) }}
+          - condition: template
+            value_template: |
+              {{ is_automation_time_enabled and (now() >= today_at(states(set_up_time)) and now() <= today_at(states(set_down_time))) }}
         sequence:
           - action: cover.set_cover_position
             metadata: {}
@@ -417,18 +417,18 @@ actions:
               position: !input down_limit
 
       - conditions: # Открыть при изменении погоды при включенном режиме защиты от прямых лучей
-        - condition: trigger
-          id:
-            - forecast_trigger
-        - condition: template
-          value_template: |
-            {{ states(forecast_sensor) not in forecasts }} 
-        - condition: template
-          value_template: |
-            {{ is_sun_protect_enabled and (state_attr(sun_sensor,'azimuth') | float > sun_azimut and state_attr(sun_sensor,'elevation') | float > sun_elevation) }}
-        - condition: template
-          value_template: |
-            {{ is_automation_time_enabled and (now() >= today_at(states(set_up_time)) and now() <= today_at(states(set_down_time))) }}
+          - condition: trigger
+            id:
+              - forecast_trigger
+          - condition: template
+            value_template: |
+              {{ states(forecast_sensor) not in forecasts }} 
+          - condition: template
+            value_template: |
+              {{ is_sun_protect_enabled and (state_attr(sun_sensor,'azimuth') | float > sun_azimut and state_attr(sun_sensor,'elevation') | float > sun_elevation) }}
+          - condition: template
+              value_template: |
+              {{ is_automation_time_enabled and (now() >= today_at(states(set_up_time)) and now() <= today_at(states(set_down_time))) }}
         sequence:
           - action: cover.set_cover_position
             metadata: {}
