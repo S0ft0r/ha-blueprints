@@ -49,8 +49,8 @@ blueprint:
               options:
                 - label: Задержка открытия до срабатывания будильника
                   value: extra_alarm_pause
-                - label: Ограничение закрытия жалюзи %
-                  value: extra_limit_down
+                # - label: Ограничение закрытия жалюзи %
+                #   value: extra_limit_down
                 - label: Защита от прямых лучей солнца
                   value: extra_sun_protect
                 - label: Учитывать погодный прогноз 
@@ -148,6 +148,18 @@ blueprint:
       name: "Дополнительные настройки"
       icon: mdi:cog
       input:
+        up_limit:
+          name: Верхний предел
+          description: "Верхний предел при открытии жалюзи - если нет нужды открывать жалюзи до конца."
+          default: 99
+          selector:
+            number:
+              min: 0
+              max: 100
+              step: 1
+              unit_of_measurement: "%"
+              mode: slider
+
         down_limit:
           name: Нижний предел
           description: "Нижний предел при закрытии жалюзи - если нет нужды закрывать жалюзи до конца."
@@ -208,6 +220,7 @@ trigger_variables:
   automation_extra:   !input automation_extra
 
   forecast_sensor:                !input forecast_sensor
+  blind_for_protect:              !input blind_for_protect
   sun_sensor:                     !input sun_sensor
   do_not_blind_open_until_sensor: !input do_not_blind_open_until_sensor
 
@@ -215,6 +228,13 @@ trigger_variables:
   alarm_delay:        !input alarm_delay
   sun_azimut:         !input sun_azimut
   sun_elevation:      !input sun_elevation
+
+  blind_protected: >-   
+    {% if blind_for_protect == [] %}
+      {{ blind_for_protect }} 
+    {% else %}
+      {{ blind }}
+    {% endif %}"
   
   is_automation_time_enabled:  "{{ 'options_time' in automation_options }}"
   is_automation_sun_enabled:   "{{ 'options_sun'  in automation_options }}"
@@ -294,7 +314,7 @@ actions:
             target:
               entity_id: !input blind
             data:
-              position: 99
+              position: !input up_limit
 
       - conditions: # Время закрытия
           - condition: trigger
@@ -328,9 +348,9 @@ actions:
           - action: cover.set_cover_position
             metadata: {}
             target:
-              entity_id: !input blind
+              entity_id: blind_protected
             data:
-              position: 99
+              position: !input up_limit
 
       - conditions: # Закрыть жалюзи при защите от прямых лучей солнца
           - condition: trigger
@@ -342,7 +362,7 @@ actions:
           - action: cover.set_cover_position
             metadata: {}
             target:
-              entity_id: !input blind
+              entity_id: blind_protected
             data:
               position: !input down_limit
 
