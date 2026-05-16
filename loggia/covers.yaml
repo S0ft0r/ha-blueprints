@@ -356,7 +356,7 @@ actions:
           - action: cover.set_cover_position
             metadata: {}
             target:
-             entity_id: >
+              entity_id: >
                 blind_protected: >-   
                   {% if blind_for_protect == [] %}
                     {{ blind_for_protect }} 
