@@ -207,19 +207,19 @@ blueprint:
           description: >-
             Прогноз погоды, при котором срабатывает защита от попадания прямых лучей 
           default: 
-            - forecast_sunny
-            - forecast_partlycloudy
+            - sunny
+            - partlycloudy
           selector:
             select:
               options:
                 - label: Ясно
-                  value: forecast_sunny
+                  value: sunny
                 - label: Переменная облачность
-                  value: forecast_partlycloudy
+                  value: partlycloudy
                 - label: Облачно
-                  value: forecast_cloudy
+                  value: cloudy
                 - label: Туман
-                  value: forecast_fog
+                  value: fog
               sort: false
               multiple: true
               custom_value: false
@@ -239,6 +239,9 @@ trigger_variables:
   alarm_delay:        !input alarm_delay
   sun_azimut:         !input sun_azimut
   sun_elevation:      !input sun_elevation
+
+  set_up_time:        !input set_up_time
+  set_down_time:      !input set_down_time
 
   
   is_automation_time_enabled:  "{{ 'options_time' in automation_options }}"
@@ -382,5 +385,59 @@ actions:
                   {% endif %}"
             data:
               position: !input down_limit
+
+      - conditions: # Закрыть при изменении погоды при включенном режиме защиты от прямых лучей
+        - condition: trigger
+          id:
+            - forecast_trigger
+        - condition: template
+          value_template: |
+            {{ if states(forecast_sensor) in forecasts }} 
+        - condition: template
+          value_template: |
+            {{ is_sun_protect_enabled and (state_attr(sun_sensor,'azimuth') | float > sun_azimut and state_attr(sun_sensor,'elevation') | float > sun_elevation) }}
+        - condition: template
+          value_template: |
+            {{ is_automation_time_enabled and (now() >= today_at(states(set_up_time)) and now() <= today_at(states(set_down_time))) }}
+        sequence:
+          - action: cover.set_cover_position
+            metadata: {}
+            target:
+             entity_id: >
+                blind_protected: >-   
+                  {% if blind_for_protect == [] %}
+                    {{ blind_for_protect }} 
+                  {% else %}
+                    {{ blind }}
+                  {% endif %}"
+            data:
+              position: !input down_limit
+
+      - conditions: # Открыть при изменении погоды при включенном режиме защиты от прямых лучей
+        - condition: trigger
+          id:
+            - forecast_trigger
+        - condition: template
+          value_template: |
+            {{ if not states(forecast_sensor) in forecasts }} 
+        - condition: template
+          value_template: |
+            {{ is_sun_protect_enabled and (state_attr(sun_sensor,'azimuth') | float > sun_azimut and state_attr(sun_sensor,'elevation') | float > sun_elevation) }}
+        - condition: template
+          value_template: |
+            {{ is_automation_time_enabled and (now() >= today_at(states(set_up_time)) and now() <= today_at(states(set_down_time))) }}
+        sequence:
+          - action: cover.set_cover_position
+            metadata: {}
+            target:
+             entity_id: >
+                blind_protected: >-   
+                  {% if blind_for_protect == [] %}
+                    {{ blind_for_protect }} 
+                  {% else %}
+                    {{ blind }}
+                  {% endif %}"
+            data:
+              position: !input up_limit
 
 mode: single
