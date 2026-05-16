@@ -348,7 +348,12 @@ actions:
           - action: cover.set_cover_position
             metadata: {}
             target:
-              entity_id: !input blind_for_protect
+             entity_id: >-
+                {% if blind_for_protect == [] %}
+                  {{ !input blind_for_protect }}
+                {% else %}
+                  {{ !input blind }}
+                {% endif %}"
             data:
               position: !input up_limit
 
@@ -362,7 +367,12 @@ actions:
           - action: cover.set_cover_position
             metadata: {}
             target:
-              entity_id: !input blind_for_protect
+              entity_id: >-
+                {% if blind_for_protect == [] %}
+                  {{ !input blind_for_protect }}
+                {% else %}
+                  {{ !input blind }}
+                {% endif %}"
             data:
               position: !input down_limit
 
