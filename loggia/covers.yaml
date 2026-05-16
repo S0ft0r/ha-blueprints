@@ -378,8 +378,9 @@ actions:
               {{ is_forecast_enabled and states(forecast_sensor) in forecasts }} 
         sequence:
           - action: cover.set_cover_position
+            metadata: {}
             target:
-             entity_id: >
+              entity_id: >
                 blind_protected: >-   
                   {% if blind_for_protect == [] %}
                     {{ blind_for_protect }} 
@@ -406,7 +407,7 @@ actions:
           - action: cover.set_cover_position
             metadata: {}
             target:
-             entity_id: >
+              entity_id: >
                 blind_protected: >-   
                   {% if blind_for_protect == [] %}
                     {{ blind_for_protect }} 
@@ -427,13 +428,13 @@ actions:
             value_template: |
               {{ is_sun_protect_enabled and (state_attr(sun_sensor,'azimuth') | float > sun_azimut and state_attr(sun_sensor,'elevation') | float > sun_elevation) }}
           - condition: template
-              value_template: |
+            value_template: |
               {{ is_automation_time_enabled and (now() >= today_at(states(set_up_time)) and now() <= today_at(states(set_down_time))) }}
         sequence:
           - action: cover.set_cover_position
             metadata: {}
             target:
-             entity_id: >
+              entity_id: >
                 blind_protected: >-   
                   {% if blind_for_protect == [] %}
                     {{ blind_for_protect }} 
