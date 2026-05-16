@@ -348,7 +348,7 @@ actions:
           - action: cover.set_cover_position
             metadata: {}
             target:
-              entity_id: blind_protected
+              entity_id: !input blind_for_protect
             data:
               position: !input up_limit
 
@@ -362,7 +362,7 @@ actions:
           - action: cover.set_cover_position
             metadata: {}
             target:
-              entity_id: blind_protected
+              entity_id: !input blind_for_protect
             data:
               position: !input down_limit
 
