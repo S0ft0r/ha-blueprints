@@ -16,6 +16,9 @@ blueprint:
           filter:
             - domain: 
               - cover
+            - domain:
+              - group
+              device_class: blind
           reorder: false
           multiple: true
 
