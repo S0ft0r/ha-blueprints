@@ -292,7 +292,7 @@ actions:
             target:
               entity_id: !input blind
             data:
-              position: 99
+              position: !input up_limit
 
       - conditions: # Солнце взошло
           - condition: trigger
