@@ -26,7 +26,8 @@ blueprint:
       input:
         automation_options:
           name: Настройки управления жалюзи
-          description: Выбор между открытием/закрытием жалюзи по времени и по рассвету/закату солнца.
+          description: | 
+            Выбор между открытием/закрытием жалюзи по времени и по рассвету/закату солнца.
           default:
             - options_sun
           selector:
@@ -197,15 +198,16 @@ blueprint:
 
         alarm_delay:
           name: Задержка открытия
-          description: "Задержка открытия жалюзи после срабатывание будильника"
+          description: |
+            Задержка открытия жалюзи после срабатывание датчика времени срабатывания будильника
           default: "00:10:00"
           selector:
             time: {}
 
         forecasts:
           name: Прогноз погоды
-          description: >-
-            Прогноз погоды, при котором срабатывает защита от попадания прямых лучей 
+          description: |
+            Прогноз погоды, при котором будет активна защита от попадания прямых лучей 
           default: 
             - sunny
             - partlycloudy
@@ -227,29 +229,29 @@ blueprint:
 
 
 trigger_variables:
-  automation_options: !input automation_options
-  automation_extra:   !input automation_extra
+  automation_options:             !input automation_options
+  automation_extra:               !input automation_extra
 
   forecast_sensor:                !input forecast_sensor
   blind_for_protect:              !input blind_for_protect
   sun_sensor:                     !input sun_sensor
   do_not_blind_open_until_sensor: !input do_not_blind_open_until_sensor
 
-  forecasts:          !input forecasts
-  alarm_delay:        !input alarm_delay
-  sun_azimut:         !input sun_azimut
-  sun_elevation:      !input sun_elevation
+  forecasts:                      !input forecasts
+  alarm_delay:                    !input alarm_delay
+  sun_azimut:                     !input sun_azimut
+  sun_elevation:                  !input sun_elevation
 
-  set_up_time:        !input set_up_time
-  set_down_time:      !input set_down_time
+  set_up_time:                    !input set_up_time
+  set_down_time:                  !input set_down_time
 
   
-  is_automation_time_enabled:  "{{ 'options_time' in automation_options }}"
-  is_automation_sun_enabled:   "{{ 'options_sun'  in automation_options }}"
+  is_automation_time_enabled:     "{{ 'options_time' in automation_options }}"
+  is_automation_sun_enabled:      "{{ 'options_sun'  in automation_options }}"
 
-  is_forecast_enabled:         "{{ forecast_sensor != [] and 'extra_forecast' in automation_extra }}"
-  is_sun_protect_enabled:      "{{ (sun_azimut != 0 or sun_elevation != 0) and 'extra_sun_protect' in automation_extra }}"
-  is_open_until_enabled:       "{{ do_not_blind_open_until_sensor != [] and 'extra_alarm_pause' in automation_extra }}"
+  is_forecast_enabled:            "{{ forecast_sensor != [] and 'extra_forecast' in automation_extra }}"
+  is_sun_protect_enabled:         "{{ (sun_azimut != 0 or sun_elevation != 0) and 'extra_sun_protect' in automation_extra }}"
+  is_open_until_enabled:          "{{ do_not_blind_open_until_sensor != [] and 'extra_alarm_pause' in automation_extra }}"
 
 triggers:
   - trigger:        time
