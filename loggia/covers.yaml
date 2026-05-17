@@ -3,7 +3,7 @@ blueprint:
   description: |
     Управление шторами по времени или положению солнца. 
      * Версия 2026.05.00
-       <sub>Сборка 118</sub> 
+       <sub>Сборка 120</sub> 
   domain: automation
   source_url: https://github.com/S0ft0r/ha-blueprints/blob/main/loggia/covers.yaml
   author: Softor
@@ -376,9 +376,9 @@ actions:
           - condition: template
             value_template: |
               {% if is_forecast_enabled %} 
-                {{ state_attr(sun_sensor,'elevation') | float(default=360) > sun_elevation and states(forecast_sensor) in forecasts }}
+                {{ states(forecast_sensor) in forecasts }}
               {% else %}
-                {{ state_attr(sun_sensor,'elevation') | float(default=360) > sun_elevation }}
+                true
               {% endif %}
         sequence:
           - action: cover.set_cover_position
