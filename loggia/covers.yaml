@@ -360,8 +360,7 @@ actions:
           - action: cover.set_cover_position
             metadata: {}
             target:
-              entity_id: >
-                blind_protected: >-   
+              entity_id: >   
                   {% if blind_for_protect != [] %}
                     {{ blind_for_protect }} 
                   {% else %}
@@ -384,8 +383,7 @@ actions:
           - action: cover.set_cover_position
             metadata: {}
             target:
-              entity_id: >
-                blind_protected: >-   
+              entity_id: >   
                   {% if blind_for_protect != [] %}
                     {{ blind_for_protect }} 
                   {% else %}
@@ -411,8 +409,7 @@ actions:
           - action: cover.set_cover_position
             metadata: {}
             target:
-              entity_id: >
-                blind_protected: >-   
+              entity_id: >   
                   {% if blind_for_protect != [] %}
                     {{ blind_for_protect }} 
                   {% else %}
@@ -438,8 +435,7 @@ actions:
           - action: cover.set_cover_position
             metadata: {}
             target:
-              entity_id: >
-                blind_protected: >-   
+              entity_id: >   
                   {% if blind_for_protect != [] %}
                     {{ blind_for_protect }} 
                   {% else %}
