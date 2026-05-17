@@ -233,6 +233,7 @@ trigger_variables:
   automation_extra:               !input automation_extra
 
   forecast_sensor:                !input forecast_sensor
+  blind:                          !input blind
   blind_for_protect:              !input blind_for_protect
   sun_sensor:                     !input sun_sensor
   do_not_blind_open_until_sensor: !input do_not_blind_open_until_sensor
