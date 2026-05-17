@@ -55,7 +55,7 @@ blueprint:
                 #   value: extra_limit_down
                 - label: Защита от прямых лучей солнца
                   value: extra_sun_protect
-                - label: Учитывать погодный прогноз 
+                - label: Учитывать прогноз погоды  
                   value: extra_forecast
               sort: false
               multiple: true
@@ -66,7 +66,7 @@ blueprint:
           name: Прогнозный сенсор
           description: |
             Сенсор, определяющий прогноз погоды.
-              * Параметр обязателен только при выборе параметра <em>"Учитывать погодный прогноз"</em>.
+              * Параметр обязателен только при выборе параметра <em>"Учитывать прогноз погоды"</em>.
               Если ничего не выбрано, то дополнительный параметр учитываться не будет.
           default: []
           selector:
@@ -79,7 +79,7 @@ blueprint:
     time_section:
       name: Настройки управления по времени
       description: |
-        Устанавливается время открытия/закртытия штор.        
+        Устанавливается время открытия/закрытия штор.        
       icon: mdi:clock-time-eight-outline
       input:
         set_up_time:
@@ -127,7 +127,7 @@ blueprint:
         sun_elevation:
           name: Высота солнца
           description: >-
-            Угол возвышения солнца на горизонтом. 
+            Угол возвышения солнца над горизонтом. 
               * Для автоматического открытия штор при включенной защите от прямых лучей солнца
           default: 0
           selector:
@@ -188,7 +188,7 @@ blueprint:
           name: Не поднимать до
           description: >-
             Датчик, определяющий время срабатывания будильника
-              * Вывод датчик <strong>обязательно</strong> в фомате timestamp
+              * Вывод датчик <strong>обязательно</strong> в формате timestamp
           default: []
           selector: 
             entity:
@@ -362,9 +362,9 @@ actions:
             target:
               entity_id: >   
                   {% if blind_for_protect != [] %}
-                    {{ blind_for_protect }} 
+                    {{ blind_for_protect | list }} 
                   {% else %}
-                    {{ blind }}
+                    {{ blind | list}}
                   {% endif %}
             data:
               position: !input up_limit
@@ -385,9 +385,9 @@ actions:
             target:
               entity_id: >   
                   {% if blind_for_protect != [] %}
-                    {{ blind_for_protect }} 
+                    {{ blind_for_protect | list }} 
                   {% else %}
-                    {{ blind }}
+                    {{ blind | list}}
                   {% endif %}
             data:
               position: !input down_limit
@@ -411,9 +411,9 @@ actions:
             target:
               entity_id: >   
                   {% if blind_for_protect != [] %}
-                    {{ blind_for_protect }} 
+                    {{ blind_for_protect | list }} 
                   {% else %}
-                    {{ blind }}
+                    {{ blind | list}}
                   {% endif %}
             data:
               position: !input down_limit
@@ -437,9 +437,9 @@ actions:
             target:
               entity_id: >   
                   {% if blind_for_protect != [] %}
-                    {{ blind_for_protect }} 
+                    {{ blind_for_protect | list }} 
                   {% else %}
-                    {{ blind }}
+                    {{ blind | list}}
                   {% endif %}
             data:
               position: !input up_limit
