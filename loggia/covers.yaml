@@ -314,14 +314,16 @@ blueprint:
           name: Количество повторов
           description: |
             Для защиты от несработки открытия/закрытия штор.
-          default: 1
+          default: 2
           selector:
             number:
-              min: 0
+              min: 1
               max: 5
               step: 1
               mode: box
 
+variables:
+  count: repeat_for
 
 trigger_variables:
   automation_options:             !input automation_options
@@ -418,7 +420,7 @@ actions:
               - up_time_trigger
         sequence:
           - repeat:
-              count: 2
+              count: !input repeat_for
               sequence:
                 - action: cover.set_cover_position
                   metadata: {}
@@ -426,16 +428,9 @@ actions:
                     entity_id: !input blind
                   data:
                     position: |
-                      {{ (up_limit-1) if up_limit_sensor == [] else states(up_limit_sensor)-1 | int(0) }}
+                      {{ (up_limit - (repeat_for - repeat.index)) if up_limit_sensor == [] else (states(up_limit_sensor) - (repeat_for - repeat.index)) | int(0) }}
                 - delay:
                     seconds: 3
-                - action: cover.set_cover_position
-                  metadata: {}
-                  target:
-                    entity_id: !input blind
-                  data:
-                    position: |
-                      {{ up_limit if up_limit_sensor == [] else states(up_limit_sensor) | int(0) }}
 
       - conditions: # Солнце взошло
           - condition: trigger
@@ -452,53 +447,73 @@ actions:
                   {% set s = alarm_delay.split(':')[2] | int(default=0) %}
                   {{ now() >= states(do_not_blind_open_until_sensor) | as_datetime |
                     as_local + timedelta(hours=h, minutes=m, seconds=s) }}
-          - action: cover.set_cover_position
-            metadata: {}
-            target:
-              entity_id: !input blind
-            data:
-              position: |
-                {{ up_limit if up_limit_sensor == [] else states(up_limit_sensor) | int(0) }}
+              - repeat:
+                  count: !input repeat_for
+                  sequence:
+                    - action: cover.set_cover_position
+                      metadata: {}
+                      target:
+                        entity_id: !input blind
+                      data:
+                        position: |
+                          {{ (up_limit - (repeat_for - repeat.index)) if up_limit_sensor == [] else (states(up_limit_sensor) - (repeat_for - repeat.index)) | int(0) }}
+                    - delay:
+                        seconds: 3
 
       - conditions: # Время закрытия
           - condition: trigger
             id:
               - down_time_trigger
         sequence:
-          - action: cover.set_cover_position
-            metadata: {}
-            target:
-              entity_id: !input blind
-            data:
-              position: |
-                {{ down_limit if down_limit_sensor == [] else states(down_limit_sensor) | int(0) }}
+          - repeat:
+              count: !input repeat_for
+              sequence:
+                - action: cover.set_cover_position
+                  metadata: {}
+                  target:
+                    entity_id: ! input blind
+                  data:
+                    position: |
+                      {{ (down_limit + (repeat_for - repeat.index)) if down_limit_sensor == [] else (states(down_limit_sensor) + (repeat_for - repeat.index)) | int(0) }}
+                - delay:
+                    seconds: 3
 
       - conditions: # Солнце село
           - condition: trigger
             id:
               - sunset_trigger
         sequence:
-          - action: cover.set_cover_position
-            metadata: {}
-            target:
-              entity_id: !input blind
-            data:
-              position: |
-                {{ down_limit if down_limit_sensor == [] else states(down_limit_sensor) | int(0) }}
+          - repeat:
+              count: !input repeat_for
+              sequence:
+                - action: cover.set_cover_position
+                  metadata: {}
+                  target:
+                    entity_id: ! input blind
+                  data:
+                    position: |
+                      {{ (down_limit + (repeat_for - repeat.index)) if down_limit_sensor == [] else (states(down_limit_sensor) + (repeat_for - repeat.index)) | int(0) }}
+                - delay:
+                    seconds: 3
 
       - conditions: # Открыть шторы при защите от прямых лучей солнца
           - condition: trigger
             id:
               - sun_elevation_trigger
         sequence:
-          - action: cover.set_cover_position
-            metadata: {}
-            target:
-              entity_id: >   
-                {{ (blind if blind_for_protect == [] else  blind_for_protect) | list }}
-            data:
-              position: |
-                {{ up_limit if up_limit_sensor == [] else states(up_limit_sensor) | int(0) }}
+          - repeat:
+              count: !input repeat_for
+              sequence:
+                - action: cover.set_cover_position
+                  metadata: {}
+                  target:
+                    entity_id: >   
+                      {{ (blind if blind_for_protect == [] else  blind_for_protect) | list }}
+                  data:
+                    position: |
+                      {{ (up_limit - (repeat_for - repeat.index)) if up_limit_sensor == [] else (states(up_limit_sensor) - (repeat_for - repeat.index)) | int(0) }}
+                - delay:
+                    seconds: 3
 
       - conditions: # Закрыть шторы при защите от прямых лучей солнца
           - condition: trigger
@@ -508,14 +523,19 @@ actions:
             value_template: |
               {{ true if not is_forecast_enabled else (states(forecast_sensor) in forecasts) }}
         sequence:
-          - action: cover.set_cover_position
-            metadata: {}
-            target:
-              entity_id: >   
-                {{ (blind if blind_for_protect == [] else blind_for_protect) | list }}
-            data:
-              position: |
-                {{ down_limit if down_limit_sensor == [] else states(down_limit_sensor) | int(0) }}
+          - repeat:
+              count: !input repeat_for
+              sequence:
+                - action: cover.set_cover_position
+                  metadata: {}
+                  target:
+                    entity_id: >   
+                      {{ (blind if blind_for_protect == [] else  blind_for_protect) | list }}
+                  data:
+                    position: |
+                      {{ (down_limit + (repeat_for - repeat.index)) if down_limit_sensor == [] else (states(down_limit_sensor) + (repeat_for - repeat.index)) | int(0) }}
+                - delay:
+                    seconds: 3
 
       - conditions: # Закрыть при изменении погоды при включенном режиме защиты от прямых лучей
           - condition: trigger
@@ -534,14 +554,19 @@ actions:
               {{ true if not is_automation_time_enabled else (now() >= today_at(set_up_time) and now() <= today_at(set_down_time)) }}
 
         sequence:
-          - action: cover.set_cover_position
-            metadata: {}
-            target:
-              entity_id: >   
-                {{ (blind if blind_for_protect == [] else  blind_for_protect) | list }}
-            data:
-              position: |
-                {{ down_limit if down_limit_sensor == [] else states(down_limit_sensor) | int(0) }}
+          - repeat:
+              count: !input repeat_for
+              sequence:
+                - action: cover.set_cover_position
+                  metadata: {}
+                  target:
+                    entity_id: >   
+                      {{ (blind if blind_for_protect == [] else  blind_for_protect) | list }}
+                  data:
+                    position: |
+                      {{ (down_limit + (repeat_for - repeat.index)) if down_limit_sensor == [] else (states(down_limit_sensor) + (repeat_for - repeat.index)) | int(0) }}
+                - delay:
+                    seconds: 3
 
       - conditions: # Открыть при изменении погоды при включенном режиме защиты от прямых лучей
           - condition: trigger
@@ -562,14 +587,19 @@ actions:
             value_template: |
               {{ true if not is_automation_sun_enabled else (states(sun_sensor) == 'above_horizon') }}
         sequence:
-          - action: cover.set_cover_position
-            metadata: {}
-            target:
-              entity_id: >   
-                {{ (blind if blind_for_protect == [] else  blind_for_protect) | list }}
-            data:
-              position: |
-                {{ up_limit if up_limit_sensor == [] else states(up_limit_sensor) | int(0) }}
+          - repeat:
+              count: !input repeat_for
+              sequence:
+                - action: cover.set_cover_position
+                  metadata: {}
+                  target:
+                    entity_id: >   
+                      {{ (blind if blind_for_protect == [] else  blind_for_protect) | list }}
+                  data:
+                    position: |
+                      {{ (up_limit - (repeat_for - repeat.index)) if up_limit_sensor == [] else (states(up_limit_sensor) - (repeat_for - repeat.index)) | int(0) }}
+                - delay:
+                    seconds: 3
 
 mode: queued
 max: 10
