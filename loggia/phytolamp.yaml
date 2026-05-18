@@ -1,0 +1,44 @@
+blueprint:
+  name: Управление подсветкой цветов
+  description: |
+    Управление подсветкой цветов по времени или положению солнца. 
+     * Версия 2026.05.00
+       <sub>Сборка 1</sub> 
+  domain: automation
+  source_url: https://github.com/S0ft0r/ha-blueprints/blob/main/loggia/phytolamp.yaml
+  author: Softor
+  
+  input:
+    phytolamp:
+      name: Подсветка
+      description: Какими лампами / реле включения ламп необходимо управлять?
+      selector:
+        entity:
+          filter:
+            - domain: 
+              - light
+              - switch
+          reorder: false
+          multiple: true
+
+    automation_section:
+      name: Настройки автоматизации
+      icon: mdi:window-shutter-cog
+      collapsed: false
+      input:
+        automation_options:
+          name: Настройки управления подсветкой
+          description: | 
+            Выбор между включением/выключением подсветкой по времени или по рассвету/закату солнца.
+          default:
+            - options_sun
+          selector:
+            select:
+              options:
+                - label: Включение/выключение по времени
+                  value: options_time
+                - label: Включение/выключение по солнцу
+                  value: options_sun
+              multiple: false
+              sort: false
+              custom_value: false
