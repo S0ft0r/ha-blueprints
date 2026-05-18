@@ -36,8 +36,8 @@ blueprint:
               options:
                 - label: Включение/выключение по времени
                   value: options_time
-                - label: Включение/выключение по солнцу
-                  value: options_sun
+#                - label: Включение/выключение по солнцу
+#                  value: options_sun
                 - label: Включение/выключение по положению штор
                   value: options_blind
               multiple: false
