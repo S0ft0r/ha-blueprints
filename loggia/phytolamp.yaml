@@ -230,7 +230,7 @@ actions:
               {{ states(forecast_sensor) in forecasts }} 
           - condition: template
             value_template: |
-              {{ true if not is_automation_time_enabled else (as_timestamp(now()) | timestamp_custom("%H:%M") >= on_time) and as_timestamp(now()) | timestamp_custom("%H:%M") <= off_time) }}
+              {{ true if not is_automation_time_enabled else (as_timestamp(now()) | timestamp_custom("%H:%M") >= on_time and as_timestamp(now()) | timestamp_custom("%H:%M") <= off_time) }}
         sequence:
           - action: homeassistant.turn_off
             metadata: {}            
@@ -246,7 +246,7 @@ actions:
               {{ states(forecast_sensor) not in forecasts }} 
           - condition: template
             value_template: |
-              {{ true if not is_automation_time_enabled else (as_timestamp(now()) | timestamp_custom("%H:%M") >= on_time) and as_timestamp(now()) | timestamp_custom("%H:%M") <= off_time) }}
+              {{ true if not is_automation_time_enabled else (as_timestamp(now()) | timestamp_custom("%H:%M") >= on_time and as_timestamp(now()) | timestamp_custom("%H:%M") <= off_time) }}
         sequence:
           - action: homeassistant.turn_off
             metadata: {}            
