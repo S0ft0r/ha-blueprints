@@ -315,7 +315,7 @@ actions:
             - condition: template
               value_template: "{{ is_open_until_enabled }}"
             then:
-              - wait_template: >-
+              - wait_template: |
                   {% set h = alarm_delay.split(':')[0] | int(default=0) %}
                   {% set m = alarm_delay.split(':')[1] | int(default=0) %}
                   {% set s = alarm_delay.split(':')[2] | int(default=0) %}
@@ -371,7 +371,7 @@ actions:
               - sun_azimut_trigger
           - condition: template
             value_template: |
-              {{ true if not is_forecast_enabled else states(forecast_sensor) in forecasts }}
+              {{ true if not is_forecast_enabled else (states(forecast_sensor) in forecasts) }}
         sequence:
           - action: cover.set_cover_position
             metadata: {}
@@ -393,7 +393,7 @@ actions:
               {{ true is not is_sun_protect_enabled else (state_attr(sun_sensor,'azimuth') | float(default=45) > sun_azimut and state_attr(sun_sensor,'elevation') | float(default=360) > sun_elevation) }}
           - condition: template
             value_template: |
-              {{ true if not is_automation_time_enabled else now() >= today_at(set_up_time) and now() <= today_at(set_down_time) }}
+              {{ true if not is_automation_time_enabled else (now() >= today_at(set_up_time) and now() <= today_at(set_down_time)) }}
 
         sequence:
           - action: cover.set_cover_position
@@ -413,7 +413,7 @@ actions:
               {{ states(forecast_sensor) not in forecasts }} 
           - condition: template
             value_template: |
-              {{ true if not is_sun_protect_enabled else (state_attr(sun_sensor,'azimuth') | float(default=360) > sun_azimut and state_attr(sun_sensor,'elevation') | float(default=360) > sun_elevation) }}
+              {{ true if not is_sun_protect_enabled else (state_attr(sun_sensor,'azimuth') | float(default=45) > sun_azimut and state_attr(sun_sensor,'elevation') | float(default=360) > sun_elevation) }}
           - condition: template
             value_template: |
               {{ true if not is_automation_time_enabled else (now() >= today_at(set_up_time) and now() <= today_at(set_down_time)) }}
