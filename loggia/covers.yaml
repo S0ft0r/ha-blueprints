@@ -328,10 +328,11 @@ blueprint:
           name: Выключатель/слайдер
           description: |
             Выключатель типа <strong>Aqara Z1 Pro</strong> со встроенным слайдером.
-          default: []
+          default:
           selector:
             device:
               integration: mqtt
+              multiple: false
 
 trigger_variables:
   automation_options:             !input automation_options
