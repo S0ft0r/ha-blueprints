@@ -171,14 +171,14 @@ trigger_variables:
   is_forecast_enabled:            "{{ forecast_sensor != [] and 'extra_forecast' in automation_extra }}"
 
   on_time:  | 
-                                  {{ as_timestamp(today_at(set_on_time)) | timestamp_custom('%H:%M') 
+                                  {{ as_timestamp(today_at(set_on_time)) | timestamp_custom("%H:%M") 
                                      if set_on_time_sensor == [] else 
-                                     as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(states(set_on_time_sensor))) | timestamp_custom("%H:%M") }}" 
+                                     as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(states(set_on_time_sensor))) | timestamp_custom("%H:%M") }}
 
   off_time:  | 
-                                  {{ as_timestamp(today_at(set_off_time)) | timestamp_custom('%H:%M') 
+                                  {{ as_timestamp(today_at(set_off_time)) | timestamp_custom("%H:%M") 
                                      if set_off_time_sensor == [] else 
-                                     as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(states(set_off_time_sensor))) | timestamp_custom("%H:%M") }}" 
+                                     as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(states(set_off_time_sensor))) | timestamp_custom("%H:%M") }}
 
 
 triggers:
@@ -243,7 +243,7 @@ actions:
               - forecast_trigger
           - condition: template
             value_template: |
-              {{ not states(forecast_sensor) in forecasts }} 
+              {{ states(forecast_sensor) not in forecasts }} 
           - condition: template
             value_template: |
               {{ true if not is_automation_time_enabled else (as_timestamp(now()) | timestamp_custom("%H:%M") >= on_time) and as_timestamp(now()) | timestamp_custom("%H:%M") <= off_time) }}
