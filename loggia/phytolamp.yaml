@@ -13,10 +13,9 @@ blueprint:
       description: Какими лампами / реле включения ламп необходимо управлять?
       selector:
         target:
-          filter:
-            - domain: 
-              - light
-              - switch
+          entity:
+            - domain: light
+            - domain: switch
           reorder: false
           multiple: true
 
