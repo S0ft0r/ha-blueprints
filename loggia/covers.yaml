@@ -2,9 +2,11 @@ blueprint:
   name: Управление рулонными шторами
   description: |
     Управление шторами по времени или положению солнца. 
-     * Версия 2026.05.00 <small>Сборка 126</small>
+     * Версия 2026.05.00 <small>Сборка 127</small>
     Изменения:
      * Добавлена возможность выбирать вспомогательные сенсоры (в формате input_datetime) в качестве триггера времени открытия и закрытия штор
+     * Добавлена возможность выбирать вспомогательные сенсоры (в формате input_number) для лимитов открытия/закрытия штор
+     * Добавлена возможность выбирать вспомогательные сенсоры (в формате input_number) для азимута и высоты солнца
   domain: automation
   source_url: https://github.com/S0ft0r/ha-blueprints/blob/main/loggia/covers.yaml
   author: Softor
@@ -118,7 +120,6 @@ blueprint:
                   - input_datetime
               multiple: false
 
-
     sun_section:
       name: "Настройки управления по солнцу"
       icon: mdi:weather-sunny
@@ -148,6 +149,19 @@ blueprint:
               step: 1
               unit_of_measurement: '°'
               mode: slider
+        
+        sun_azimut_sensor:
+          name: Сенсор азимута солнца
+          description: |
+            Сенсор, определяющий азимут солнца для закрытия штор.
+              * При выборе сенсора, азимут солнца, заданный в проекте, учитываться не будет.
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain: 
+                  - input_number
+              multiple: false
 
         sun_elevation:
           name: Высота солнца
@@ -162,6 +176,20 @@ blueprint:
               step: 1
               unit_of_measurement: '°'
               mode: slider
+
+        sun_elevation_sensor:
+          name: Сенсор высоты солнца
+          description: |
+            Сенсор, определяющий высоту солнца для открытия штор.
+              * При выборе сенсора, высота солнца, заданная в проекте, учитываться не будет.
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain: 
+                  - input_number
+              multiple: false
+
         blind_for_protect:
           name: Шторы
           description: |
@@ -258,22 +286,28 @@ trigger_variables:
   automation_options:             !input automation_options
   automation_extra:               !input automation_extra
 
-  forecast_sensor:                !input forecast_sensor
   blind:                          !input blind
   blind_for_protect:              !input blind_for_protect
+
+  forecast_sensor:                !input forecast_sensor
   sun_sensor:                     !input sun_sensor
   do_not_blind_open_until_sensor: !input do_not_blind_open_until_sensor
   set_up_time_sensor:             !input set_up_time
   set_down_time_sensor:           !input set_down_time
+  sun_elevation_sensor:           !input sun_elevation_sensor
+  sun_azimut_sensor:              !input sun_azimut_sensor
+  up_limit_sensor:                !input up_limit_sensor
+  down_limit_sensor:              !input down_limit_sensor
   
 
   forecasts:                      !input forecasts
   alarm_delay:                    !input alarm_delay
   sun_azimut:                     !input sun_azimut
   sun_elevation:                  !input sun_elevation
-
   set_up_time:                    !input set_up_time
   set_down_time:                  !input set_down_time
+  up_limit:                       !input up_limit
+  down_limit:                     !input down_limit
 
   
   is_automation_time_enabled:     "{{ 'options_time' in automation_options }}"
@@ -324,12 +358,12 @@ triggers:
     enabled:        "{{ is_forecast_enabled }}"
 
   - trigger:        template
-    value_template: "{{ state_attr(sun_sensor,'azimuth') | float > sun_azimut }}"
+    value_template: "{{ state_attr(sun_sensor,'azimuth') | float > (sun_azimut if sun_azimut_sensor == [] else states(sun_azimut_sensor) | int(0)) }}"
     id:             sun_azimut_trigger
     enabled:        "{{ is_sun_protect_enabled }}"
 
   - trigger:        template
-    value_template: "{{ state_attr(sun_sensor,'elevation') | float > sun_elevation }}"
+    value_template: "{{ state_attr(sun_sensor,'elevation') | float > (sun_elevation if sun_elevation_sensor == [] else states(sun_elevation_sensor) | int(0)) }}"
     id:             sun_elevation_trigger
     enabled:        "{{ is_sun_protect_enabled }}"
 
@@ -346,7 +380,8 @@ actions:
             target:
               entity_id: !input blind
             data:
-              position: !input up_limit
+              position: |
+                {{ up_limit if up_limit_sensor == [] else states(up_limit_sensor) | int(0) }}
 
       - conditions: # Солнце взошло
           - condition: trigger
@@ -368,7 +403,8 @@ actions:
             target:
               entity_id: !input blind
             data:
-              position: !input up_limit
+              position: |
+                {{ up_limit if up_limit_sensor == [] else states(up_limit_sensor) | int(0) }}
 
       - conditions: # Время закрытия
           - condition: trigger
@@ -380,7 +416,8 @@ actions:
             target:
               entity_id: !input blind
             data:
-              position: !input down_limit
+              position: |
+                {{ down_limit if down_limit_sensor == [] else states(down_limit_sensor) | int(0) }}
 
       - conditions: # Солнце село
           - condition: trigger
@@ -391,8 +428,8 @@ actions:
             metadata: {}
             target:
               entity_id: !input blind
-            data:
-              position: !input down_limit
+              position: |
+                {{ down_limit if down_limit_sensor == [] else states(down_limit_sensor) | int(0) }}
 
       - conditions: # Открыть шторы при защите от прямых лучей солнца
           - condition: trigger
@@ -405,7 +442,8 @@ actions:
               entity_id: >   
                 {{ (blind if blind_for_protect == [] else  blind_for_protect) | list }}
             data:
-              position: !input up_limit
+              position: |
+                {{ up_limit if up_limit_sensor == [] else states(up_limit_sensor) | int(0) }}
 
       - conditions: # Закрыть шторы при защите от прямых лучей солнца
           - condition: trigger
@@ -421,7 +459,8 @@ actions:
               entity_id: >   
                 {{ (blind if blind_for_protect == [] else blind_for_protect) | list }}
             data:
-              position: !input down_limit
+              position: |
+                {{ down_limit if down_limit_sensor == [] else states(down_limit_sensor) | int(0) }}
 
       - conditions: # Закрыть при изменении погоды при включенном режиме защиты от прямых лучей
           - condition: trigger
@@ -432,7 +471,9 @@ actions:
               {{ states(forecast_sensor) in forecasts }} 
           - condition: template
             value_template: |
-              {{ true if not is_sun_protect_enabled else (state_attr(sun_sensor,'azimuth') | float(default=45) > sun_azimut and state_attr(sun_sensor,'elevation') | float(default=360) > sun_elevation) }}
+              {{ true if not is_sun_protect_enabled 
+                else (state_attr(sun_sensor,'azimuth') | float(default=45) > (sun_azimut if sun_azimut_sensor == [] else states(sun_azimut_sensor) | int(0)) 
+                and state_attr(sun_sensor,'elevation') | float(default=360) > (sun_elevation if sun_elevation_sensor == [] else states(sun_elevation_sensor) | int(0))) }}
           - condition: template
             value_template: |
               {{ true if not is_automation_time_enabled else (now() >= today_at(set_up_time) and now() <= today_at(set_down_time)) }}
@@ -444,7 +485,8 @@ actions:
               entity_id: >   
                 {{ (blind if blind_for_protect == [] else  blind_for_protect) | list }}
             data:
-              position: !input down_limit
+              position: |
+                {{ down_limit if down_limit_sensor == [] else states(down_limit_sensor) | int(0) }}
 
       - conditions: # Открыть при изменении погоды при включенном режиме защиты от прямых лучей
           - condition: trigger
@@ -455,7 +497,9 @@ actions:
               {{ states(forecast_sensor) not in forecasts }} 
           - condition: template
             value_template: |
-              {{ true if not is_sun_protect_enabled else (state_attr(sun_sensor,'azimuth') | float(default=45) > sun_azimut and state_attr(sun_sensor,'elevation') | float(default=360) > sun_elevation) }}
+              {{ true if not is_sun_protect_enabled 
+                else (state_attr(sun_sensor,'azimuth') | float(default=45) > (sun_azimut if sun_azimut_sensor == [] else states(sun_azimut_sensor) | int(0)) 
+                and state_attr(sun_sensor,'elevation') | float(default=360) > (sun_elevation if sun_elevation_sensor == [] else states(sun_elevation_sensor) | int(0))) }}
           - condition: template
             value_template: |
               {{ true if not is_automation_time_enabled else (now() >= today_at(set_up_time) and now() <= today_at(set_down_time)) }}
@@ -469,7 +513,8 @@ actions:
               entity_id: >   
                 {{ (blind if blind_for_protect == [] else  blind_for_protect) | list }}
             data:
-              position: !input up_limit
+              position: |
+                {{ up_limit if up_limit_sensor == [] else states(up_limit_sensor) | int(0) }}
 
 mode: queued
 max: 10
