@@ -330,11 +330,8 @@ blueprint:
             Выключатель типа <strong>Aqara Z1 Pro</strong> со встроенным слайдером.
           default: []
           selector:
-            entity:
-              filter:
-                - integration: 
-                  - mqtt
-              multiple: false
+            device:
+              integration: mqtt
 
 trigger_variables:
   automation_options:             !input automation_options
