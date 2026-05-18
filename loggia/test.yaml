@@ -38,7 +38,7 @@ trigger_variables:
     
 trigger:
   - platform: mqtt
-    topic: "{{ topic_slider }}"
+    topic: '{{ topic_slider }}'
     payload: "slider_down"
     id: slider_down_trigger
     
