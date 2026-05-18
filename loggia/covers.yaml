@@ -381,4 +381,25 @@ actions:
             data:
               position: !input down_limit
 
+      - conditions: # Закрыть при изменении погоды при включенном режиме защиты от прямых лучей
+          - condition: trigger
+            id:
+              - forecast_trigger
+          - condition: template
+            value_template: |
+              {{ states(forecast_sensor) in forecasts }} 
+          - condition: template
+            value_template: |
+              {{ true is not is_sun_protect_enabled else (state_attr(sun_sensor,'azimuth') | float(default=45) > sun_azimut and state_attr(sun_sensor,'elevation') | float(default=360) > sun_elevation) }}
+
+        sequence:
+          - action: cover.set_cover_position
+            metadata: {}
+            target:
+              entity_id: >   
+                {{ (blind if blind_for_protect == [] else  blind_for_protect) | list }}
+            data:
+              position: !input down_limit
+
+
 mode: single
