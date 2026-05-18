@@ -7,11 +7,11 @@ blueprint:
      - Сборка 133
      * Добавлен возможность открытия/закрытия жалюзи по слайдеру (Типа Aqara Z1 Pro) 
      - Сборка 129
-     * Добавлен параметр "Количество повторов" - для защиты от несработок открытия/закрытия штор 
+     <small>* Добавлен параметр "Количество повторов" - для защиты от несработок открытия/закрытия штор</small> 
      - Сборка 127
-     * Добавлена возможность выбирать вспомогательные сенсоры (в формате input_datetime) в качестве триггера времени открытия и закрытия штор
-     * Добавлена возможность выбирать вспомогательные сенсоры (в формате input_number) для лимитов открытия/закрытия штор
-     * Добавлена возможность выбирать вспомогательные сенсоры (в формате input_number) для азимута и высоты солнца
+     <small>* Добавлена возможность выбирать вспомогательные сенсоры (в формате input_datetime) в качестве триггера времени открытия и закрытия штор</small>
+     <small>* Добавлена возможность выбирать вспомогательные сенсоры (в формате input_number) для лимитов открытия/закрытия штор</small>
+     <small>* Добавлена возможность выбирать вспомогательные сенсоры (в формате input_number) для азимута и высоты солнца</small>
   domain: automation
   source_url: https://github.com/S0ft0r/ha-blueprints/blob/main/loggia/covers.yaml
   author: Softor
@@ -74,8 +74,8 @@ blueprint:
           name: Прогнозный сенсор
           description: |
             Сенсор, определяющий прогноз погоды.
-              * Параметр обязателен только при выборе параметра <em>"Учитывать прогноз погоды"</em>.
-              Если ничего не выбрано, то дополнительный параметр учитываться не будет.
+              <small>* Параметр обязателен только при выборе параметра <em>"Учитывать прогноз погоды"</em>.
+              Если ничего не выбрано, то дополнительный параметр учитываться не будет.</small>
           default: []
           selector:
             entity:
@@ -99,7 +99,7 @@ blueprint:
           name: Открыть шторы по сенсору
           description: |
             Сенсор, определяющий время открытия штор.
-              * При выборе сенсора, время открытия штор, заданное в проекте, учитываться не будет.
+              <small>* При выборе сенсора, время открытия штор, заданное в проекте, учитываться не будет.</small>
           default: []
           selector:
             entity:
@@ -116,7 +116,7 @@ blueprint:
           name: Закрыть шторы по сенсору
           description: |
             Сенсор, определяющий время закрытия штор.
-              * При выборе сенсора, время закрытия штор, заданное в проекте, учитываться не будет.
+              <small>* При выборе сенсора, время закрытия штор, заданное в проекте, учитываться не будет.</small>
           default: []
           selector:
             entity:
@@ -145,7 +145,7 @@ blueprint:
           name: Азимут солнца
           description: >-
             Угол между направлением на север и направлением на солнце. 
-              * Для автоматического закрытия штор при включенной опции защиты от прямых лучей солнца.
+              <small>* Для автоматического закрытия штор при включенной опции защиты от прямых лучей солнца.</small>
           default: 0
           selector:
             number:
@@ -159,7 +159,7 @@ blueprint:
           name: Сенсор азимута солнца
           description: |
             Сенсор, определяющий азимут солнца для закрытия штор.
-              * При выборе сенсора, азимут солнца, заданный в проекте, учитываться не будет.
+              <small>* При выборе сенсора, азимут солнца, заданный в проекте, учитываться не будет.</small>
           default: []
           selector:
             entity:
@@ -172,7 +172,7 @@ blueprint:
           name: Высота солнца
           description: >-
             Угол возвышения солнца над горизонтом. 
-              * Для автоматического открытия штор при включенной защите от прямых лучей солнца
+              <small>* Для автоматического открытия штор при включенной защите от прямых лучей солнца.</small>
           default: 0
           selector:
             number:
@@ -186,7 +186,7 @@ blueprint:
           name: Сенсор высоты солнца
           description: |
             Сенсор, определяющий высоту солнца для открытия штор.
-              * При выборе сенсора, высота солнца, заданная в проекте, учитываться не будет.
+              <small>* При выборе сенсора, высота солнца, заданная в проекте, учитываться не будет.</small>
           default: []
           selector:
             entity:
@@ -199,8 +199,8 @@ blueprint:
           name: Шторы
           description: |
             Какими шторами необходимо управлять для защиты от прямых лучей солнца?
-              * Параметр не обязателен.
-                Если ничего не выбрано, то используются все шторы
+              <small>* Параметр не обязателен.
+                Если ничего не выбрано, то используются все шторы</small>
           default: []
           selector:
             entity:
@@ -218,7 +218,7 @@ blueprint:
           name: Верхний предел
           description: |
             Верхний предел при открытии штор.
-              * Если нет нужды поднимать шторы до конца.
+              <small>* Если нет нужды поднимать шторы до конца.</small>
           default: 99
           selector:
             number:
@@ -232,7 +232,7 @@ blueprint:
           name: Сенсор верхнего предела
           description: |
             Сенсор, определяющий процент ограничения открытия штор.
-              * При выборе сенсора, предел, заданный в проекте, учитываться не будет.
+              <small>* При выборе сенсора, предел, заданный в проекте, учитываться не будет.</small>
           default: []
           selector:
             entity:
@@ -245,7 +245,7 @@ blueprint:
           name: Нижний предел
           description: | 
             Нижний предел при закрытии штор.
-              * Если нет нужды опускать шторы до конца.
+              <small>* Если нет нужды опускать шторы до конца.</small>
           default: 0
           selector:
             number:
@@ -259,7 +259,7 @@ blueprint:
           name: Сенсор нижнего предела
           description: |
             Сенсор, определяющий процент ограничения закрытия штор.
-              * При выборе сенсора, предел, заданный в проекте, учитываться не будет.
+              <small>* При выборе сенсора, предел, заданный в проекте, учитываться не будет.</small>
           default: []
           selector:
             entity:
@@ -272,7 +272,7 @@ blueprint:
           name: Не поднимать до
           description: >-
             Датчик, определяющий время срабатывания будильника
-              * Вывод датчик <strong>обязательно</strong> в формате timestamp
+              <small>* Вывод датчик <strong>обязательно</strong> в формате timestamp</small>
           default: []
           selector: 
             entity:
@@ -316,6 +316,7 @@ blueprint:
           name: Количество повторов
           description: |
             Для защиты от несработки открытия/закрытия штор.
+              <small>* При значении равным 1 защита отключена.</small>
           default: 2
           selector:
             number:
@@ -453,7 +454,7 @@ actions:
                     entity_id: !input blind
                   data:
                     position: |
-                      {{ (up_limit - (repeat_for - repeat.index)) if up_limit_sensor == [] else (states(up_limit_sensor) - (repeat_for - repeat.index)) | int(0) }}
+                      {{ (up_limit | int - (repeat_for | int - repeat.index)) if up_limit_sensor == [] else (states(up_limit_sensor) | int - (repeat_for | int - repeat.index)) | int(0) }}
                 - delay:
                     seconds: 3
 
@@ -471,7 +472,7 @@ actions:
                     entity_id: !input blind
                   data:
                     position: |
-                      {{ (up_limit - (repeat_for - repeat.index)) if up_limit_sensor == [] else (states(up_limit_sensor) - (repeat_for - repeat.index)) | int(0) }}
+                      {{ (up_limit | int - (repeat_for | int - repeat.index)) if up_limit_sensor == [] else (states(up_limit_sensor) | int - (repeat_for | int - repeat.index)) | int(0) }}
                 - delay:
                     seconds: 3
 
@@ -499,7 +500,7 @@ actions:
                         entity_id: !input blind
                       data:
                         position: |
-                          {{ (up_limit - (repeat_for - repeat.index)) if up_limit_sensor == [] else (states(up_limit_sensor) - (repeat_for - repeat.index)) | int(0) }}
+                          {{ (up_limit | int - (repeat_for | int - repeat.index)) if up_limit_sensor == [] else (states(up_limit_sensor) | int - (repeat_for | int - repeat.index)) | int(0) }}
                     - delay:
                         seconds: 3
 
@@ -517,7 +518,7 @@ actions:
                     entity_id: !input blind
                   data:
                     position: |
-                      {{ (down_limit + (repeat_for - repeat.index)) if down_limit_sensor == [] else (states(down_limit_sensor) + (repeat_for - repeat.index)) | int(0) }}
+                      {{ (down_limit | int + (repeat_for | int - repeat.index)) if down_limit_sensor == [] else (states(down_limit_sensor) | int + (repeat_for | int - repeat.index)) | int(0) }}
                 - delay:
                     seconds: 3
 
@@ -553,7 +554,7 @@ actions:
                     entity_id: !input blind
                   data:
                     position: |
-                      {{ (down_limit + (repeat_for - repeat.index)) if down_limit_sensor == [] else (states(down_limit_sensor) + (repeat_for - repeat.index)) | int(0) }}
+                      {{ (down_limit | int + (repeat_for | int - repeat.index)) if down_limit_sensor == [] else (states(down_limit_sensor) | int + (repeat_for | int - repeat.index)) | int(0) }}
                 - delay:
                     seconds: 3
 
@@ -572,7 +573,7 @@ actions:
                       {{ (blind if blind_for_protect == [] else  blind_for_protect) | list }}
                   data:
                     position: |
-                      {{ (up_limit - (repeat_for - repeat.index)) if up_limit_sensor == [] else (states(up_limit_sensor) - (repeat_for - repeat.index)) | int(0) }}
+                      {{ (up_limit | int - (repeat_for | int - repeat.index)) if up_limit_sensor == [] else (states(up_limit_sensor) | int - (repeat_for | int - repeat.index)) | int(0) }}
                 - delay:
                     seconds: 3
 
@@ -594,7 +595,7 @@ actions:
                       {{ (blind if blind_for_protect == [] else  blind_for_protect) | list }}
                   data:
                     position: |
-                      {{ (down_limit + (repeat_for - repeat.index)) if down_limit_sensor == [] else (states(down_limit_sensor) + (repeat_for - repeat.index)) | int(0) }}
+                      {{ (down_limit | int + (repeat_for | int - repeat.index)) if down_limit_sensor == [] else (states(down_limit_sensor) | int + (repeat_for | int - repeat.index)) | int(0) }}
                 - delay:
                     seconds: 3
 
@@ -625,7 +626,7 @@ actions:
                       {{ (blind if blind_for_protect == [] else  blind_for_protect) | list }}
                   data:
                     position: |
-                      {{ (down_limit + (repeat_for - repeat.index)) if down_limit_sensor == [] else (states(down_limit_sensor) + (repeat_for - repeat.index)) | int(0) }}
+                      {{ (down_limit | int + (repeat_for | int - repeat.index)) if down_limit_sensor == [] else (states(down_limit_sensor) | int + (repeat_for | int - repeat.index)) | int(0) }}
                 - delay:
                     seconds: 3
 
@@ -658,7 +659,7 @@ actions:
                       {{ (blind if blind_for_protect == [] else  blind_for_protect) | list }}
                   data:
                     position: |
-                      {{ (up_limit - (repeat_for - repeat.index)) if up_limit_sensor == [] else (states(up_limit_sensor) - (repeat_for - repeat.index)) | int(0) }}
+                      {{ (up_limit | int - (repeat_for | int - repeat.index)) if up_limit_sensor == [] else (states(up_limit_sensor) | int - (repeat_for | int - repeat.index)) | int(0) }}
                 - delay:
                     seconds: 3
 
