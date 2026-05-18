@@ -14,8 +14,9 @@ blueprint:
       selector:
         target:
           entity:
-            - domain: light
-            - domain: switch
+            domain: 
+              - light
+              - switch
 
     automation_section:
       name: Настройки автоматизации
