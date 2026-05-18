@@ -37,10 +37,11 @@ trigger_variables:
   topic_slider: 'zigbee2mqtt/switch_balcony/action'
 #  topic_slider: 'zigbee2mqtt/{{ entity_name }}/action'
     
-trigger:
-  - platform: mqtt
-    topic: '{{ topic_slider }}'
-    payload: "slider_down"
+triggers:
+  - trigger: mqtt
+    options:
+      topic: '{{ topic_slider }}'
+      payload: "slider_down"
     id: slider_down_trigger
     
 actions:
