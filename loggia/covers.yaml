@@ -454,6 +454,7 @@ actions:
             metadata: {}
             target:
               entity_id: !input blind
+            data:
               position: |
                 {{ down_limit if down_limit_sensor == [] else states(down_limit_sensor) | int(0) }}
 
