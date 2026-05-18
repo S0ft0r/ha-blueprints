@@ -223,6 +223,19 @@ blueprint:
               unit_of_measurement: "%"
               mode: slider
 
+        up_limit_sensor:
+          name: Сенсор верхнего предела
+          description: |
+            Сенсор, определяющий процент ограничения открытия штор.
+              * При выборе сенсора, предел, заданный в проекте, учитываться не будет.
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain: 
+                  - input_number
+              multiple: false
+
         down_limit:
           name: Нижний предел
           description: | 
@@ -236,6 +249,19 @@ blueprint:
               step: 1
               unit_of_measurement: "%"
               mode: slider
+
+        down_limit_sensor:
+          name: Сенсор нижнего предела
+          description: |
+            Сенсор, определяющий процент ограничения закрытия штор.
+              * При выборе сенсора, предел, заданный в проекте, учитываться не будет.
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain: 
+                  - input_number
+              multiple: false
 
         do_not_blind_open_until_sensor:
           name: Не поднимать до
