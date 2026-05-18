@@ -38,6 +38,103 @@ blueprint:
                   value: options_time
                 - label: Включение/выключение по солнцу
                   value: options_sun
+                - label: Включение/выключение по положению штор
+                  value: options_sun
               multiple: false
               sort: false
               custom_value: false
+
+    time_section:
+      name: Настройки управления по времени
+      description: |
+        Устанавливается время включения/выключения подсветки.        
+      icon: mdi:clock-time-eight-outline
+      input:
+        set_on_time:
+          name: Включить подсветку
+          default: "08:00:00"
+          selector:
+            time: {}
+        set_on_time_sensor:
+          name: Сенсор включения подсветки
+          description: |
+            Сенсор, определяющий время включения подсветки.
+              * При выборе сенсора, время включения подсветки, заданное в проекте, учитываться не будет.
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain: 
+                  - input_datetime
+              multiple: false
+        set_off_time:
+          name: Закрыть шторы в
+          default: "20:00:00"
+          selector:
+            time: {}
+        set_off_time_sensor:
+          name: Закрыть шторы по сенсору
+          description: |
+            Сенсор, определяющий время выключения подсветки.
+              * При выборе сенсора, время выключения подсветки, заданное в проекте, учитываться не будет.
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain: 
+                  - input_datetime
+              multiple: false
+
+
+              
+trigger_variables:
+  automation_options:             !input automation_options
+
+  phytolamp:                      !input phytolamp
+
+  set_on_time_sensor:             !input set_on_time_sensor
+  set_off_time_sensor:            !input set_off_time_sensor
+
+  set_on_time:                    !input set_on_time
+  set_off_time:                   !input set_off_time
+
+  
+  is_automation_time_enabled:     "{{ 'options_time' in automation_options }}"
+
+
+triggers:
+  - trigger:        template
+    value_template: |
+      {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(set_on_time)) | timestamp_custom("%H:%M") 
+         if set_on_time_sensor == [] else as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(states(set_on_time_sensor))) | timestamp_custom("%H:%M") }}
+    id:             on_time_trigger
+    enabled:        "{{ is_automation_time_enabled }}"
+
+  - trigger:        template
+    value_template: |
+      {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(set_off_time)) | timestamp_custom("%H:%M") 
+         if set_off_time_sensor == [] else as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(states(set_off_time_sensor))) | timestamp_custom("%H:%M") }}
+    id:             off_time_trigger
+    enabled:        "{{ is_automation_time_enabled }}"
+
+actions:
+  - choose:
+      - conditions: # Время включения
+          - condition: trigger
+            id:
+              - on_time_trigger
+        sequence:
+          - action: homeassistant.turn_on
+            metadata: {}
+            target:
+              entity_id: !input phytolamp
+
+      - conditions: # Время включения
+          - condition: trigger
+            id:
+              - off_time_trigger
+        sequence:
+          - action: homeassistant.turn_off
+            metadata: {}
+            target:
+              entity_id: !input phytolamp
