@@ -231,7 +231,7 @@ trigger_variables:
   forecast_sensor:                !input forecast_sensor
   sun_sensor:                     !input sun_sensor
   sun_elevation_sensor:           !input sun_elevation_sensor
-  sun_azimut_sensor:              !input sun_azimut_sensor
+  sun_azimuth_sensor:             !input sun_azimuth_sensor
 
   set_on_time:                    !input set_on_time
   set_off_time:                   !input set_off_time
