@@ -2,7 +2,7 @@ blueprint:
   name: Управление подсветкой цветов
   description: |
     Управление подсветкой цветов по времени, положению солнца или по положению штор. 
-     * Версия 2026.05.00 <small>Сборка 3</small> 
+     * Версия 2026.05.00 <small>Сборка 4</small> 
   domain: automation
   source_url: https://github.com/S0ft0r/ha-blueprints/blob/main/loggia/phytolamp.yaml
   author: Softor
@@ -55,8 +55,10 @@ blueprint:
                 #   value: extra_alarm_pause
                 # - label: Ограничение закрытия штор %
                 #   value: extra_limit_down
-                # - label: Защита от прямых лучей солнца
-                #   value: extra_sun_protect
+                - label: Учитывать положение солнца для выключения подсветки
+                  value: extra_sun_position_off
+                - label: Учитывать положение солнца для включения подсветки
+                  value: extra_sun_position_on
                 - label: Учитывать прогноз погоды  
                   value: extra_forecast
               sort: false
@@ -77,7 +79,6 @@ blueprint:
                 - domain: 
                   - weather
               multiple: false
-
 
     time_section:
       name: Настройки управления по времени
@@ -120,6 +121,76 @@ blueprint:
                   - input_datetime
               multiple: false
 
+    sun_section:
+      name: "Настройки управления по солнцу"
+      icon: mdi:weather-sunny
+      input:
+        sun_sensor:
+          name: "Датчик солнца"
+          description: >-
+            Датчик, по которому определяется положение солнца
+          default: "sun.sun"
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - sun
+              multiple: false
+
+        sun_azimuth:
+          name: Азимут солнца
+          description: |
+            Угол между направлением на север и направлением на солнце. 
+              * Для автоматического выключения подсветки при включенном параметре <em>"Учитывать положение солнца"</em> .
+          default: 0
+          selector:
+            number:
+              min: 0
+              max: 359
+              step: 1
+              unit_of_measurement: '°'
+              mode: slider
+        
+        sun_azimuth_sensor:
+          name: Сенсор азимута солнца
+          description: |
+            Сенсор, определяющий азимут солнца для выключения подсветки.
+              * При выборе сенсора, азимут солнца, заданный в проекте, учитываться не будет.
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain: 
+                  - input_number
+              multiple: false
+
+        sun_elevation:
+          name: Высота солнца
+          description: |
+            Угол возвышения солнца над горизонтом. 
+              * Для автоматического включения подсветки при включенном параметре <em>"Учитывать положение солнца"</em> .
+          default: 0
+          selector:
+            number:
+              min: 0
+              max: 45
+              step: 1
+              unit_of_measurement: '°'
+              mode: slider
+
+        sun_elevation_sensor:
+          name: Сенсор высоты солнца
+          description: |
+            Сенсор, определяющий высоту солнца для включения подсветки.
+              * При выборе сенсора, высота солнца, заданная в проекте, учитываться не будет.
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain: 
+                  - input_number
+              multiple: false
+
     options_section:
       name: "Дополнительные настройки"
       icon: mdi:cog
@@ -158,17 +229,24 @@ trigger_variables:
   set_on_time_sensor:             !input set_on_time_sensor
   set_off_time_sensor:            !input set_off_time_sensor
   forecast_sensor:                !input forecast_sensor
+  sun_sensor:                     !input sun_sensor
+  sun_elevation_sensor:           !input sun_elevation_sensor
+  sun_azimut_sensor:              !input sun_azimut_sensor
 
   set_on_time:                    !input set_on_time
   set_off_time:                   !input set_off_time
   forecasts:                      !input forecasts
- 
-  
+  sun_azimuth:                    !input sun_azimuth
+  sun_elevation:                  !input sun_elevation
+
+   
   is_automation_time_enabled:     "{{ 'options_time' in automation_options }}"
   is_automation_sun_enabled:      "{{ 'options_sun' in automation_options }}"
   is_automation_blind_enabled:    "{{ 'options_blind' in automation_options }}"
 
   is_forecast_enabled:            "{{ forecast_sensor != [] and 'extra_forecast' in automation_extra }}"
+  is_sun_position_on_enabled:     "{{ sun_sensor != [] and 'extra_sun_position_on' in automation_extra }}"
+  is_sun_position_off_enabled:    "{{ sun_sensor != [] and 'extra_sun_position_off' in automation_extra }}"
 
   on_time:  | 
                                   {{ as_timestamp(today_at(set_on_time)) | timestamp_custom("%H:%M") 
@@ -179,7 +257,6 @@ trigger_variables:
                                   {{ as_timestamp(today_at(set_off_time)) | timestamp_custom("%H:%M") 
                                      if set_off_time_sensor == [] else 
                                      as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(states(set_off_time_sensor))) | timestamp_custom("%H:%M") }}
-
 
 triggers:
   - trigger:        template
@@ -198,6 +275,16 @@ triggers:
     entity_id:      !input forecast_sensor
     id:             forecast_trigger
     enabled:        "{{ is_forecast_enabled }}"
+
+  - trigger:        template
+    value_template: "{{ state_attr(sun_sensor,'azimuth') | float > (sun_azimuth if sun_azimuth_sensor == [] else states(sun_azimuth_sensor) | int(0)) }}"
+    id:             sun_azimuth_trigger
+    enabled:        "{{ is_sun_position_on_enabled }}"
+
+  - trigger:        template
+    value_template: "{{ state_attr(sun_sensor,'elevation') | float > (sun_elevation if sun_elevation_sensor == [] else states(sun_elevation_sensor) | int(0)) }}"
+    id:             sun_elevation_trigger
+    enabled:        "{{ is_sun_position_off_enabled }}"
 
 actions:
   - choose:
@@ -229,6 +316,14 @@ actions:
             value_template: |
               {{ states(forecast_sensor) in forecasts }} 
           - condition: template
+            value_template: | 
+              {{ true if not is_sun_position_on_enabled else 
+                state_attr(sun_sensor,'azimuth') | float > (sun_azimuth if sun_azimuth_sensor == [] else states(sun_azimuth_sensor) | int(0)) }}
+          - condition: template
+            value_template: | 
+              {{ true if not is_sun_position_off_enabled else 
+                state_attr(sun_sensor,'elevation') | float > (sun_elevation if sun_elevation_sensor == [] else states(sun_elevation_sensor) | int(0)) }}
+          - condition: template
             value_template: |
               {{ true if not is_automation_time_enabled else (as_timestamp(now()) | timestamp_custom("%H:%M") >= on_time and as_timestamp(now()) | timestamp_custom("%H:%M") <= off_time) }}
         sequence:
@@ -245,10 +340,28 @@ actions:
             value_template: |
               {{ states(forecast_sensor) not in forecasts }} 
           - condition: template
+            value_template: | 
+              {{ true if not is_sun_position_on_enabled else 
+                state_attr(sun_sensor,'azimuth') | float > (sun_azimuth if sun_azimuth_sensor == [] else states(sun_azimuth_sensor) | int(0)) }}
+          - condition: template
+            value_template: | 
+              {{ true if not is_sun_position_off_enabled else 
+                state_attr(sun_sensor,'elevation') | float > (sun_elevation if sun_elevation_sensor == [] else states(sun_elevation_sensor) | int(0)) }}
+          - condition: template
             value_template: |
               {{ true if not is_automation_time_enabled else (as_timestamp(now()) | timestamp_custom("%H:%M") >= on_time and as_timestamp(now()) | timestamp_custom("%H:%M") <= off_time) }}
         sequence:
-          - action: homeassistant.turn_off
+          - action: homeassistant.turn_on
+            metadata: {}            
+            target:
+              entity_id: !input phytolamp
+
+      - conditions: # Включить подсветку
+          - condition: trigger
+            id:
+              - sun_elevation_trigger
+        sequence:
+          - action: homeassistant.turn_on
             metadata: {}            
             target:
               entity_id: !input phytolamp
