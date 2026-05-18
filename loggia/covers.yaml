@@ -426,13 +426,13 @@ triggers:
 
   - trigger: mqtt
     options:
-      topic: topic_slider
+      topic: zigbee2mqtt/switch_balcony/action
       payload: slider_down
     id: slider_down_trigger
 
   - trigger: mqtt
     options:
-      topic: topic_slider
+      topic: zigbee2mqtt/switch_balcony/action
       payload: slider_up
     id: slider_up_trigger
 
