@@ -241,7 +241,7 @@ trigger_variables:
 
    
   is_automation_time_enabled:     "{{ 'options_time' in automation_options }}"
-  is_automation_sun_enabled:      "{{ 'options_sun' in automation_options }}"
+#  is_automation_sun_enabled:      "{{ 'options_sun' in automation_options }}"
   is_automation_blind_enabled:    "{{ 'options_blind' in automation_options }}"
 
   is_forecast_enabled:            "{{ forecast_sensor != [] and 'extra_forecast' in automation_extra }}"
