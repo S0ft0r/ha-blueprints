@@ -39,7 +39,7 @@ variables:
 triggers:
   - trigger: mqtt
     options:
-      topic: zigbee2mqtt/switch_balcony/action
+      topic: "{{ topic_slider }}"
       payload: slider_up
     id: slider_down_trigger
     
