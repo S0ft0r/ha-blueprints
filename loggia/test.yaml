@@ -34,7 +34,7 @@ trigger_variables:
   slider_sensor:                  !input slider_sensor
 
 variables: 
-  topic_slider: "zigbee2mqtt/{{ device_attr(slider_sensor, 'name') }}/action"
+  topic_slider: "{{ 'zigbee2mqtt/' ~ device_attr(slider_sensor, 'name') ~ '/action' }}"
     
 triggers:
   - trigger: mqtt
