@@ -2,7 +2,7 @@ blueprint:
   name: Управление подсветкой цветов
   description: |
     Управление подсветкой цветов по времени, положению солнца или по положению штор. 
-     * Версия 2026.05.00 <small>Сборка 1</small> 
+     * Версия 2026.05.00 <small>Сборка 2</small> 
   domain: automation
   source_url: https://github.com/S0ft0r/ha-blueprints/blob/main/loggia/phytolamp.yaml
   author: Softor
@@ -12,7 +12,7 @@ blueprint:
       name: Подсветка
       description: Какими лампами / реле включения ламп необходимо управлять?
       selector:
-        entity:
+        target:
           filter:
             - domain: 
               - light
@@ -39,7 +39,7 @@ blueprint:
                 - label: Включение/выключение по солнцу
                   value: options_sun
                 - label: Включение/выключение по положению штор
-                  value: options_sun
+                  value: options_blind
               multiple: false
               sort: false
               custom_value: false
@@ -51,12 +51,12 @@ blueprint:
       icon: mdi:clock-time-eight-outline
       input:
         set_on_time:
-          name: Включить подсветку
+          name: Включить подсветку в
           default: "08:00:00"
           selector:
             time: {}
         set_on_time_sensor:
-          name: Сенсор включения подсветки
+          name: Включить подсветку по сенсору
           description: |
             Сенсор, определяющий время включения подсветки.
               * При выборе сенсора, время включения подсветки, заданное в проекте, учитываться не будет.
@@ -68,12 +68,12 @@ blueprint:
                   - input_datetime
               multiple: false
         set_off_time:
-          name: Закрыть шторы в
+          name: Выключить подсветку в
           default: "20:00:00"
           selector:
             time: {}
         set_off_time_sensor:
-          name: Закрыть шторы по сенсору
+          name: Выключить подсветку по сенсору
           description: |
             Сенсор, определяющий время выключения подсветки.
               * При выборе сенсора, время выключения подсветки, заданное в проекте, учитываться не будет.
@@ -97,10 +97,10 @@ trigger_variables:
 
   set_on_time:                    !input set_on_time
   set_off_time:                   !input set_off_time
-
   
   is_automation_time_enabled:     "{{ 'options_time' in automation_options }}"
-
+  is_automation_sun_enabled:      "{{ 'options_sun' in automation_options }}"
+  is_automation_blind_enabled:    "{{ 'options_blind' in automation_options }}"
 
 triggers:
   - trigger:        template
