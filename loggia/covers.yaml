@@ -2,8 +2,11 @@ blueprint:
   name: Управление рулонными шторами
   description: |
     Управление шторами по времени или положению солнца. 
-     * Версия 2026.05.00 <small>Сборка 127</small>
+     * Версия 2026.05.00 <small>Сборка 128</small>
     Изменения:
+     - Сборка 128
+     * Добавлен параметр "Количество повторов" - для защиты от несработок открытия/закрытия штор 
+     - Сборка 127
      * Добавлена возможность выбирать вспомогательные сенсоры (в формате input_datetime) в качестве триггера времени открытия и закрытия штор
      * Добавлена возможность выбирать вспомогательные сенсоры (в формате input_number) для лимитов открытия/закрытия штор
      * Добавлена возможность выбирать вспомогательные сенсоры (в формате input_number) для азимута и высоты солнца
@@ -307,6 +310,18 @@ blueprint:
               custom_value: false
               mode: list
 
+        repeat_for
+          name: Количество повторов
+          description: |
+            Для защиты от несработки открытия/закрытия штор.
+          default: 1
+          selector:
+            number:
+              min: 0
+              max: 5
+              step: 1
+              mode: box
+
 
 trigger_variables:
   automation_options:             !input automation_options
@@ -334,6 +349,7 @@ trigger_variables:
   set_down_time:                  !input set_down_time
   up_limit:                       !input up_limit
   down_limit:                     !input down_limit
+  repeat_for:                     !input repeat_for
 
   
   is_automation_time_enabled:     "{{ 'options_time' in automation_options }}"
@@ -401,13 +417,25 @@ actions:
             id:
               - up_time_trigger
         sequence:
-          - action: cover.set_cover_position
-            metadata: {}
-            target:
-              entity_id: !input blind
-            data:
-              position: |
-                {{ up_limit if up_limit_sensor == [] else states(up_limit_sensor) | int(0) }}
+          - repeat:
+              count: 2
+              sequence:
+                - action: cover.set_cover_position
+                  metadata: {}
+                  target:
+                    entity_id: !input blind
+                  data:
+                    position: |
+                      {{ (up_limit-1) if up_limit_sensor == [] else states(up_limit_sensor)-1 | int(0) }}
+                - delay:
+                    seconds: 3
+                - action: cover.set_cover_position
+                  metadata: {}
+                  target:
+                    entity_id: !input blind
+                  data:
+                    position: |
+                      {{ up_limit if up_limit_sensor == [] else states(up_limit_sensor) | int(0) }}
 
       - conditions: # Солнце взошло
           - condition: trigger
