@@ -37,10 +37,9 @@ variables:
   entity_name: "{{ device_attr(slider_sensor, 'name') }}"
     
 triggers:
-  - trigger: mqtt
-    options:
-      topic: "{{ 'zigbee2mqtt/' ~ entity_name ~ '/action' }}"
-      payload: slider_up
+  - platform: mqtt
+    topic: "{{ 'zigbee2mqtt/' ~ entity_name ~ '/action' }}"
+    payload: slider_up
     id: slider_down_trigger
     
 actions:
