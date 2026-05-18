@@ -2,9 +2,9 @@ blueprint:
   name: Управление рулонными шторами
   description: |
     Управление шторами по времени или положению солнца. 
-     * Версия 2026.05.00 <small>Сборка 128</small>
+     * Версия 2026.05.00 <small>Сборка 129</small>
     Изменения:
-     - Сборка 128
+     - Сборка 129
      * Добавлен параметр "Количество повторов" - для защиты от несработок открытия/закрытия штор 
      - Сборка 127
      * Добавлена возможность выбирать вспомогательные сенсоры (в формате input_datetime) в качестве триггера времени открытия и закрытия штор
@@ -370,14 +370,14 @@ triggers:
 #    enabled:        "{{ is_automation_time_enabled }}"
 
   - trigger:        template
-    value_template: |
+    value_template: >
       {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(set_up_time)) | timestamp_custom("%H:%M") 
          if set_up_time_sensor == [] else as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(states(set_up_time_sensor))) | timestamp_custom("%H:%M") }}
     id:             up_time_trigger
     enabled:        "{{ is_automation_time_enabled }}"
 
   - trigger:        template
-    value_template: |
+    value_template: >
       {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(set_down_time)) | timestamp_custom("%H:%M") 
          if set_down_time_sensor == [] else as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(states(set_down_time_sensor))) | timestamp_custom("%H:%M") }}
     id:             down_time_trigger
