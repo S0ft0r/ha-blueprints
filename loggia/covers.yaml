@@ -3,7 +3,7 @@ blueprint:
   description: |
     Управление шторами по времени или положению солнца. 
      * Версия 2026.05.00
-       <sub>Сборка 120</sub> 
+       <sub>Сборка 121</sub> 
   domain: automation
   source_url: https://github.com/S0ft0r/ha-blueprints/blob/main/loggia/covers.yaml
   author: Softor
@@ -361,11 +361,7 @@ actions:
             metadata: {}
             target:
               entity_id: >   
-                  {% if blind_for_protect != [] %}
-                    {{ blind_for_protect | list }} 
-                  {% else %}
-                    {{ blind | list}}
-                  {% endif %}
+                {{ (blind if blind_for_protect == [] else  blind_for_protect) | list }}
             data:
               position: !input up_limit
 
@@ -375,21 +371,13 @@ actions:
               - sun_azimut_trigger
           - condition: template
             value_template: |
-              {% if is_forecast_enabled %} 
-                {{ states(forecast_sensor) in forecasts }}
-              {% else %}
-                true
-              {% endif %}
+              {{ true if not is_forecast_enabled else states(forecast_sensor) in forecasts }}
         sequence:
           - action: cover.set_cover_position
             metadata: {}
             target:
               entity_id: >   
-                  {% if blind_for_protect != [] %}
-                    {{ blind_for_protect | list }} 
-                  {% else %}
-                    {{ blind | list}}
-                  {% endif %}
+                {{ (blind if blind_for_protect == [] else  blind_for_protect) | list }}
             data:
               position: !input down_limit
 
@@ -402,20 +390,17 @@ actions:
               {{ states(forecast_sensor) in forecasts }} 
           - condition: template
             value_template: |
-              {{ is_sun_protect_enabled and (state_attr(sun_sensor,'azimuth') | float(default=360) > sun_azimut and state_attr(sun_sensor,'elevation') | float(default=360) > sun_elevation) }}
+              {{ true is not is_sun_protect_enabled else (state_attr(sun_sensor,'azimuth') | float(default=45) > sun_azimut and state_attr(sun_sensor,'elevation') | float(default=360) > sun_elevation) }}
           - condition: template
             value_template: |
-              {{ is_automation_time_enabled and (now() >= today_at(set_up_time) and now() <= today_at(set_down_time)) }}
+              {{ true if not is_automation_time_enabled else now() >= today_at(set_up_time) and now() <= today_at(set_down_time) }}
+
         sequence:
           - action: cover.set_cover_position
             metadata: {}
             target:
               entity_id: >   
-                  {% if blind_for_protect != [] %}
-                    {{ blind_for_protect | list }} 
-                  {% else %}
-                    {{ blind | list}}
-                  {% endif %}
+                {{ (blind if blind_for_protect == [] else  blind_for_protect) | list }}
             data:
               position: !input down_limit
 
@@ -428,20 +413,19 @@ actions:
               {{ states(forecast_sensor) not in forecasts }} 
           - condition: template
             value_template: |
-              {{ is_sun_protect_enabled and (state_attr(sun_sensor,'azimuth') | float(default=360) > sun_azimut and state_attr(sun_sensor,'elevation') | float(default=360) > sun_elevation) }}
+              {{ true if not is_sun_protect_enabled else (state_attr(sun_sensor,'azimuth') | float(default=360) > sun_azimut and state_attr(sun_sensor,'elevation') | float(default=360) > sun_elevation) }}
           - condition: template
             value_template: |
-              {{ is_automation_time_enabled and (now() >= today_at(set_up_time) and now() <= today_at(set_down_time)) }}
+              {{ true if not is_automation_time_enabled else (now() >= today_at(set_up_time) and now() <= today_at(set_down_time)) }}
+          - condition: template
+            value_template: |
+              {{ true if not is_automation_sun_enabled else (states(sun_sensor) == 'above_horizon') }}
         sequence:
           - action: cover.set_cover_position
             metadata: {}
             target:
               entity_id: >   
-                  {% if blind_for_protect != [] %}
-                    {{ blind_for_protect | list }} 
-                  {% else %}
-                    {{ blind | list}}
-                  {% endif %}
+                {{ (blind if blind_for_protect == [] else  blind_for_protect) | list }}
             data:
               position: !input up_limit
 
