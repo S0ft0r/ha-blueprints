@@ -12,9 +12,9 @@ blueprint:
       name: Подсветка
       description: Какими лампами / реле включения ламп необходимо управлять?
       selector:
-        target:
-          entity:
-            domain: 
+        entity:
+          filter: 
+            - domain: 
               - light
               - switch
 
