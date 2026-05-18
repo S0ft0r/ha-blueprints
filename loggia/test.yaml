@@ -45,7 +45,7 @@ triggers:
     
 actions:
   - choose:
-    - conditions: # Закрыть по слайдеру
+      - conditions: # Закрыть по слайдеру
           - condition: trigger
             id:
               - slider_down_trigger
