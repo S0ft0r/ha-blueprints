@@ -16,8 +16,6 @@ blueprint:
           entity:
             - domain: light
             - domain: switch
-          reorder: false
-          multiple: true
 
     automation_section:
       name: Настройки автоматизации
