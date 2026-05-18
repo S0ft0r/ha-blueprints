@@ -3,7 +3,9 @@ blueprint:
   description: |
     Управление шторами по времени или положению солнца. 
      * Версия 2026.05.00
-       <sub>Сборка 124</sub> 
+       <sub>Сборка 125</sub>
+    Изменения:
+     * Добавлена возможность выбирать вспомогательные сенсоры (в формате input_datetime) в качестве триггера времени открытия и закрытия штор
   domain: automation
   source_url: https://github.com/S0ft0r/ha-blueprints/blob/main/loggia/covers.yaml
   author: Softor
@@ -87,11 +89,33 @@ blueprint:
           default: "08:00:00"
           selector:
             time: {}
+        set_up_time_sensor:
+          description: |
+            Сенсор, определяющий время открытия штор.
+              * При выборе сенсора, время открытия штор, заданное в проекте, учитываться не будет.
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain: 
+                  - input_datetime
+              multiple: false
         set_down_time:
           name: Закрыть шторы в
           default: "20:00:00"
           selector:
             time: {}
+        set_down_time_sensor:
+          description: |
+            Сенсор, определяющий время закрытия штор.
+              * При выборе сенсора, время закрытия штор, заданное в проекте, учитываться не будет.
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain: 
+                  - input_datetime
+              multiple: false
 
 
     sun_section:
@@ -238,6 +262,9 @@ trigger_variables:
   blind_for_protect:              !input blind_for_protect
   sun_sensor:                     !input sun_sensor
   do_not_blind_open_until_sensor: !input do_not_blind_open_until_sensor
+  set_up_time_sensor:             !input set_up_time
+  set_down_time_sensor:           !input set_down_time
+  
 
   forecasts:                      !input forecasts
   alarm_delay:                    !input alarm_delay
@@ -256,13 +283,27 @@ trigger_variables:
   is_open_until_enabled:          "{{ do_not_blind_open_until_sensor != [] and 'extra_alarm_pause' in automation_extra }}"
 
 triggers:
-  - trigger:        time
-    at:             !input set_up_time
+#  - trigger:        time
+#    at:             !input set_up_time
+#    id:             up_time_trigger
+#    enabled:        "{{ is_automation_time_enabled }}"
+
+#  - trigger:        time
+#    at:             !input set_down_time
+#    id:             down_time_trigger
+#    enabled:        "{{ is_automation_time_enabled }}"
+
+  - trigger:        template
+    value_template: |
+      {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(set_up_time)) | timestamp_custom("%H:%M") 
+         if set_up_time_sensor == [] else as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(states(set_up_time_sensor))) | timestamp_custom("%H:%M") }}
     id:             up_time_trigger
     enabled:        "{{ is_automation_time_enabled }}"
 
-  - trigger:        time
-    at:             !input set_down_time
+  - trigger:        template
+    value_template: |
+      {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(set_down_time)) | timestamp_custom("%H:%M") 
+         if set_down_time_sensor == [] else as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(states(set_down_time_sensor))) | timestamp_custom("%H:%M") }}
     id:             down_time_trigger
     enabled:        "{{ is_automation_time_enabled }}"
 
