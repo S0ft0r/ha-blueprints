@@ -322,9 +322,6 @@ blueprint:
               step: 1
               mode: box
 
-variables:
-  count: repeat_for
-
 trigger_variables:
   automation_options:             !input automation_options
   automation_extra:               !input automation_extra
@@ -471,7 +468,7 @@ actions:
                 - action: cover.set_cover_position
                   metadata: {}
                   target:
-                    entity_id: ! input blind
+                    entity_id: !input blind
                   data:
                     position: |
                       {{ (down_limit + (repeat_for - repeat.index)) if down_limit_sensor == [] else (states(down_limit_sensor) + (repeat_for - repeat.index)) | int(0) }}
@@ -489,7 +486,7 @@ actions:
                 - action: cover.set_cover_position
                   metadata: {}
                   target:
-                    entity_id: ! input blind
+                    entity_id: !input blind
                   data:
                     position: |
                       {{ (down_limit + (repeat_for - repeat.index)) if down_limit_sensor == [] else (states(down_limit_sensor) + (repeat_for - repeat.index)) | int(0) }}
