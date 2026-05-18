@@ -1,9 +1,8 @@
 blueprint:
   name: Управление подсветкой цветов
   description: |
-    Управление подсветкой цветов по времени или положению солнца. 
-     * Версия 2026.05.00
-       <sub>Сборка 1</sub> 
+    Управление подсветкой цветов по времени, положению солнца или по положению штор. 
+     * Версия 2026.05.00 <small>Сборка 1</small> 
   domain: automation
   source_url: https://github.com/S0ft0r/ha-blueprints/blob/main/loggia/phytolamp.yaml
   author: Softor
