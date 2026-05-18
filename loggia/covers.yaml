@@ -310,7 +310,7 @@ blueprint:
               custom_value: false
               mode: list
 
-        repeat_for
+        repeat_for:
           name: Количество повторов
           description: |
             Для защиты от несработки открытия/закрытия штор.
