@@ -4,7 +4,7 @@ blueprint:
     Тест
   domain: automation
   source_url: https://github.com/S0ft0r/ha-blueprints/blob/main/loggia/test.yaml
-  author: @Softor
+  author: Softor
   input:
     blind:
       name: Шторы
