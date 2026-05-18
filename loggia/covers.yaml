@@ -390,7 +390,7 @@ actions:
               {{ states(forecast_sensor) in forecasts }} 
           - condition: template
             value_template: |
-              {{ true is not is_sun_protect_enabled else (state_attr(sun_sensor,'azimuth') | float(default=45) > sun_azimut and state_attr(sun_sensor,'elevation') | float(default=360) > sun_elevation) }}
+              {{ true if not is_automation_time_enabled else (now() >= today_at(set_up_time) and now() <= today_at(set_down_time)) }}
 
         sequence:
           - action: cover.set_cover_position
