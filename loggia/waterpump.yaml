@@ -70,12 +70,22 @@ trigger_variables:
 
 
 variables:
-#  waterpump_entities: 
-  on_time_morning:  | 
+  waterpump_entities:       |
+                                  {{ device_entities(waterpump) | 
+                                    reject("is_state", ["unavailable", "unknown"]) |
+                                    select("match", "switch.") | 
+                                    list }}
+  waterpump_entities_count: |
+                                  {{ device_entities(waterpump) | 
+                                    reject("is_state", ["unavailable", "unknown"]) |
+                                    select("match", "switch.") | 
+                                    list | 
+                                    count }}
+  on_time_morning:          | 
                                   {{ as_timestamp(today_at(set_on_time_morning)) | timestamp_custom("%H:%M") 
                                      if set_on_time_morning_sensor == [] else 
                                      as_timestamp(today_at(states(set_on_time_morning_sensor))) | timestamp_custom("%H:%M") }}
-  on_time_evening:  | 
+  on_time_evening:          | 
                                   {{ as_timestamp(today_at(set_on_time_evening)) | timestamp_custom("%H:%M") 
                                      if set_on_time_evening_sensor == [] else 
                                      as_timestamp(today_at(states(set_on_time_evening_sensor))) | timestamp_custom("%H:%M") }}
@@ -99,7 +109,8 @@ actions:
           - action: homeassistant.turn_on
             metadata: {}
             target:
-              entity_id: !input waterpump
+              entity_id: > 
+                waterpump_entities
 
       - conditions: # Время включения
           - condition: trigger
@@ -109,7 +120,8 @@ actions:
           - action: homeassistant.turn_on
             metadata: {}            
             target:
-              entity_id: !input waterpump
+              entity_id: > 
+                waterpump_entities
 
 mode: single
 
