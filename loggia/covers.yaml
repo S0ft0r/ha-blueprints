@@ -331,14 +331,13 @@ blueprint:
         slider_device:
           name: Выключатель/слайдер
           description: |
-            Выключатель типа <strong>Aqara Z1 Pro</strong> со встроенным слайдером.
-              <small>* Используется стандартный MQTT-topic <em>zigbee2mqtt/DEVICE_NAME/action</em> с нагрузкой <em>slider_up</em> и <em>slider_down</em>.</small>
+            Выключатель типа <strong>Aqara Z1 Pro</strong> со встроенным слайдером. Может быть подключен через MQTT или ZHA.
           default:
           selector:
             device:
               entity:
-                - domain: mqtt
-                - domain: zha
+                - integration: mqtt
+                - integration: zha
               multiple: false
 
         basic_topic:
