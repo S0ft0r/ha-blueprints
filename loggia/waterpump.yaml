@@ -110,7 +110,7 @@ actions:
             metadata: {}
             target:
               entity_id: > 
-                waterpump_entities
+                {{ waterpump_entities }}
 
       - conditions: # Время включения
           - condition: trigger
@@ -121,7 +121,7 @@ actions:
             metadata: {}            
             target:
               entity_id: > 
-                waterpump_entities
+                {{ waterpump_entities }}
 
 mode: single
 
