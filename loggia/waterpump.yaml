@@ -106,7 +106,7 @@ actions:
             id:
               - on_time_morning_trigger
         sequence:
-          - action: homeassistant.turn_on
+          - action: switch.turn_on
             metadata: {}
             target:
               entity_id: > 
@@ -117,7 +117,7 @@ actions:
             id:
               - on_time_evening_trigger
         sequence:
-          - action: homeassistant.turn_on
+          - action: switch.turn_on
             metadata: {}            
             target:
               entity_id: > 
