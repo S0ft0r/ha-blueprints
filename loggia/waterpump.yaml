@@ -111,6 +111,13 @@ actions:
             target:
               entity_id: > 
                 {{ waterpump_entities }}
+          - delay:
+              seconds: 1
+          - action: switch.turn_off
+            metadata: {}            
+            target:
+              entity_id: > 
+                {{ waterpump_entities }}
 
       - conditions: # Время включения
           - condition: trigger
@@ -118,6 +125,13 @@ actions:
               - on_time_evening_trigger
         sequence:
           - action: switch.turn_on
+            metadata: {}            
+            target:
+              entity_id: > 
+                {{ waterpump_entities }}
+          - delay:
+              seconds: 1
+          - action: switch.turn_off
             metadata: {}            
             target:
               entity_id: > 
