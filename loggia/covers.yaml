@@ -450,12 +450,12 @@ triggers:
     enabled:        "{{ is_forecast_enabled }}"
 
   - trigger:        template
-    value_template: "{{ state_attr(sun_sensor,'azimuth') | float > (sun_azimut if sun_azimut_sensor == [] else states(sun_azimut_sensor) | int(0)) }}"
+    value_template: "{{ state_attr(sun_sensor,'azimuth') | float > (sun_azimut | int if sun_azimut_sensor == [] else states(sun_azimut_sensor) | int(0)) }}"
     id:             sun_azimut_trigger
     enabled:        "{{ is_sun_protect_enabled }}"
 
   - trigger:        template
-    value_template: "{{ state_attr(sun_sensor,'elevation') | float < (sun_elevation if sun_elevation_sensor == [] else states(sun_elevation_sensor) | int(0)) }}"
+    value_template: "{{ state_attr(sun_sensor,'elevation') | float < (sun_elevation | int if sun_elevation_sensor == [] else states(sun_elevation_sensor) | int(0)) }}"
     id:             sun_elevation_trigger
     enabled:        "{{ is_sun_protect_enabled }}"
 
