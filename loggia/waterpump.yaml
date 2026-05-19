@@ -16,8 +16,6 @@ blueprint:
         device:
           entity: 
             - domain: switch
-          reorder: false
-          multiple: false
 
     time_section:
       name: Настройки управления по времени
