@@ -14,9 +14,8 @@ blueprint:
       description: Какими системами необходимо управлять?
       selector:
         device:
-          filter: 
-            - domain: 
-              - switch
+          entity: 
+            - domain: switch
           reorder: false
           multiple: false
 
