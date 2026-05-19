@@ -491,8 +491,8 @@ triggers:
 
 actions:
   - choose:
-        - conditions: # Открыть по слайдеру
-            - condition: trigger
+      - conditions: # Открыть по слайдеру
+          - condition: trigger
             id:
               - mqtt_slider_up_trigger
           - condition: template
@@ -513,7 +513,7 @@ actions:
                     seconds: 3
 
       - conditions: # Открыть по слайдеру
-            - condition: trigger
+          - condition: trigger
             id:
               - zha_slider_up_trigger
           - condition: template
