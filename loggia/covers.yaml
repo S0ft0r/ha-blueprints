@@ -464,14 +464,14 @@ triggers:
       topic:        !input basic_topic
       payload:      !input payload_down
     id:             mqtt_slider_down_trigger
-    enabled:        "{{ mqtt_device }}"
+#    enabled:        "{{ mqtt_device }}"
 
   - trigger:        mqtt
     options:
       topic:        !input basic_topic
       payload:      !input payload_up
     id:             mqtt_slider_up_trigger
-    enabled:        "{{ mqtt_device }}"
+#    enabled:        "{{ mqtt_device }}"
 
 actions:
   - choose:
