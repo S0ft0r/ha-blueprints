@@ -406,7 +406,7 @@ trigger_variables:
   is_open_until_enabled:          "{{ do_not_blind_open_until_sensor != [] and 'extra_alarm_pause' in automation_extra }}"
 
   is_zha_device:                  "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'zha' }}"
-#  is_mqtt_device:                 "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'mqtt' }}"
+  is_mqtt_device:                 "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'mqtt' }}"
    
 
 triggers:
@@ -491,16 +491,32 @@ triggers:
 
 actions:
   - choose:
-      - conditions: # Открыть по слайдеру
-          - condition: trigger
+        - conditions: # Открыть по слайдеру
+            - condition: trigger
             id:
               - mqtt_slider_up_trigger
-          - condition: trigger
+          - condition: template
+            value_template: |
+              {{ device_attr(slider_device, 'name') == trigger.topic.split('/')[1] }}
+        sequence:
+          - repeat:
+              count: !input repeat_for
+              sequence:
+                - action: cover.set_cover_position
+                  metadata: {}
+                  target:
+                    entity_id: !input blind
+                  data:
+                    position: |
+                      {{ (up_limit | int - (repeat_for | int - repeat.index)) if up_limit_sensor == [] else (states(up_limit_sensor) | int - (repeat_for | int - repeat.index)) | int(0) }}
+                - delay:
+                    seconds: 3
+
+      - conditions: # Открыть по слайдеру
+            - condition: trigger
             id:
               - zha_slider_up_trigger
           - condition: template
-            value_template: |
-              {{ true if is_zha_device else device_attr(slider_device, 'name') == trigger.topic.split('/')[1] }}
         sequence:
           - repeat:
               count: !input repeat_for
@@ -583,12 +599,27 @@ actions:
           - condition: trigger
             id:
               - mqtt_slider_down_trigger
+          - condition: template
+            value_template: |
+              {{ device_attr(slider_device, 'name') == trigger.topic.split('/')[1] }}
+        sequence:
+          - repeat:
+              count: !input repeat_for
+              sequence:
+                - action: cover.set_cover_position
+                  metadata: {}
+                  target:
+                    entity_id: !input blind
+                  data:
+                    position: |
+                      {{ (down_limit | int + (repeat_for | int - repeat.index)) if down_limit_sensor == [] else (states(down_limit_sensor) | int + (repeat_for | int - repeat.index)) | int(0) }}
+                - delay:
+                    seconds: 3
+
+      - conditions: # Закрыть по слайдеру
           - condition: trigger
             id:
               - zha_slider_down_trigger
-          - condition: template
-            value_template: |
-              {{ true if is_zha_device else device_attr(slider_device, 'name') == trigger.topic.split('/')[1] }}
         sequence:
           - repeat:
               count: !input repeat_for
