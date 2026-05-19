@@ -29,7 +29,7 @@ blueprint:
           reorder: false
           multiple: true
 
-    automation_section:
+      automation_section:
       name: Настройки автоматизации
       icon: mdi:window-shutter-cog
       collapsed: false
