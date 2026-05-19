@@ -396,13 +396,14 @@ trigger_variables:
   down_limit:                     !input down_limit
   repeat_for:                     !input repeat_for
   
-
+  sun_elevation_variable:         "{{ sun_elevation | int if sun_elevation_sensor == [] else states(sun_elevation_sensor) | int(0) }}"
+  sun_azimuth_variable:           "{{ sun_azimuth | int if sun_azimuth_sensor == [] else states(sun_azimuth_sensor) | int(0) }}"
   
   is_automation_time_enabled:     "{{ 'options_time' in automation_options }}"
   is_automation_sun_enabled:      "{{ 'options_sun'  in automation_options }}"
 
   is_forecast_enabled:            "{{ forecast_sensor != [] and 'extra_forecast' in automation_extra }}"
-  is_sun_protect_enabled:         "{{ (sun_azimut != 0 or sun_elevation != 0) and 'extra_sun_protect' in automation_extra }}"
+  is_sun_protect_enabled:         "{{ (sun_elevation_variable != 0 or sun_azimuth_variable != 0) and 'extra_sun_protect' in automation_extra }}"
   is_open_until_enabled:          "{{ do_not_blind_open_until_sensor != [] and 'extra_alarm_pause' in automation_extra }}"
 
   is_zha_device:                  "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'zha' }}"
