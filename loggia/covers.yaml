@@ -354,7 +354,6 @@ blueprint:
           name: Сообщение движениия вверх 
           description: |
             Сообщение, публикуемое устройством для определения движения "вниз". 
-              <small>* При использовании ZHA не учитывается.</small>
           default: "slider_up"
           selector:
             text:
@@ -363,7 +362,6 @@ blueprint:
           name: Сообщение движения вниз 
           description: |
             Сообщение, публикуемое устройством для определения движения "вниз". 
-              <small>* При использовании ZHA не учитывается.</small>
           default: "slider_down"
           selector:
             text:
