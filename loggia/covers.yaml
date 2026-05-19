@@ -516,7 +516,6 @@ actions:
           - condition: trigger
             id:
               - zha_slider_up_trigger
-          - condition: template
         sequence:
           - repeat:
               count: !input repeat_for
