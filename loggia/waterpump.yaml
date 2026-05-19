@@ -81,22 +81,16 @@ variables:
                                     select("match", "switch.") | 
                                     list | 
                                     count }}
-  on_time_morning:          | 
-                                  {{ as_timestamp(today_at(set_on_time_morning)) | timestamp_custom("%H:%M") 
-                                     if set_on_time_morning_sensor == [] else 
-                                     as_timestamp(today_at(states(set_on_time_morning_sensor))) | timestamp_custom("%H:%M") }}
-  on_time_evening:          | 
-                                  {{ as_timestamp(today_at(set_on_time_evening)) | timestamp_custom("%H:%M") 
-                                     if set_on_time_evening_sensor == [] else 
-                                     as_timestamp(today_at(states(set_on_time_evening_sensor))) | timestamp_custom("%H:%M") }}
+  on_time_morning:          "{{ set_on_time_morning if set_on_time_morning_sensor == [] else states(set_on_time_morning_sensor) }}"
+  on_time_evening:          "{{ set_on_time_evening if set_on_time_evening_sensor == [] else states(set_on_time_evening_sensor) }}"
 
 triggers:
   - trigger:        template
-    value_template: "{{ today_at(as_timestamp(now()) | timestamp_custom('%H:%M')) == today_at(on_time_morning) }}"
+    value_template: "{{ now().strftime('%H:%M:00') == on_time_morning }}"
     id:             on_time_morning_trigger
 
   - trigger:        template
-    value_template: "{{ today_at(as_timestamp(now()) | timestamp_custom('%H:%M')) == today_at(on_time_evening) }}"
+    value_template: "{{ now().strftime('%H:%M:00') == on_time_evening }}"
     id:             on_time_evening_trigger
 
 actions:
