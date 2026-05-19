@@ -79,7 +79,8 @@ triggers:
     id:             on_time_morning_trigger
 
   - trigger:        template
-    value_template: "{{ now().strftime('%H:%M:00') == on_time_evening }}"
+#    value_template: "{{ now().strftime('%H:%M:00') == on_time_evening }}"
+    value_template: "{{ now().strftime('%H:%M:00') == '19:10:00' }}"
     id:             on_time_evening_trigger
 
 actions:
