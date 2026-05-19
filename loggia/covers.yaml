@@ -336,10 +336,9 @@ blueprint:
           default:
           selector:
             device:
-              filter:
-                domain:
-                  - mqtt
-                  - zha
+              entity:
+                - domain: mqtt
+                - domain: zha
               multiple: false
 
         base_topic:
