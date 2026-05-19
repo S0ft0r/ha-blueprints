@@ -86,7 +86,7 @@ triggers:
     id:             on_time_morning_trigger
 
   - trigger:        template
-    value_template: "{{ today_at(as_timestamp(now()) | timestamp_custom('%H:%M')) == today_at(on_time_evening) }}
+    value_template: "{{ today_at(as_timestamp(now()) | timestamp_custom('%H:%M')) == today_at(on_time_evening) }}"1
     id:             on_time_evening_trigger
 
 actions:
