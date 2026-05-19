@@ -341,7 +341,7 @@ blueprint:
                 - domain: zha
               multiple: false
 
-        base_topic:
+        basic_topic:
           name: Базовый топик 
           description: |
             Базовый топик устройства, подключенного через MQTT. Обычно это <strong><em>zigbee2mqtt/+/action</em></strong>, где вместо знака + будет АВТОМАТИЧЕСКИ подставлено имя выключателя/слайдера. 
