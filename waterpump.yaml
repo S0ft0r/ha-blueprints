@@ -18,13 +18,100 @@ blueprint:
             - domain: 
               - switch
           reorder: false
-          multiple: true
+          multiple: false
+
+    time_section:
+      name: Настройки управления по времени
+      description: |
+        Устанавливается время включения системы орошения.
+      icon: mdi:clock-time-eight-outline
+      input:
+        set_on_time_morning:
+          name: Включить утром в
+          default: "08:00:00"
+          selector:
+            time: {}
+        set_on_time_morning_sensor:
+          name: Включить орошение по сенсору
+          description: |
+            Сенсор, определяющий время включения системы орошения утром.
+              * При выборе сенсора, время включения орошения утром, заданное в проекте, учитываться не будет.
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain: 
+                  - input_datetime
+              multiple: false
+        set_off_time_evening:
+          name: Выключить вечером в
+          default: "20:00:00"
+          selector:
+            time: {}
+        set_off_time_evening_sensor:
+          name: Выключить подсветку по сенсору
+          description: |
+            Сенсор, определяющий время включения системы орошения вечером.
+              * При выборе сенсора, время включения орошения вечером, заданное в проекте, учитываться не будет.
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain: 
+                  - input_datetime
+              multiple: false
       
 trigger_variables:
   waterpump:                      !input waterpump
 
-triggers: []
-actions: []
+  set_on_time_morning_sensor:     !input set_on_time_morning_sensor
+  set_on_time_evening_sensor:     !input set_on_time_evening_sensor
+
+  set_on_time_morning:            !input set_on_time_morning
+  set_on_time_evening:            !input set_on_time_evening
+
+  on_time_morning:  | 
+                                  {{ as_timestamp(today_at(set_on_time_morning)) | timestamp_custom("%H:%M") 
+                                     if set_on_time_morning_sensor == [] else 
+                                     as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(states(set_on_time_morning_sensor))) | timestamp_custom("%H:%M") }}
+
+  on_time_evening:  | 
+                                  {{ as_timestamp(today_at(set_on_time_evening)) | timestamp_custom("%H:%M") 
+                                     if set_on_time_evening_sensor == [] else 
+                                     as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(states(set_on_time_evening_sensor))) | timestamp_custom("%H:%M") }}
+
+triggers:
+  - trigger:        template
+    value_template: |
+      {{ as_timestamp(now()) | timestamp_custom("%H:%M") == on_time_morning }}
+    id:             on_time_morning_trigger
+
+  - trigger:        template
+    value_template: |
+      {{ as_timestamp(now()) | timestamp_custom("%H:%M") == on_time_evening }}
+    id:             on_time_evening_trigger
+
+actions:
+  - choose:
+      - conditions: # Время включения
+          - condition: trigger
+            id:
+              - on_time_morning_trigger
+        sequence:
+          - action: homeassistant.turn_on
+            metadata: {}
+            target:
+              entity_id: !input waterpump
+
+      - conditions: # Время включения
+          - condition: trigger
+            id:
+              - on_time_evening_trigger
+        sequence:
+          - action: homeassistant.turn_on
+            metadata: {}            
+            target:
+              entity_id: !input waterpump
 
 mode: single
 
