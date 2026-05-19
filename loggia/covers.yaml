@@ -406,7 +406,7 @@ trigger_variables:
   is_open_until_enabled:          "{{ do_not_blind_open_until_sensor != [] and 'extra_alarm_pause' in automation_extra }}"
 
   is_zha_device:                  "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'zha' }}"
-  is_mqtt_device:                 "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'mqtt' }}"
+#  is_mqtt_device:                 "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'mqtt' }}"
    
 
 triggers:
@@ -464,14 +464,14 @@ triggers:
       topic:        !input basic_topic
       payload:      !input payload_down
     id:             mqtt_slider_down_trigger
-    enabled:        "{{ is_mqtt_device }}"
+#    enabled:        "{{ is_mqtt_device }}"
 
   - trigger:        mqtt
     options:
       topic:        !input basic_topic
       payload:      !input payload_up
     id:             mqtt_slider_up_trigger
-    enabled:        "{{ is_mqtt_device }}"
+#    enabled:        "{{ is_mqtt_device }}"
 
   - trigger:        event
     event_type:     zha_event
@@ -479,7 +479,7 @@ triggers:
       device_id:    !input slider_device
       command:      !input payload_down
     id:             zha_slider_down_trigger
-    enabled:        "{{ is_zha_device }}"
+#    enabled:        "{{ is_zha_device }}"
     
   - trigger:        event
     event_type:     zha_event
@@ -487,7 +487,7 @@ triggers:
       device_id:    !input slider_device
       command:      !input payload_up
     id:             zha_slider_up_trigger
-    enabled:        "{{ is_zha_device }}"
+#    enabled:        "{{ is_zha_device }}"
 
 actions:
   - choose:
