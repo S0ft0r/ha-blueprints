@@ -2,10 +2,10 @@ blueprint:
   name: Управление рулонными шторами
   description: |
     Управление шторами по времени или положению солнца. 
-     * Версия 2026.05.00 <small>Сборка 133</small>
+     * Версия 2026.05.00 <small>Сборка 134</small>
     Изменения:
-     - Сборка 133
-     * Добавлена возможность открытия/закрытия жалюзи по слайдеру (Типа Aqara Z1 Pro)<small> 
+     - Сборка 134
+     * Добавлена возможность открытия/закрытия жалюзи по слайдеру (Типа Aqara Z1 Pro), подключенному через MQTT.<small> 
      - Сборка 129
      * Добавлен параметр "Количество повторов" - для защиты от несработок открытия/закрытия штор
      - Сборка 127
@@ -325,10 +325,11 @@ blueprint:
               step: 1
               mode: box
 
-        slider_sensor:
+        slider_device:
           name: Выключатель/слайдер
           description: |
             Выключатель типа <strong>Aqara Z1 Pro</strong> со встроенным слайдером.
+              <small>* Используется MQTT-topic <em>zigbee2mqtt/DEVICE_NAME/action</em> с нагрузкой <em>slider_up</em> и <em>slider_down</em>.</small>
           default:
           selector:
             device:
@@ -351,7 +352,7 @@ trigger_variables:
   sun_azimut_sensor:              !input sun_azimut_sensor
   up_limit_sensor:                !input up_limit_sensor
   down_limit_sensor:              !input down_limit_sensor
-  slider_sensor:                  !input slider_sensor
+  slider_device:                  !input slider_device
   
 
   forecasts:                      !input forecasts
@@ -371,9 +372,6 @@ trigger_variables:
   is_forecast_enabled:            "{{ forecast_sensor != [] and 'extra_forecast' in automation_extra }}"
   is_sun_protect_enabled:         "{{ (sun_azimut != 0 or sun_elevation != 0) and 'extra_sun_protect' in automation_extra }}"
   is_open_until_enabled:          "{{ do_not_blind_open_until_sensor != [] and 'extra_alarm_pause' in automation_extra }}"
-
-variables: 
-  topic_slider: "zigbee2mqtt/{{ device_attr(slider_sensor, 'name') }}/action"
 
 triggers:
 #  - trigger:        time
@@ -427,13 +425,13 @@ triggers:
 
   - trigger: mqtt
     options:
-      topic: zigbee2mqtt/switch_balcony/action
+      topic: zigbee2mqtt/+/action
       payload: slider_down
     id: slider_down_trigger
 
   - trigger: mqtt
     options:
-      topic: zigbee2mqtt/switch_balcony/action
+      topic: zigbee2mqtt/+/action
       payload: slider_up
     id: slider_up_trigger
 
@@ -444,6 +442,9 @@ actions:
           - condition: trigger
             id:
               - slider_up_trigger
+          - condition: template
+            value_template: |
+              {{ device_attr(slider_device, 'name') == trigger.topic.split('/')[1] }}
         sequence:
           - repeat:
               count: !input repeat_for
@@ -526,6 +527,9 @@ actions:
           - condition: trigger
             id:
               - slider_down_trigger
+          - condition: template
+            value_template: |
+              {{ device_attr(slider_device, 'name') == trigger.topic.split('/')[1] }}
         sequence:
           - repeat:
               count: !input repeat_for
