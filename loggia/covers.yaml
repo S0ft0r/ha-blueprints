@@ -337,7 +337,7 @@ blueprint:
           selector:
             device:
               filter:
-                - domain:
+                domain:
                   - mqtt
                   - zha
               multiple: false
