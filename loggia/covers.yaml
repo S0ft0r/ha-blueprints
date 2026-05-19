@@ -349,7 +349,6 @@ blueprint:
           default: "zigbee2mqtt/+/action"
           selector:
             text:
-              multiline: false
 
         payload_up:
           name: Сообщение движениия вверх 
@@ -359,7 +358,6 @@ blueprint:
           default: "slider_up"
           selector:
             text:
-              multiline: false
           
         payload_down:
           name: Сообщение движения вниз 
@@ -369,7 +367,6 @@ blueprint:
           default: "slider_down"
           selector:
             text:
-              multiline: false
 
 trigger_variables:
   automation_options:             !input automation_options
