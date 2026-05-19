@@ -455,7 +455,7 @@ triggers:
     enabled:        "{{ is_sun_protect_enabled }}"
 
   - trigger:        template
-    value_template: "{{ state_attr(sun_sensor,'elevation') | float > (sun_elevation if sun_elevation_sensor == [] else states(sun_elevation_sensor) | int(0)) }}"
+    value_template: "{{ state_attr(sun_sensor,'elevation') | float < (sun_elevation if sun_elevation_sensor == [] else states(sun_elevation_sensor) | int(0)) }}"
     id:             sun_elevation_trigger
     enabled:        "{{ is_sun_protect_enabled }}"
 
