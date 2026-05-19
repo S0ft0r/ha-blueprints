@@ -368,46 +368,46 @@ blueprint:
             text:
 
 trigger_variables:
-  automation_options:             !input automation_options
-  automation_extra:               !input automation_extra
+  automation_options: !input automation_options
+  automation_extra: !input automation_extra
 
-  blind:                          !input blind
-  blind_for_protect:              !input blind_for_protect
+  blind: !input blind
+  blind_for_protect: !input blind_for_protect
 
-  forecast_sensor:                !input forecast_sensor
-  sun_sensor:                     !input sun_sensor
+  forecast_sensor: !input forecast_sensor
+  sun_sensor: !input sun_sensor
   do_not_blind_open_until_sensor: !input do_not_blind_open_until_sensor
-  set_up_time_sensor:             !input set_up_time
-  set_down_time_sensor:           !input set_down_time
-  sun_elevation_sensor:           !input sun_elevation_sensor
-  sun_azimut_sensor:              !input sun_azimut_sensor
-  up_limit_sensor:                !input up_limit_sensor
-  down_limit_sensor:              !input down_limit_sensor
-  slider_device:                  !input slider_device
+  set_up_time_sensor: !input set_up_time
+  set_down_time_sensor: !input set_down_time
+  sun_elevation_sensor: !input sun_elevation_sensor
+  sun_azimut_sensor: !input sun_azimut_sensor
+  up_limit_sensor: !input up_limit_sensor
+  down_limit_sensor: !input down_limit_sensor
+  slider_device: !input slider_device
   
 
-  forecasts:                      !input forecasts
-  alarm_delay:                    !input alarm_delay
-  sun_azimut:                     !input sun_azimut
-  sun_elevation:                  !input sun_elevation
-  set_up_time:                    !input set_up_time
-  set_down_time:                  !input set_down_time
-  up_limit:                       !input up_limit
-  down_limit:                     !input down_limit
-  repeat_for:                     !input repeat_for
+  forecasts: !input forecasts
+  alarm_delay: !input alarm_delay
+  sun_azimut: !input sun_azimut
+  sun_elevation: !input sun_elevation
+  set_up_time: !input set_up_time
+  set_down_time: !input set_down_time
+  up_limit: !input up_limit
+  down_limit: !input down_limit
+  repeat_for: !input repeat_for
   
-  sun_elevation_variable:         "{{ sun_elevation | int if sun_elevation_sensor == [] else states(sun_elevation_sensor) | int(0) }}"
-  sun_azimuth_variable:           "{{ sun_azimuth | int if sun_azimuth_sensor == [] else states(sun_azimuth_sensor) | int(0) }}"
+  sun_elevation_variable: "{{ sun_elevation | int if sun_elevation_sensor == [] else states(sun_elevation_sensor) | int(0) }}"
+  sun_azimuth_variable: "{{ sun_azimuth | int if sun_azimuth_sensor == [] else states(sun_azimuth_sensor) | int(0) }}"
   
-  is_automation_time_enabled:     "{{ 'options_time' in automation_options }}"
-  is_automation_sun_enabled:      "{{ 'options_sun'  in automation_options }}"
+  is_automation_time_enabled: "{{ 'options_time' in automation_options }}"
+  is_automation_sun_enabled: "{{ 'options_sun'  in automation_options }}"
 
-  is_forecast_enabled:            "{{ forecast_sensor != [] and 'extra_forecast' in automation_extra }}"
-  is_sun_protect_enabled:         "{{ (sun_elevation_variable != 0 or sun_azimuth_variable != 0) and 'extra_sun_protect' in automation_extra }}"
-  is_open_until_enabled:          "{{ do_not_blind_open_until_sensor != [] and 'extra_alarm_pause' in automation_extra }}"
+  is_forecast_enabled: "{{ forecast_sensor != [] and 'extra_forecast' in automation_extra }}"
+  is_sun_protect_enabled: "{{ (sun_elevation_variable != 0 or sun_azimuth_variable != 0) and 'extra_sun_protect' in automation_extra }}"
+  is_open_until_enabled: "{{ do_not_blind_open_until_sensor != [] and 'extra_alarm_pause' in automation_extra }}"
 
-  is_zha_device:                  "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'zha' }}"
-  is_mqtt_device:                 "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'mqtt' }}"
+  is_zha_device: "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'zha' }}"
+  is_mqtt_device: "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'mqtt' }}"
    
 
 triggers:
@@ -421,73 +421,73 @@ triggers:
 #    id:             down_time_trigger
 #    enabled:        "{{ is_automation_time_enabled }}"
 
-  - trigger:        template
+  - trigger:  template
     value_template: >
-      {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(set_up_time)) | timestamp_custom("%H:%M") 
+      {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(set_up_time)) | timestamp_custom("%H:%M")
          if set_up_time_sensor == [] else as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(states(set_up_time_sensor))) | timestamp_custom("%H:%M") }}
-    id:             up_time_trigger
-    enabled:        "{{ is_automation_time_enabled }}"
+    id: up_time_trigger
+    enabled: "{{ is_automation_time_enabled }}"
 
-  - trigger:        template
+  - trigger: template
     value_template: >
-      {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(set_down_time)) | timestamp_custom("%H:%M") 
+      {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(set_down_time)) | timestamp_custom("%H:%M")
          if set_down_time_sensor == [] else as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(states(set_down_time_sensor))) | timestamp_custom("%H:%M") }}
-    id:             down_time_trigger
-    enabled:        "{{ is_automation_time_enabled }}"
+    id: down_time_trigger
+    enabled: "{{ is_automation_time_enabled }}"
 
   - trigger: sun
     event: sunrise
     id: sunrise_trigger
     enabled: "{{ is_automation_sun_enabled }}"
 
-  - trigger:        sun
-    event:          sunset
-    id:             sunset_trigger
-    enabled:        "{{ is_automation_sun_enabled }}"
+  - trigger: sun
+    event: sunset
+    id: sunset_trigger
+    enabled: "{{ is_automation_sun_enabled }}"
 
-  - trigger:        state
-    entity_id:      !input forecast_sensor
-    id:             forecast_trigger
-    enabled:        "{{ is_forecast_enabled }}"
+  - trigger: state
+    entity_id: !input forecast_sensor
+    id: forecast_trigger
+    enabled: "{{ is_forecast_enabled }}"
 
-  - trigger:        template
+  - trigger: template
     value_template: "{{ state_attr(sun_sensor,'azimuth') | float > (sun_azimut | int if sun_azimut_sensor == [] else states(sun_azimut_sensor) | int(0)) }}"
-    id:             sun_azimut_trigger
-    enabled:        "{{ is_sun_protect_enabled }}"
+    id: sun_azimut_trigger
+    enabled: "{{ is_sun_protect_enabled }}"
 
-  - trigger:        template
+  - trigger: template
     value_template: "{{ state_attr(sun_sensor,'elevation') | float < (sun_elevation | int if sun_elevation_sensor == [] else states(sun_elevation_sensor) | int(0)) }}"
-    id:             sun_elevation_trigger
-    enabled:        "{{ is_sun_protect_enabled }}"
+    id: sun_elevation_trigger
+    enabled: "{{ is_sun_protect_enabled }}"
 
-  - trigger:        mqtt
+  - trigger: mqtt
     options:
-      topic:        !input basic_topic
-      payload:      !input payload_down
+      topic: !input basic_topic
+      payload: !input payload_down
     id:             mqtt_slider_down_trigger
 #    enabled:        "{{ is_mqtt_device }}"
 
-  - trigger:        mqtt
+  - trigger: mqtt
     options:
-      topic:        !input basic_topic
-      payload:      !input payload_up
-    id:             mqtt_slider_up_trigger
+      topic: !input basic_topic
+      payload: !input payload_up
+    id: mqtt_slider_up_trigger
 #    enabled:        "{{ is_mqtt_device }}"
 
-  - trigger:        event
-    event_type:     zha_event
+  - trigger: event
+    event_type: zha_event
     event_data:
-      device_id:    !input slider_device
-      command:      !input payload_down
-    id:             zha_slider_down_trigger
+      device_id: !input slider_device
+      command: !input payload_down
+    id: zha_slider_down_trigger
 #    enabled:        "{{ is_zha_device }}"
     
-  - trigger:        event
-    event_type:     zha_event
+  - trigger: event
+    event_type: zha_event
     event_data:
-      device_id:    !input slider_device
-      command:      !input payload_up
-    id:             zha_slider_up_trigger
+      device_id: !input slider_device
+      command: !input payload_up
+    id: zha_slider_up_trigger
 #    enabled:        "{{ is_zha_device }}"
 
 actions:
