@@ -40,12 +40,12 @@ blueprint:
                 - domain: 
                   - input_datetime
               multiple: false
-        set_off_time_evening:
+        set_on_time_evening:
           name: Выключить вечером в
           default: "20:00:00"
           selector:
             time: {}
-        set_off_time_evening_sensor:
+        set_on_time_evening_sensor:
           name: Выключить подсветку по сенсору
           description: |
             Сенсор, определяющий время включения системы орошения вечером.
