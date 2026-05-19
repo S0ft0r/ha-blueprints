@@ -462,15 +462,17 @@ triggers:
 
   - trigger:        mqtt
     options:
-      topic:        !input basic_topic
-      payload:      !input payload_down
+#      topic:        !input basic_topic
+#      payload:      !input payload_down
+      topic: zigbee2mqtt/+/action
+      payload: slider_down
     id:             mqtt_slider_down_trigger
 #    enabled:        "{{ is_mqtt_device }}"
 
   - trigger:        mqtt
     options:
-      topic:        !input basic_topic
-      payload:      !input payload_up
+      topic: zigbee2mqtt/+/action
+      payload: slider_up
     id:             mqtt_slider_up_trigger
 #    enabled:        "{{ is_mqtt_device }}"
 
