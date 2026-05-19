@@ -409,8 +409,8 @@ trigger_variables:
   is_sun_protect_enabled:         "{{ (sun_azimut != 0 or sun_elevation != 0) and 'extra_sun_protect' in automation_extra }}"
   is_open_until_enabled:          "{{ do_not_blind_open_until_sensor != [] and 'extra_alarm_pause' in automation_extra }}"
 
-  zha_device:                     "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'zha' }}
-  mqtt_device:                    "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'mqtt' }}
+  zha_device:                     "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'zha' }}"
+  mqtt_device:                    "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'mqtt' }}"
 
 triggers:
 #  - trigger:        time
