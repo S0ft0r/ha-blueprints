@@ -28,16 +28,14 @@ blueprint:
           description: |
             Настройки.
           default:
-            - options_morning
+            - options_time
           selector:
             select:
               options:
                 # - label: Открытие/закрытие по времени
                 #   value: options_time
-                - label: Включать систему орошения утром
-                  value: options_morning
-                - label: Включать систему орошения вечером
-                  value: options_evening
+                - label: Включать систему орошения по времени
+                  value: options_time
                 - label: Включать по показаниям сенсора почвы
                   value: options_plant
               multiple: true
@@ -50,6 +48,11 @@ blueprint:
         Устанавливается время включения системы орошения.
       icon: mdi:clock-time-eight-outline
       input:
+        set_plant_sensor_set:
+          name: Учитывать показания сенсора почвы при включении
+          default: false
+          selector:
+            boolean: {}
         set_on_time_morning:
           name: Включить утром в
           default: "08:00:00"
@@ -90,6 +93,7 @@ blueprint:
                 - label: Выбор
                   value: select_evening
               mode: dropdown
+          
       
     plant_section:
       name: Настройки датчика почвы
@@ -113,8 +117,8 @@ trigger_variables:
   set_working_day_morning: !input set_working_day_morning
   set_working_day_evening: !input set_working_day_evening
 
-  is_on_time_morning_enabled: "{{ 'options_morning' in automation_options and 'off_morning' not in set_working_day_morning }}"
-  is_on_time_evening_enabled: "{{ 'options_evening' in automation_options and 'off_evening' not in set_working_day_evening }}"
+  is_on_time_morning_enabled: "{{ 'options_time' in automation_options and 'off_morning' not in set_working_day_morning }}"
+  is_on_time_evening_enabled: "{{ 'options_time' in automation_options and 'off_evening' not in set_working_day_evening }}"
 
 variables:
   waterpump_entities: "{{ device_entities(waterpump) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'switch.') | list }}"
