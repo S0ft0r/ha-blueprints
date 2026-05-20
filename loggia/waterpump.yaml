@@ -15,7 +15,7 @@ blueprint:
       selector:
         device:
           domain: switch
-
+    plant:
       name: Датчик почвы
       description: Использовать датчик для определения состояния почвы
       selector:
