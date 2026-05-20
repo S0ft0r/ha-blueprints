@@ -41,7 +41,7 @@ blueprint:
               multiple: true
               sort: false
               custom_value: false
-  
+
     time_section:
       name: Настройки управления по времени
       description: |
@@ -53,6 +53,18 @@ blueprint:
           default: "08:00:00"
           selector:
             time: {}
+        set_on_time_evening:
+          name: Включить вечером в
+          default: "20:00:00"
+          selector:
+            time: {}
+
+    mode_section:
+      name: Настройки режимов работы системы
+      description: |
+        Настройка.
+      icon: mdi:cog
+      input:
         set_working_day_morning:
           name: Режим включения утром
           default: every_day_morning
@@ -68,11 +80,19 @@ blueprint:
                 - label: Выбор
                   value: select_morning
               mode: dropdown
-        set_on_time_evening:
-          name: Включить вечером в
-          default: "20:00:00"
+        set_mode_morning:
+          name: Режим работы системы утром
+          default: double_mode_morning
           selector:
-            time: {}
+            select:
+              options:
+                - label: Однократно
+                  value: single_mode_morning
+                - label: Дважды с паузой
+                  value: double_mode_morning
+                - label: Трижды с паузой
+                  value: triple_mode_morning
+              mode: dropdown
         set_working_day_evening:
           name: Режим включения вечером
           default: off_evening
@@ -88,7 +108,19 @@ blueprint:
                 - label: Выбор
                   value: select_evening
               mode: dropdown
-          
+        set_mode_evening:
+          name: Режим работы системы вечером
+          default: double_mode_evening
+          selector:
+            select:
+              options:
+                - label: Однократно
+                  value: single_mode_evening
+                - label: Дважды с паузой
+                  value: double_mode_evening
+                - label: Трижды с паузой
+                  value: triple_mode_evening
+              mode: dropdown
       
     plant_section:
       name: Настройки датчика почвы
