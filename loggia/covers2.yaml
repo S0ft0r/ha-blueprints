@@ -417,18 +417,18 @@ actions:
                   {% set s = alarm_delay.split(':')[2] | int(default=0) %}
                   {{ now() >= states(do_not_blind_open_until_sensor) | as_datetime |
                     as_local + timedelta(hours=h, minutes=m, seconds=s) }}
-              - repeat:
-                  count: !input repeat_for
-                  sequence:
-                    - action: cover.set_cover_position
-                      metadata: {}
-                      target:
-                        entity_id: !input blind
-                      data:
-                        position: |
-                          {{ (up_limit | int - (repeat_for | int - repeat.index)) }}
-                    - delay:
-                        seconds: 3
+          - repeat:
+              count: !input repeat_for
+              sequence:
+                - action: cover.set_cover_position
+                  metadata: {}
+                  target:
+                    entity_id: !input blind
+                  data:
+                    position: |
+                      {{ (up_limit | int - (repeat_for | int - repeat.index)) }}
+                - delay:
+                    seconds: 3
 
       - conditions: # Время закрытия
           - condition: trigger
