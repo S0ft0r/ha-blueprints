@@ -13,9 +13,8 @@ blueprint:
       name: Оросительная система
       description: Какими системами необходимо управлять?
       selector:
-        device:
-          entity: 
-            - domain: switch
+        target:
+          - domain: switch
 
     time_section:
       name: Настройки управления по времени
