@@ -17,14 +17,47 @@ blueprint:
           entity:
             - domain: switch
           multiple: false
-    plant:
-      name: Датчик почвы
-      description: Использовать датчик для определения состояния почвы
-      selector:
-        device:
-          entity:
-            - integration: plant
-          multiple: false
+
+    plant_section:
+      name: Настройки датчика почвы
+      description: |
+        Устанавливается время включения системы орошения.
+      icon: mdi:flower-tulip-outline
+      input:
+        plant:
+          name: Датчик почвы
+          description: Использовать датчик для определения состояния почвы
+          selector:
+            device:
+              entity:
+                - integration: plant
+              multiple: false
+  
+    automation_section:
+      name: Настройки автоматизации
+      icon: mdi:window-shutter-cog
+      collapsed: false
+      input:
+        automation_options:
+          name: Настройки управления орошением
+          description: |
+            Настройки.
+          default:
+            - options_morning
+          selector:
+            select:
+              options:
+                # - label: Открытие/закрытие по времени
+                #   value: options_time
+                - label: Включать систему орошения утром
+                  value: options_morning
+                - label: Включать систему орошения вечером
+                  value: options_evening
+                - label: Учитывать показания сенсора почвы
+                  value: options_plant
+              multiple: true
+              sort: false
+              custom_value: false
 
     time_section:
       name: Настройки управления по времени
@@ -45,12 +78,16 @@ blueprint:
       
 trigger_variables:
   waterpump: !input waterpump
+  plant: !input waterpump
 
 #  set_on_time_morning: !input set_on_time_morning
 #  set_on_time_evening: !input set_on_time_evening
 
   waterpump_entities: "{{ device_entities(waterpump) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'switch.') | list }}"
   waterpump_entities_count: "{{ device_entities(waterpump) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'switch.') | list | count }}"
+
+  soil_moisture: "{{ device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('match', 'soil') | list }}"
+  temperature: "{{ device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('match', 'temperature') | list }}"
 
 triggers:
   - platform: time
