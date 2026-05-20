@@ -122,7 +122,7 @@ blueprint:
               mode: dropdown
         set_mode_evening:
           name: Режим работы системы вечером
-          default: double_mode_evening
+          default: mode_1_evening
           selector:
             select:
               options:
