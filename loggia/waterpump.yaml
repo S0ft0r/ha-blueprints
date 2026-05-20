@@ -18,21 +18,6 @@ blueprint:
             - domain: switch
           multiple: false
 
-    plant_section:
-      name: Настройки датчика почвы
-      description: |
-        Устанавливается время включения системы орошения.
-      icon: mdi:flower-tulip-outline
-      input:
-        plant:
-          name: Датчик почвы
-          description: Использовать датчик для определения состояния почвы
-          selector:
-            device:
-              entity:
-                - integration: plant
-              multiple: false
-  
     automation_section:
       name: Настройки автоматизации
       icon: mdi:window-shutter-cog
@@ -58,7 +43,7 @@ blueprint:
               multiple: true
               sort: false
               custom_value: false
-
+  
     time_section:
       name: Настройки управления по времени
       description: |
@@ -70,18 +55,59 @@ blueprint:
           default: "08:00:00"
           selector:
             time: {}
+        set_working_day_morning:
+          name: Режим включения утром
+          default: 
+            - every_day_morning
+          selector:
+            select:
+              options:
+                - label: Ежедневно
+                  value: every_day_morning
+                - label: Через день
+                  value: every_over_day_morning
+                - label: Выбор
+              mode: dropdown
         set_on_time_evening:
           name: Включить вечером в
           default: "20:00:00"
           selector:
             time: {}
+        set_working_day_evening:
+          name: Режим включения вечером
+          default: 
+            - every_day_evening
+          selector:
+            select:
+              options:
+                - label: Ежедневно
+                  value: every_day_evening
+                - label: Через день
+                  value: every_over_day_evening
+                - label: Выбор
+              mode: dropdown
       
+    plant_section:
+      name: Настройки датчика почвы
+      description: |
+        Устанавливается время включения системы орошения.
+      icon: mdi:flower-tulip-outline
+      input:
+        plant:
+          name: Датчик почвы
+          description: Использовать датчик для определения состояния почвы
+          selector:
+            device:
+              entity:
+                - integration: plant
+              multiple: false
+
 trigger_variables:
   waterpump: !input waterpump
   plant: !input waterpump
 
-#  set_on_time_morning: !input set_on_time_morning
-#  set_on_time_evening: !input set_on_time_evening
+  is_on_time_morning_enabled: "{{ 'options_morning' in automation_options }}"
+  is_on_time_evening_enabled: "{{ 'options_evening' in automation_options }}"
 
 variables:
   waterpump_entities: "{{ device_entities(waterpump) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'switch.') | list }}"
@@ -93,10 +119,12 @@ triggers:
   - platform: time
     at: !input set_on_time_morning
     id: on_time_morning_trigger
+    enabled: "{{ is_on_time_morning_enabled }}"
 
   - platform: time
     at: !input set_on_time_evening
     id: on_time_evening_trigger
+    enabled: "{{ is_on_time_evening_enabled }}"
 
 actions:
   - choose:
