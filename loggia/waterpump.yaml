@@ -273,14 +273,14 @@ actions:
               sequence:
                 - delay:
                     seconds: !input set_mode_pause
-                - repeat:
-                    for_each: "{{ waterpump_entities }}"
-                    sequence:
-                      - if: 
-                          - condition: template
-                            value_template: |
-                              {{ true if not set_plant_sensor_pause else (states(soil_moisture_entities) | int < set_soil_moisture_max) }}  
-                        then:
+                - if: 
+                    - condition: template
+                      value_template: |
+                        {{ true if not set_plant_sensor_pause else (states(soil_moisture_entities) | int < set_soil_moisture_max) }}  
+                  then:
+                    - repeat:
+                        for_each: "{{ waterpump_entities }}"
+                        sequence:
                           - action: switch.turn_on
                             metadata: {}            
                             target:
@@ -331,14 +331,14 @@ actions:
               sequence:
                 - delay:
                     seconds: !input set_mode_pause
-                - repeat:
-                    for_each: "{{ waterpump_entities }}"
-                    sequence:
-                      - if: 
-                          - condition: template
-                            value_template: |
-                              {{ true if not set_plant_sensor_pause else (states(soil_moisture_entities) | int < set_soil_moisture_max) }}  
-                        then:
+                - if: 
+                    - condition: template
+                      value_template: |
+                        {{ true if not set_plant_sensor_pause else (states(soil_moisture_entities) | int < set_soil_moisture_max) }}  
+                  then:
+                    - repeat:
+                        for_each: "{{ waterpump_entities }}"
+                        sequence:
                           - action: switch.turn_on
                             metadata: {}            
                             target:
