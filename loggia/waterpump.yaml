@@ -14,14 +14,17 @@ blueprint:
       description: Какими системами необходимо управлять?
       selector:
         device:
-          domain: switch
+          entity:
+            - integration: mqtt
+          multiple: false
     plant:
       name: Датчик почвы
       description: Использовать датчик для определения состояния почвы
       selector:
         device:
-          filter: 
-            - integration: plant
+          entity:
+            - integration: mqtt
+          multiple: false
 
     time_section:
       name: Настройки управления по времени
