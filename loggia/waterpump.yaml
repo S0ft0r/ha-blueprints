@@ -15,7 +15,7 @@ blueprint:
       selector:
         device:
           entity:
-            - integration: mqtt
+            - domain: switch
           multiple: false
     plant:
       name: Датчик почвы
@@ -23,7 +23,7 @@ blueprint:
       selector:
         device:
           entity:
-            - integration: mqtt
+            - integration: plant
           multiple: false
 
     time_section:
