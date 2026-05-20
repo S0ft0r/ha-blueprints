@@ -38,7 +38,7 @@ blueprint:
                   value: options_morning
                 - label: Включать систему орошения вечером
                   value: options_evening
-                - label: Учитывать показания сенсора почвы
+                - label: Включать по показаниям сенсора почвы
                   value: options_plant
               multiple: true
               sort: false
@@ -57,11 +57,12 @@ blueprint:
             time: {}
         set_working_day_morning:
           name: Режим включения утром
-          default: 
-            - every_day_morning
+          default: every_day_morning
           selector:
             select:
               options:
+                - label: Выключено
+                  value: off_morning
                 - label: Ежедневно
                   value: every_day_morning
                 - label: Через день
@@ -76,11 +77,12 @@ blueprint:
             time: {}
         set_working_day_evening:
           name: Режим включения вечером
-          default: 
-            - every_day_evening
+          default: off_evening
           selector:
             select:
               options:
+                - label: Выключено
+                  value: off_evening
                 - label: Ежедневно
                   value: every_day_evening
                 - label: Через день
@@ -111,14 +113,15 @@ trigger_variables:
   set_working_day_morning: !input set_working_day_morning
   set_working_day_evening: !input set_working_day_evening
 
-  is_on_time_morning_enabled: "{{ 'options_morning' in automation_options }}"
-  is_on_time_evening_enabled: "{{ 'options_evening' in automation_options }}"
+  is_on_time_morning_enabled: "{{ 'options_morning' in automation_options and 'off_morning' not in set_working_day_morning }}"
+  is_on_time_evening_enabled: "{{ 'options_evening' in automation_options and 'off_evening' not in set_working_day_evening }}"
 
 variables:
   waterpump_entities: "{{ device_entities(waterpump) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'switch.') | list }}"
 
-  soil_moisture: "{{ device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('match', 'soil') | list }}"
-  temperature: "{{ device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('match', 'temperature') | list }}"
+  soil_moisture_entities: "{{ device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('match', 'soil') | list }}"
+  temperature_entities: "{{ device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('match', 'temperature') | list }}"
+  humidity_entities: "{{ device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('match', 'humidity') | list }}"
 
 triggers:
   - platform: time
