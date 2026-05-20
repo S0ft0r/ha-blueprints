@@ -46,11 +46,11 @@ trigger_variables:
 
 triggers:
   - trigger: time
-    at: !input set_up_time
+    at: !input set_on_time_morning
     id: on_time_morning_trigger
 
   - trigger: time
-    at: !input set_down_time
+    at: !input set_on_time_evening
     id: on_time_evening_trigger
 
 actions:
