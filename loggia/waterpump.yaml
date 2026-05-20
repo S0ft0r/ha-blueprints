@@ -212,7 +212,8 @@ variables:
   temperature_entities: "{{ (device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('search', 'temperature') | list) | join }}"
   humidity_entities: "{{ (device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('search', 'air_humidity') | list) | join }}"
 
-  mode_repeat: "{{ set_mode_morning.split('_')[1] | int - 1 }}"
+  mode_repeat_morning: "{{ set_mode_morning.split('_')[1] | int - 1 }}"
+  mode_repeat_evening: "{{ set_mode_evening.split('_')[1] | int - 1 }}"
 
 triggers:
   - platform: time
@@ -257,7 +258,7 @@ actions:
                     entity_id: >
                       {{ repeat.item if repeat is defined else '' }}
           - repeat:
-              count: "{{ mode_repeat }}"
+              count: "{{ mode_repeat_morning }}"
               sequence:
                 - delay:
                     seconds: !input set_mode_pause
@@ -310,7 +311,7 @@ actions:
                     entity_id: >
                       {{ repeat.item if repeat is defined else '' }}
           - repeat:
-              count: "{{ mode_repeat }}"
+              count: "{{ mode_repeat_evening }}"
               sequence:
                 - delay:
                     seconds: !input set_mode_pause
