@@ -37,8 +37,8 @@ blueprint:
 trigger_variables:
   waterpump: !input waterpump
 
-  set_on_time_morning: !input set_on_time_morning
-  set_on_time_evening: !input set_on_time_evening
+#  set_on_time_morning: !input set_on_time_morning
+#  set_on_time_evening: !input set_on_time_evening
 
   waterpump_entities: "{{ device_entities(waterpump) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'switch.') | list }}"
   waterpump_entities_count: "{{ device_entities(waterpump) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'switch.') | list | count }}"
