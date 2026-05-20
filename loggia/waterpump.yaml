@@ -162,6 +162,7 @@ trigger_variables:
   set_mode_evening: !input set_mode_evening
 
   set_plant_sensor_state: !input set_plant_sensor_state
+  set_soil_moisture_min: !input set_soil_moisture_min
 
   is_on_time_morning_enabled: "{{ 'options_time' in automation_options and 'off_morning' not in set_working_day_morning }}"
   is_on_time_evening_enabled: "{{ 'options_time' in automation_options and 'off_evening' not in set_working_day_evening }}"
@@ -173,7 +174,6 @@ variables:
   temperature_entities: "{{ (device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('search', 'temperature') | list) | join }}"
   humidity_entities: "{{ (device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('search', 'air_humidity') | list) | join }}"
 
-  set_soil_moisture_min: !input set_soil_moisture_min
 
 triggers:
   - platform: time
