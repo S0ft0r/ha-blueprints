@@ -144,6 +144,18 @@ blueprint:
             boolean: {}
         set_soil_moisture_min:
           name: Нижний предел влажности
+          description: |
+            Включение системы орошения при понижении предела влажности почвы.
+            <small>* При включенной опции <em>Включать по показаниям сенсора почвы</em></small> 
+          default: 0
+          selector:
+            number:
+              min: 0
+              max: 100
+              step: 1
+              mode: slider
+        set_soil_moisture_max:
+          name: Верхний предел влажности
           description: При привышении предела влажности почвы система орошения включаться не будет.
           default: 0
           selector:
@@ -164,6 +176,7 @@ trigger_variables:
 
   set_plant_sensor_state: !input set_plant_sensor_state
   set_soil_moisture_min: !input set_soil_moisture_min
+  set_soil_moisture_min: !input set_soil_moisture_max
 
   is_on_time_morning_enabled: "{{ 'options_time' in automation_options }}"
   is_on_time_evening_enabled: "{{ 'options_time' in automation_options }}"
