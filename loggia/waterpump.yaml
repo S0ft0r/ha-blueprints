@@ -13,8 +13,15 @@ blueprint:
       name: Оросительная система
       description: Какими системами необходимо управлять?
       selector:
-        target:
-          - domain: switch
+        device:
+          domain: switch
+
+      name: Датчик почвы
+      description: Использовать датчик для определения состояния почвы
+      selector:
+        device:
+          filter: 
+            - integration: plant
 
     time_section:
       name: Настройки управления по времени
