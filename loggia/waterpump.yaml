@@ -67,6 +67,7 @@ blueprint:
                 - label: Через день
                   value: every_over_day_morning
                 - label: Выбор
+                  value: select_morning
               mode: dropdown
         set_on_time_evening:
           name: Включить вечером в
@@ -85,6 +86,7 @@ blueprint:
                 - label: Через день
                   value: every_over_day_evening
                 - label: Выбор
+                  value: select_evening
               mode: dropdown
       
     plant_section:
@@ -105,6 +107,8 @@ blueprint:
 trigger_variables:
   waterpump: !input waterpump
   plant: !input waterpump
+
+
 
   is_on_time_morning_enabled: "{{ 'options_morning' in automation_options }}"
   is_on_time_evening_enabled: "{{ 'options_evening' in automation_options }}"
