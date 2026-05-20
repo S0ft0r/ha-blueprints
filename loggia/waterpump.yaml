@@ -122,16 +122,16 @@ blueprint:
               mode: dropdown
         set_mode_evening:
           name: Режим работы системы вечером
-          default: double_mode_evening
+          default: mode_1_evening
           selector:
             select:
               options:
                 - label: Однократно
-                  value: single_mode_evening
+                  value: mode_1_evening
                 - label: Дважды с паузой
-                  value: double_mode_evening
+                  value: mode_2_evening
                 - label: Трижды с паузой
-                  value: triple_mode_evening
+                  value: mode_3_evening
               mode: dropdown
         set_mode_pause:
           name: Величина паузы
