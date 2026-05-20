@@ -125,8 +125,12 @@ actions:
                       target:
                         entity_id: >
                           {{ repeat.item if repeat is defined else '' }}
-                    - delay:
-                        seconds: 1
+              - delay:
+                  seconds: 1
+              - repeat:
+                  for_each: >
+                    {{ waterpump_entities }}
+                  sequence:
                     - action: switch.turn_off
                       metadata: {}            
                       target:
@@ -145,10 +149,14 @@ actions:
                     - action: switch.turn_on
                       metadata: {}            
                       target:
-                        entity_id: > 
+                        entity_id: >
                           {{ repeat.item if repeat is defined else '' }}
-                    - delay:
-                        seconds: 1
+              - delay:
+                  seconds: 1
+              - repeat:
+                  for_each: >
+                    {{ waterpump_entities }}
+                  sequence:
                     - action: switch.turn_off
                       metadata: {}            
                       target:
