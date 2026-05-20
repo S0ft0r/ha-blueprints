@@ -1,10 +1,10 @@
 blueprint:
   name: Управление системой полива
   description: |
-    (ТЕСТИРОВАНИЕ!!!)
+    (В РАЗРАБОТКЕ!!!)
     Управление поливом цветов по времени, датчикам влажности. 
       Версия 2026.05.00 
-      Сборка 2
+      Сборка 1
   domain: automation
   source_url: https://github.com/S0ft0r/ha-blueprints/blob/main/loggia/waterpump.yaml
   author: Softor
@@ -122,16 +122,16 @@ blueprint:
               mode: dropdown
         set_mode_evening:
           name: Режим работы системы вечером
-          default: mode_1_evening
+          default: double_mode_evening
           selector:
             select:
               options:
                 - label: Однократно
-                  value: mode_1_evening
+                  value: single_mode_evening
                 - label: Дважды с паузой
-                  value: mode_2_evening
+                  value: double_mode_evening
                 - label: Трижды с паузой
-                  value: mode_3_evening
+                  value: triple_mode_evening
               mode: dropdown
         set_mode_pause:
           name: Величина паузы
@@ -159,6 +159,11 @@ blueprint:
               entity:
                 - integration: plant
               multiple: false
+        set_plant_sensor_state:
+          name: Учитывать показания сенсора почвы при включении по времени
+          default: false
+          selector:
+            boolean: {}
         set_soil_moisture_min:
           name: Нижний предел влажности
           description: |
@@ -183,16 +188,6 @@ blueprint:
               step: 1
               mode: slider
               unit_of_measurement: "%"
-        set_plant_sensor_time:
-          name: Учитывать показания сенсора почвы при включении по времени
-          default: false
-          selector:
-            boolean: {}
-        set_plant_sensor_pause:
-          name: Учитывать показания сенсора почвы во время работы системы орошения
-          default: false
-          selector:
-            boolean: {}
 
 trigger_variables:
   waterpump: !input waterpump
@@ -203,9 +198,7 @@ trigger_variables:
   set_mode_morning: !input set_mode_morning
   set_mode_evening: !input set_mode_evening
 
-  set_plant_sensor_time: !input set_plant_sensor_time
-  set_plant_sensor_pause: !input set_plant_sensor_pause
-
+  set_plant_sensor_state: !input set_plant_sensor_state
   set_soil_moisture_min: !input set_soil_moisture_min
   set_soil_moisture_max: !input set_soil_moisture_max
 
@@ -233,10 +226,6 @@ triggers:
     id: on_time_evening_trigger
     # enabled: "{{ is_on_time_evening_enabled }}"
 
-  - platform: numeric_state
-    value_template: >
-
-
 actions:
   - choose:
       - conditions: # Время включения утром
@@ -248,7 +237,7 @@ actions:
               {{ 'off_morning' not in set_working_day_morning }}
           - condition: template
             value_template: >
-              {{ true if not set_plant_sensor_time else (states(soil_moisture_entities) | int < set_soil_moisture_max) }}
+              {{ true if not set_plant_sensor_state else (states(soil_moisture_entities) | int < set_soil_moisture_max) }}
         sequence:
           - repeat:
               for_each: "{{ waterpump_entities }}"
@@ -273,19 +262,14 @@ actions:
               sequence:
                 - delay:
                     seconds: !input set_mode_pause
-                - if: 
-                    - condition: template
-                      value_template: |
-                        {{ true if not set_plant_sensor_pause else (states(soil_moisture_entities) | int < set_soil_moisture_max) }}  
-                  then:
-                    - repeat:
-                        for_each: "{{ waterpump_entities }}"
-                        sequence:
-                          - action: switch.turn_on
-                            metadata: {}            
-                            target:
-                              entity_id: >
-                                {{ repeat.item if repeat is defined else '' }}
+                - repeat:
+                    for_each: "{{ waterpump_entities }}"
+                    sequence:
+                      - action: switch.turn_on
+                        metadata: {}            
+                        target:
+                          entity_id: >
+                            {{ repeat.item if repeat is defined else '' }}
                 - delay:
                     seconds: !input set_mode_work
                 - repeat:
@@ -306,7 +290,7 @@ actions:
               {{ 'off_evening' not in set_working_day_evening }}
           - condition: template
             value_template: >
-              {{ true if not set_plant_sensor_time else (states(soil_moisture_entities) | int < set_soil_moisture_max) }}
+              {{ true if not set_plant_sensor_state else (states(soil_moisture_entities) | int < set_soil_moisture_max) }}
         sequence:
           - repeat:
               for_each: "{{ waterpump_entities }}"
@@ -331,19 +315,14 @@ actions:
               sequence:
                 - delay:
                     seconds: !input set_mode_pause
-                - if: 
-                    - condition: template
-                      value_template: |
-                        {{ true if not set_plant_sensor_pause else (states(soil_moisture_entities) | int < set_soil_moisture_max) }}  
-                  then:
-                    - repeat:
-                        for_each: "{{ waterpump_entities }}"
-                        sequence:
-                          - action: switch.turn_on
-                            metadata: {}            
-                            target:
-                              entity_id: >
-                                {{ repeat.item if repeat is defined else '' }}
+                - repeat:
+                    for_each: "{{ waterpump_entities }}"
+                    sequence:
+                      - action: switch.turn_on
+                        metadata: {}            
+                        target:
+                          entity_id: >
+                            {{ repeat.item if repeat is defined else '' }}
                 - delay:
                     seconds: !input set_mode_work
                 - repeat:
@@ -356,4 +335,3 @@ actions:
                             {{ repeat.item if repeat is defined else '' }}
 
 mode: single
-
