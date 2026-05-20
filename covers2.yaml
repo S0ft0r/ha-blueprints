@@ -1,0 +1,594 @@
+blueprint:
+  name: Управление рулонными шторами
+  description: |
+    Управление шторами по времени или положению солнца. 
+    Версия 2026.05.00
+    Сборка 1
+  domain: automation
+  #  source_url: https://github.com/S0ft0r/ha-blueprints/blob/main/loggia/covers.yaml
+  author: Softor
+
+  input:
+    blind:
+      name: Шторы
+      description: Какими приводами штор необходимо управлять?
+      selector:
+        entity:
+          filter:
+            - domain:
+                - cover
+          reorder: false
+          multiple: true
+
+    automation_section:
+      name: Настройки автоматизации
+      icon: mdi:window-shutter-cog
+      collapsed: false
+      input:
+        automation_options:
+          name: Настройки управления шторами
+          description: |
+            Выбор между открытием/закрытием штор по времени и по рассвету/закату солнца.
+          default:
+            - options_sun
+          selector:
+            select:
+              options:
+                - label: Открытие/закрытие по времени
+                  value: options_time
+                - label: Открытие/закрытие по солнцу
+                  value: options_sun
+              multiple: false
+              sort: false
+              custom_value: false
+
+        automation_extra:
+          name: Дополнительные настройки
+          description: Дополнительные настройки автоматизации
+          default: []
+          selector:
+            select:
+              options:
+                - label: Задержка открытия до срабатывания будильника
+                  value: extra_alarm_pause
+                # - label: Ограничение закрытия штор %
+                #   value: extra_limit_down
+                - label: Защита от прямых лучей солнца
+                  value: extra_sun_protect
+                - label: Учитывать прогноз погоды
+                  value: extra_forecast
+              sort: false
+              multiple: true
+              custom_value: false
+              mode: list
+
+        forecast_sensor:
+          name: Прогнозный сенсор
+          description: |
+            Сенсор, определяющий прогноз погоды.
+              <small>* Параметр обязателен только при выборе параметра <em>"Учитывать прогноз погоды"</em>.
+              Если ничего не выбрано, то дополнительный параметр учитываться не будет.</small>
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - weather
+              multiple: false
+
+    time_section:
+      name: Настройки управления по времени
+      description: |
+        Устанавливается время открытия/закрытия штор.
+      icon: mdi:clock-time-eight-outline
+      input:
+        set_up_time:
+          name: Открыть шторы в
+          default: "08:00:00"
+          selector:
+            time: {}
+        set_down_time:
+          name: Закрыть шторы в
+          default: "20:00:00"
+          selector:
+            time: {}
+
+    sun_section:
+      name: "Настройки управления по солнцу"
+      icon: mdi:weather-sunny
+      input:
+        sun_sensor:
+          name: "Датчик солнца"
+          description: >-
+            Датчик, по которому определяется положение солнца
+          default: "sun.sun"
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - sun
+              multiple: false
+
+        sun_azimut:
+          name: Азимут солнца
+          description: >-
+            Угол между направлением на север и направлением на солнце. 
+              <small>* Для автоматического закрытия штор при включенной опции защиты от прямых лучей солнца.</small>
+          default: 0
+          selector:
+            number:
+              min: 0
+              max: 359
+              step: 1
+              unit_of_measurement: "°"
+              mode: slider
+
+        sun_elevation:
+          name: Высота солнца
+          description: >-
+            Угол возвышения солнца над горизонтом. 
+              <small>* Для автоматического открытия штор при включенной защите от прямых лучей солнца.</small>
+          default: 0
+          selector:
+            number:
+              min: 0
+              max: 45
+              step: 1
+              unit_of_measurement: "°"
+              mode: slider
+
+        blind_for_protect:
+          name: Шторы
+          description: |
+            Какими шторами необходимо управлять для защиты от прямых лучей солнца?
+              <small>* Параметр не обязателен.
+                Если ничего не выбрано, то используются все шторы</small>
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - cover
+              reorder: false
+              multiple: true
+
+    options_section:
+      name: "Дополнительные настройки"
+      icon: mdi:cog
+      input:
+        up_limit:
+          name: Верхний предел
+          description: |
+            Верхний предел при открытии штор.
+              <small>* Если нет нужды поднимать шторы до конца.</small>
+          default: 99
+          selector:
+            number:
+              min: 0
+              max: 100
+              step: 1
+              unit_of_measurement: "%"
+              mode: slider
+
+        down_limit:
+          name: Нижний предел
+          description: |
+            Нижний предел при закрытии штор.
+              <small>* Если нет нужды опускать шторы до конца.</small>
+          default: 0
+          selector:
+            number:
+              min: 0
+              max: 100
+              step: 1
+              unit_of_measurement: "%"
+              mode: slider
+
+        do_not_blind_open_until_sensor:
+          name: Не поднимать до
+          description: >-
+            Датчик, определяющий время срабатывания будильника
+              <small>* Вывод датчик <strong>обязательно</strong> в формате timestamp</small>
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain: sensor
+                  device_class: timestamp
+              multiple: false
+
+        alarm_delay:
+          name: Задержка открытия
+          description: |
+            Задержка открытия штор после срабатывание датчика времени срабатывания будильника
+          default: "00:10:00"
+          selector:
+            time: {}
+
+        forecasts:
+          name: Прогноз погоды
+          description: |
+            Прогноз погоды, при котором будет активна защита от попадания прямых лучей
+          default:
+            - sunny
+            - partlycloudy
+          selector:
+            select:
+              options:
+                - label: Ясно
+                  value: sunny
+                - label: Переменная облачность
+                  value: partlycloudy
+                - label: Облачно
+                  value: cloudy
+                - label: Туман
+                  value: fog
+              sort: false
+              multiple: true
+              custom_value: false
+              mode: list
+
+        repeat_for:
+          name: Количество повторов
+          description: |
+            Для защиты от несработки открытия/закрытия штор.
+              <small>* При значении равным 1 защита отключена.</small>
+          default: 2
+          selector:
+            number:
+              min: 1
+              max: 5
+              step: 1
+              mode: box
+
+    device_section:
+      name: Настройки устройства управления шторами
+      icon: mdi:dip-switch
+      input:
+        slider_device:
+          name: Выключатель/слайдер
+          description: |
+            Выключатель типа <strong>Aqara Z1 Pro</strong> со встроенным слайдером. Может быть подключен через MQTT или ZHA.
+          default: []
+          selector:
+            device:
+              entity:
+                - integration: mqtt
+              multiple: false
+
+        basic_topic:
+          name: Базовый топик
+          description: |
+            Базовый топик устройства, подключенного через MQTT. Обычно это <strong><em>zigbee2mqtt/+/action</em></strong>, где вместо знака + будет АВТОМАТИЧЕСКИ подставлено имя выключателя/слайдера.
+          default: "zigbee2mqtt/+/action"
+          selector:
+            text:
+
+        payload_up:
+          name: Сообщение движениия вверх
+          description: |
+            Сообщение, публикуемое устройством для определения движения "вниз".
+          default: "slider_up"
+          selector:
+            text:
+
+        payload_down:
+          name: Сообщение движения вниз
+          description: |
+            Сообщение, публикуемое устройством для определения движения "вниз".
+          default: "slider_down"
+          selector:
+            text:
+
+trigger_variables:
+  automation_options: !input automation_options
+  automation_extra: !input automation_extra
+
+  blind: !input blind
+  blind_for_protect: !input blind_for_protect
+
+  forecast_sensor: !input forecast_sensor
+  sun_sensor: !input sun_sensor
+  do_not_blind_open_until_sensor: !input do_not_blind_open_until_sensor
+  slider_device: !input slider_device
+
+  forecasts: !input forecasts
+  alarm_delay: !input alarm_delay
+  sun_azimut: !input sun_azimut
+  sun_elevation: !input sun_elevation
+  set_up_time: !input set_up_time
+  set_down_time: !input set_down_time
+  up_limit: !input up_limit
+  down_limit: !input down_limit
+  repeat_for: !input repeat_for
+
+  is_automation_time_enabled: "{{ 'options_time' in automation_options }}"
+  is_automation_sun_enabled: "{{ 'options_sun'  in automation_options }}"
+
+  is_forecast_enabled: "{{ forecast_sensor != [] and 'extra_forecast' in automation_extra }}"
+  is_sun_protect_enabled: "{{ (sun_elevation_variable != 0 or sun_azimuth_variable != 0) and 'extra_sun_protect' in automation_extra }}"
+  is_open_until_enabled: "{{ do_not_blind_open_until_sensor != [] and 'extra_alarm_pause' in automation_extra }}"
+  is_mqtt_enabled: "{{ slider_device != [] }}"
+
+triggers:
+  - trigger: time
+    at: !input set_up_time
+    id: up_time_trigger
+    enabled: "{{ is_automation_time_enabled }}"
+
+  - trigger: time
+    at: !input set_down_time
+    id: down_time_trigger
+    enabled: "{{ is_automation_time_enabled }}"
+
+  - trigger: sun
+    event: sunrise
+    id: sunrise_trigger
+    enabled: "{{ is_automation_sun_enabled }}"
+
+  - trigger: sun
+    event: sunset
+    id: sunset_trigger
+    enabled: "{{ is_automation_sun_enabled }}"
+
+  - trigger: state
+    entity_id: !input forecast_sensor
+    id: forecast_trigger
+    enabled: "{{ is_forecast_enabled }}"
+
+  - trigger: template
+    value_template: "{{ state_attr(sun_sensor,'azimuth') | float > (sun_azimut | int) }}"
+    id: sun_azimut_trigger
+    enabled: "{{ is_sun_protect_enabled }}"
+
+  - trigger: template
+    value_template: "{{ state_attr(sun_sensor,'elevation') | float < (sun_elevation | int) }}"
+    id: sun_elevation_trigger
+    enabled: "{{ is_sun_protect_enabled }}"
+
+  - trigger: mqtt
+    options:
+      topic: !input basic_topic
+      payload: !input payload_down
+    id: mqtt_slider_down_trigger
+    enabled: "{{ is_mqtt_enabled }}"
+
+  - trigger: mqtt
+    options:
+      topic: !input basic_topic
+      payload: !input payload_up
+    id: mqtt_slider_up_trigger
+    enabled: "{{ is_mqtt_enabled }}"
+
+actions:
+  - choose:
+      - conditions: # Открыть по слайдеру
+          - condition: trigger
+            id:
+              - mqtt_slider_up_trigger
+          - condition: template
+            value_template: |
+              {{ device_attr(slider_device, 'name') == trigger.topic.split('/')[1] }}
+        sequence:
+          - repeat:
+              count: !input repeat_for
+              sequence:
+                - action: cover.set_cover_position
+                  metadata: {}
+                  target:
+                    entity_id: !input blind
+                  data:
+                    position: |
+                      {{ (up_limit | int - (repeat_for | int - repeat.index)) }}
+                - delay:
+                    seconds: 3
+
+      - conditions: # Время открытия
+          - condition: trigger
+            id:
+              - up_time_trigger
+        sequence:
+          - repeat:
+              count: !input repeat_for
+              sequence:
+                - action: cover.set_cover_position
+                  metadata: {}
+                  target:
+                    entity_id: !input blind
+                  data:
+                    position: |
+                      {{ (up_limit | int - (repeat_for | int - repeat.index)) }}
+                - delay:
+                    seconds: 3
+
+      - conditions: # Солнце взошло
+          - condition: trigger
+            id:
+              - sunrise_trigger
+        sequence:
+          - if:
+              - condition: template
+                value_template: "{{ is_open_until_enabled }}"
+            then:
+              - wait_template: |
+                  {% set h = alarm_delay.split(':')[0] | int(default=0) %}
+                  {% set m = alarm_delay.split(':')[1] | int(default=0) %}
+                  {% set s = alarm_delay.split(':')[2] | int(default=0) %}
+                  {{ now() >= states(do_not_blind_open_until_sensor) | as_datetime |
+                    as_local + timedelta(hours=h, minutes=m, seconds=s) }}
+              - repeat:
+                  count: !input repeat_for
+                  sequence:
+                    - action: cover.set_cover_position
+                      metadata: {}
+                      target:
+                        entity_id: !input blind
+                      data:
+                        position: |
+                          {{ (up_limit | int - (repeat_for | int - repeat.index)) }}
+                    - delay:
+                        seconds: 3
+
+      - conditions: # Время закрытия
+          - condition: trigger
+            id:
+              - down_time_trigger
+        sequence:
+          - repeat:
+              count: !input repeat_for
+              sequence:
+                - action: cover.set_cover_position
+                  metadata: {}
+                  target:
+                    entity_id: !input blind
+                  data:
+                    position: |
+                      {{ (down_limit | int + (repeat_for | int - repeat.index)) }}
+                - delay:
+                    seconds: 3
+
+      - conditions: # Закрыть по слайдеру
+          - condition: trigger
+            id:
+              - mqtt_slider_down_trigger
+          - condition: template
+            value_template: |
+              {{ device_attr(slider_device, 'name') == trigger.topic.split('/')[1] }}
+        sequence:
+          - repeat:
+              count: !input repeat_for
+              sequence:
+                - action: cover.set_cover_position
+                  metadata: {}
+                  target:
+                    entity_id: !input blind
+                  data:
+                    position: |
+                      {{ (down_limit | int + (repeat_for | int - repeat.index)) }}
+                - delay:
+                    seconds: 3
+
+      - conditions: # Солнце село
+          - condition: trigger
+            id:
+              - sunset_trigger
+        sequence:
+          - repeat:
+              count: !input repeat_for
+              sequence:
+                - action: cover.set_cover_position
+                  metadata: {}
+                  target:
+                    entity_id: !input blind
+                  data:
+                    position: |
+                      {{ (down_limit | int + (repeat_for | int - repeat.index)) }}
+                - delay:
+                    seconds: 3
+
+      - conditions: # Открыть шторы при защите от прямых лучей солнца
+          - condition: trigger
+            id:
+              - sun_elevation_trigger
+        sequence:
+          - repeat:
+              count: !input repeat_for
+              sequence:
+                - action: cover.set_cover_position
+                  metadata: {}
+                  target:
+                    entity_id: >
+                      {{ (blind if blind_for_protect == [] else  blind_for_protect) | list }}
+                  data:
+                    position: |
+                      {{ (up_limit | int - (repeat_for | int - repeat.index)) }}
+                - delay:
+                    seconds: 3
+
+      - conditions: # Закрыть шторы при защите от прямых лучей солнца
+          - condition: trigger
+            id:
+              - sun_azimut_trigger
+          - condition: template
+            value_template: |
+              {{ true if not is_forecast_enabled else (states(forecast_sensor) in forecasts) }}
+        sequence:
+          - repeat:
+              count: !input repeat_for
+              sequence:
+                - action: cover.set_cover_position
+                  metadata: {}
+                  target:
+                    entity_id: >
+                      {{ (blind if blind_for_protect == [] else  blind_for_protect) | list }}
+                  data:
+                    position: |
+                      {{ (down_limit | int + (repeat_for | int - repeat.index)) }}
+                - delay:
+                    seconds: 3
+
+      - conditions: # Закрыть при изменении погоды при включенном режиме защиты от прямых лучей
+          - condition: trigger
+            id:
+              - forecast_trigger
+          - condition: template
+            value_template: |
+              {{ states(forecast_sensor) in forecasts }}
+          - condition: template
+            value_template: |
+              {{ true if not is_sun_protect_enabled 
+                else (state_attr(sun_sensor,'azimuth') | float(default=45) > (sun_azimut | int) 
+                and state_attr(sun_sensor,'elevation') | float(default=360) > (sun_elevation | int)) }}
+          - condition: template
+            value_template: |
+              {{ true if not is_automation_time_enabled else (now() >= today_at(set_up_time) and now() <= today_at(set_down_time)) }}
+
+        sequence:
+          - repeat:
+              count: !input repeat_for
+              sequence:
+                - action: cover.set_cover_position
+                  metadata: {}
+                  target:
+                    entity_id: >
+                      {{ (blind if blind_for_protect == [] else  blind_for_protect) | list }}
+                  data:
+                    position: |
+                      {{ (down_limit | int + (repeat_for | int - repeat.index)) }}
+                - delay:
+                    seconds: 3
+
+      - conditions: # Открыть при изменении погоды при включенном режиме защиты от прямых лучей
+          - condition: trigger
+            id:
+              - forecast_trigger
+          - condition: template
+            value_template: |
+              {{ states(forecast_sensor) not in forecasts }}
+          - condition: template
+            value_template: |
+              {{ true if not is_sun_protect_enabled 
+                else (state_attr(sun_sensor,'azimuth') | float(default=45) > (sun_azimut if sun_azimut_sensor == [] else states(sun_azimut_sensor) | int(0)) 
+                and state_attr(sun_sensor,'elevation') | float(default=360) > (sun_elevation if sun_elevation_sensor == [] else states(sun_elevation_sensor) | int(0))) }}
+          - condition: template
+            value_template: |
+              {{ true if not is_automation_time_enabled else (now() >= today_at(set_up_time) and now() <= today_at(set_down_time)) }}
+          - condition: template
+            value_template: |
+              {{ true if not is_automation_sun_enabled else (states(sun_sensor) == 'above_horizon') }}
+        sequence:
+          - repeat:
+              count: !input repeat_for
+              sequence:
+                - action: cover.set_cover_position
+                  metadata: {}
+                  target:
+                    entity_id: >
+                      {{ (blind if blind_for_protect == [] else  blind_for_protect) | list }}
+                  data:
+                    position: |
+                      {{ (up_limit | int - (repeat_for | int - repeat.index)) }}
+                - delay:
+                    seconds: 3
+
+mode: single
