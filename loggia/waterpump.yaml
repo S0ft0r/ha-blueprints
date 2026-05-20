@@ -108,7 +108,8 @@ trigger_variables:
   waterpump: !input waterpump
   plant: !input waterpump
 
-
+  set_working_day_morning: !input set_working_day_morning
+  set_working_day_evening: !input set_working_day_evening
 
   is_on_time_morning_enabled: "{{ 'options_morning' in automation_options }}"
   is_on_time_evening_enabled: "{{ 'options_evening' in automation_options }}"
