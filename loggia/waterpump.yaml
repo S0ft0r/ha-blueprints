@@ -196,7 +196,7 @@ actions:
           - condition: template
             value_template: >
               {{ 'off_morning' not in set_working_day_morning }}
-           - condition: template
+          - condition: template
             value_template: >
               {{ true if not set_plant_sensor_state else (states(soil_moisture_entities) | int < set_soil_moisture_min) }}
         sequence:
@@ -226,7 +226,7 @@ actions:
           - condition: template
             value_template: >
               {{ 'off_evening' not in set_working_day_evening }}
-           - condition: template
+          - condition: template
             value_template: >
               {{ true if not set_plant_sensor_state else (states(soil_moisture_entities) | int < set_soil_moisture_min) }}
         sequence:
