@@ -159,11 +159,6 @@ blueprint:
               entity:
                 - integration: plant
               multiple: false
-        set_plant_sensor_state:
-          name: Учитывать показания сенсора почвы при включении по времени
-          default: false
-          selector:
-            boolean: {}
         set_soil_moisture_min:
           name: Нижний предел влажности
           description: |
@@ -188,6 +183,16 @@ blueprint:
               step: 1
               mode: slider
               unit_of_measurement: "%"
+        set_plant_sensor_time:
+          name: Учитывать показания сенсора почвы при включении по времени
+          default: false
+          selector:
+            boolean: {}
+        set_plant_sensor_pause:
+          name: Учитывать показания сенсора почвы во время работы системы орошения
+          default: false
+          selector:
+            boolean: {}
 
 trigger_variables:
   waterpump: !input waterpump
@@ -198,7 +203,9 @@ trigger_variables:
   set_mode_morning: !input set_mode_morning
   set_mode_evening: !input set_mode_evening
 
-  set_plant_sensor_state: !input set_plant_sensor_state
+  set_plant_sensor_time: !input set_plant_sensor_time
+  set_plant_sensor_pause: !input set_plant_sensor_pause
+
   set_soil_moisture_min: !input set_soil_moisture_min
   set_soil_moisture_max: !input set_soil_moisture_max
 
@@ -226,6 +233,10 @@ triggers:
     id: on_time_evening_trigger
     # enabled: "{{ is_on_time_evening_enabled }}"
 
+  - platform: numeric_state
+    value_template: >
+
+
 actions:
   - choose:
       - conditions: # Время включения утром
@@ -237,7 +248,7 @@ actions:
               {{ 'off_morning' not in set_working_day_morning }}
           - condition: template
             value_template: >
-              {{ true if not set_plant_sensor_state else (states(soil_moisture_entities) | int < set_soil_moisture_max) }}
+              {{ true if not set_plant_sensor_time else (states(soil_moisture_entities) | int < set_soil_moisture_max) }}
         sequence:
           - repeat:
               for_each: "{{ waterpump_entities }}"
@@ -290,16 +301,21 @@ actions:
               {{ 'off_evening' not in set_working_day_evening }}
           - condition: template
             value_template: >
-              {{ true if not set_plant_sensor_state else (states(soil_moisture_entities) | int < set_soil_moisture_max) }}
+              {{ true if not set_plant_sensor_time else (states(soil_moisture_entities) | int < set_soil_moisture_max) }}
         sequence:
           - repeat:
               for_each: "{{ waterpump_entities }}"
               sequence:
-                - action: switch.turn_on
-                  metadata: {}            
-                  target:
-                    entity_id: >
-                      {{ repeat.item if repeat is defined else '' }}
+                      - if: 
+                          - condition: template
+                            value_template: |
+                              {{ true if not set_plant_sensor_pause else (states(soil_moisture_entities) | int < set_soil_moisture_max) }}  
+                        then:
+                          - action: switch.turn_on
+                            metadata: {}            
+                            target:
+                              entity_id: >
+                                {{ repeat.item if repeat is defined else '' }}
           - delay:
               seconds: !input set_mode_work
           - repeat:
@@ -318,11 +334,16 @@ actions:
                 - repeat:
                     for_each: "{{ waterpump_entities }}"
                     sequence:
-                      - action: switch.turn_on
-                        metadata: {}            
-                        target:
-                          entity_id: >
-                            {{ repeat.item if repeat is defined else '' }}
+                      - if: 
+                          - condition: template
+                            value_template: |
+                              {{ true if not set_plant_sensor_pause else (states(soil_moisture_entities) | int < set_soil_moisture_max) }}  
+                        then:
+                          - action: switch.turn_on
+                            metadata: {}            
+                            target:
+                              entity_id: >
+                                {{ repeat.item if repeat is defined else '' }}
                 - delay:
                     seconds: !input set_mode_work
                 - repeat:
