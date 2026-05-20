@@ -112,7 +112,7 @@ blueprint:
         set_soil_moisture_min:
           name: Нижний предел влажности
           description: При привышении предела влажности почвы система орошения включаться не будет.
-          default:
+          default: 0
           selector:
             number:
               min: 0
