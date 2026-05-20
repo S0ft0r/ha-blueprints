@@ -48,11 +48,6 @@ blueprint:
         Устанавливается время включения системы орошения.
       icon: mdi:clock-time-eight-outline
       input:
-        set_plant_sensor_set:
-          name: Учитывать показания сенсора почвы при включении
-          default: false
-          selector:
-            boolean: {}
         set_on_time_morning:
           name: Включить утром в
           default: "08:00:00"
@@ -109,13 +104,31 @@ blueprint:
               entity:
                 - integration: plant
               multiple: false
+        set_plant_sensor_state:
+          name: Учитывать показания сенсора почвы при включении по времени
+          default: false
+          selector:
+            boolean: {}
+        set_soil_moisture_min:
+          name: Нижний предел влажности
+          description: При привышении предела влажности почвы система орошения включаться не будет.
+          default:
+          selector:
+            number:
+              min: 0
+              max: 100
+              step: 1
+              mode: slider
 
 trigger_variables:
   waterpump: !input waterpump
-  plant: !input waterpump
+  plant: !input plant
 
   set_working_day_morning: !input set_working_day_morning
   set_working_day_evening: !input set_working_day_evening
+
+  set_plant_sensor_set: !input set_plant_sensor_state
+  set_soil_moisture_min: !input set_soil_moisture_min
 
   is_on_time_morning_enabled: "{{ 'options_time' in automation_options and 'off_morning' not in set_working_day_morning }}"
   is_on_time_evening_enabled: "{{ 'options_time' in automation_options and 'off_evening' not in set_working_day_evening }}"
@@ -123,9 +136,9 @@ trigger_variables:
 variables:
   waterpump_entities: "{{ device_entities(waterpump) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'switch.') | list }}"
 
-  soil_moisture_entities: "{{ device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('match', 'soil') | list }}"
-  temperature_entities: "{{ device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('match', 'temperature') | list }}"
-  humidity_entities: "{{ device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('match', 'humidity') | list }}"
+  soil_moisture_entities: "{{ (device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('match', 'soil') | list)[0] }}"
+  temperature_entities: "{{ (device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('match', 'temperature') | list)[0] }}"
+  humidity_entities: "{{ (device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('match', 'humidity') | list)[0] }}"
 
 triggers:
   - platform: time
@@ -140,10 +153,13 @@ triggers:
 
 actions:
   - choose:
-      - conditions: # Время включения
+      - conditions: # Время включения утром
           - condition: trigger
             id:
               - on_time_morning_trigger
+          - condition: template
+            value_template: >
+              {{ true if not set_plant_sensor_set else (states(soil_moisture_entities) | int < set_soil_moisture_min) }}
         sequence:
           - repeat:
               for_each: "{{ waterpump_entities }}"
@@ -164,7 +180,7 @@ actions:
                     entity_id: >
                       {{ repeat.item if repeat is defined else '' }}
 
-      - conditions: # Время включения
+      - conditions: # Время включения вечером
           - condition: trigger
             id:
               - on_time_evening_trigger
