@@ -84,7 +84,6 @@ trigger_variables:
 #  set_on_time_evening: !input set_on_time_evening
 
   waterpump_entities: "{{ device_entities(waterpump) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'switch.') | list }}"
-  waterpump_entities_count: "{{ device_entities(waterpump) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'switch.') | list | count }}"
 
   soil_moisture: "{{ device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('match', 'soil') | list }}"
   temperature: "{{ device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('match', 'temperature') | list }}"
@@ -104,37 +103,39 @@ actions:
           - condition: trigger
             id:
               - on_time_morning_trigger
-        sequence:
-          - action: switch.turn_on
-            metadata: {}
-            target:
-              entity_id: > 
-                {{ waterpump_entities }}
-          - delay:
-              seconds: 1
-          - action: switch.turn_off
-            metadata: {}            
-            target:
-              entity_id: > 
-                {{ waterpump_entities }}
+            sequence:
+              - repeat:
+                for_each: "{{ waterpump_entities }}"
+                sequence:
+                  - action: switch.turn_on
+                    metadata: {}            
+                    target:
+                      entity_id: "{{ repeat.item if repeat is defined else '' }}"
+                  - delay:
+                      seconds: 1
+                  - action: switch.turn_off
+                    metadata: {}            
+                    target:
+                      entity_id: "{{ repeat.item if repeat is defined else '' }}"
 
       - conditions: # Время включения
           - condition: trigger
             id:
               - on_time_evening_trigger
-        sequence:
-          - action: switch.turn_on
-            metadata: {}            
-            target:
-              entity_id: > 
-                {{ waterpump_entities }}
-          - delay:
-              seconds: 1
-          - action: switch.turn_off
-            metadata: {}            
-            target:
-              entity_id: > 
-                {{ waterpump_entities }}
+            sequence:
+              - repeat:
+                for_each: "{{ waterpump_entities }}"
+                sequence:
+                  - action: switch.turn_on
+                    metadata: {}            
+                    target:
+                      entity_id: "{{ repeat.item if repeat is defined else '' }}"
+                  - delay:
+                      seconds: 1
+                  - action: switch.turn_off
+                    metadata: {}            
+                    target:
+                      entity_id: "{{ repeat.item if repeat is defined else '' }}"
 
 mode: single
 
