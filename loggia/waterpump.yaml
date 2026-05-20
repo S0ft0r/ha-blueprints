@@ -104,19 +104,34 @@ actions:
             id:
               - on_time_morning_trigger
             sequence:
+              # - repeat:
+              #     for_each: >
+              #       {% set waterpump = "3f2ba924cfd842a6b67a21bc4bf7aa92" %}
+              #       {{ device_entities(waterpump) | reject("is_state", ["unavailable",
+              #       "unknown"]) | select("match", "switch.") | list }}
+              #     sequence:
+              #       - action: switch.turn_off
+              #         metadata: {}
+              #         data: {}
+              #         target:
+              #           entity_id: |
+              #             {{ repeat.item if repeat is defined else '' }}
               - repeat:
-                for_each: "{{ waterpump_entities }}"
-                sequence:
-                  - action: switch.turn_on
-                    metadata: {}            
-                    target:
-                      entity_id: "{{ repeat.item if repeat is defined else '' }}"
-                  - delay:
-                      seconds: 1
-                  - action: switch.turn_off
-                    metadata: {}            
-                    target:
-                      entity_id: "{{ repeat.item if repeat is defined else '' }}"
+                  for_each: >
+                    {{ waterpump_entities }}
+                  sequence:
+                    - action: switch.turn_on
+                      metadata: {}            
+                      target:
+                        entity_id: >
+                          {{ repeat.item if repeat is defined else '' }}
+                    - delay:
+                        seconds: 1
+                    - action: switch.turn_off
+                      metadata: {}            
+                      target:
+                        entity_id: >
+                          {{ repeat.item if repeat is defined else '' }}
 
       - conditions: # Время включения
           - condition: trigger
@@ -124,18 +139,21 @@ actions:
               - on_time_evening_trigger
             sequence:
               - repeat:
-                for_each: "{{ waterpump_entities }}"
-                sequence:
-                  - action: switch.turn_on
-                    metadata: {}            
-                    target:
-                      entity_id: "{{ repeat.item if repeat is defined else '' }}"
-                  - delay:
-                      seconds: 1
-                  - action: switch.turn_off
-                    metadata: {}            
-                    target:
-                      entity_id: "{{ repeat.item if repeat is defined else '' }}"
+                  for_each: >
+                    {{ waterpump_entities }}
+                  sequence:
+                    - action: switch.turn_on
+                      metadata: {}            
+                      target:
+                        entity_id: > 
+                          {{ repeat.item if repeat is defined else '' }}
+                    - delay:
+                        seconds: 1
+                    - action: switch.turn_off
+                      metadata: {}            
+                      target:
+                        entity_id: >
+                          {{ repeat.item if repeat is defined else '' }}
 
 mode: single
 
