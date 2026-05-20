@@ -29,7 +29,7 @@ blueprint:
           selector:
             time: {}
         set_on_time_evening:
-          name: Выключить вечером в
+          name: Включить вечером в
           default: "20:00:00"
           selector:
             time: {}
