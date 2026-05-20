@@ -165,7 +165,7 @@ trigger_variables:
   set_plant_sensor_state: !input set_plant_sensor_state
   set_soil_moisture_min: !input set_soil_moisture_min
 
-  is_on_time_morning_enabled: "{{ 'options_time' in automation_options and 'off_morning' not in set_working_day_morning }}"
+  is_on_time_morning_enabled: "{{ 'options_time' in automation_options }}"
   is_on_time_evening_enabled: "{{ 'options_time' in automation_options and 'off_evening' not in set_working_day_evening }}"
 
 variables:
@@ -180,12 +180,12 @@ triggers:
   - platform: time
     at: !input set_on_time_morning
     id: on_time_morning_trigger
-#    enabled: "{{ is_on_time_morning_enabled }}"
+    enabled: "{{ is_on_time_morning_enabled }}"
 
   - platform: time
     at: !input set_on_time_evening
     id: on_time_evening_trigger
-#    enabled: "{{ is_on_time_evening_enabled }}"
+    enabled: "{{ is_on_time_evening_enabled }}"
 
 actions:
   - choose:
@@ -194,6 +194,9 @@ actions:
             id:
               - on_time_morning_trigger
           - condition: template
+            value_template: >
+              {{ 'off_morning' not in set_working_day_morning }}
+           - condition: template
             value_template: >
               {{ true if not set_plant_sensor_state else (states(soil_moisture_entities) | int < set_soil_moisture_min) }}
         sequence:
@@ -220,6 +223,12 @@ actions:
           - condition: trigger
             id:
               - on_time_evening_trigger
+          - condition: template
+            value_template: >
+              {{ 'off_evening' not in set_working_day_evening }}
+           - condition: template
+            value_template: >
+              {{ true if not set_plant_sensor_state else (states(soil_moisture_entities) | int < set_soil_moisture_min) }}
         sequence:
           - repeat:
               for_each: "{{ waterpump_entities }}"
