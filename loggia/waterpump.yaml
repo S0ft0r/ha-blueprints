@@ -276,11 +276,16 @@ actions:
                 - repeat:
                     for_each: "{{ waterpump_entities }}"
                     sequence:
-                      - action: switch.turn_on
-                        metadata: {}            
-                        target:
-                          entity_id: >
-                            {{ repeat.item if repeat is defined else '' }}
+                      - if: 
+                          - condition: template
+                            value_template: |
+                              {{ true if not set_plant_sensor_pause else (states(soil_moisture_entities) | int < set_soil_moisture_max) }}  
+                        then:
+                          - action: switch.turn_on
+                            metadata: {}            
+                            target:
+                              entity_id: >
+                                {{ repeat.item if repeat is defined else '' }}
                 - delay:
                     seconds: !input set_mode_work
                 - repeat:
@@ -306,16 +311,11 @@ actions:
           - repeat:
               for_each: "{{ waterpump_entities }}"
               sequence:
-                      - if: 
-                          - condition: template
-                            value_template: |
-                              {{ true if not set_plant_sensor_pause else (states(soil_moisture_entities) | int < set_soil_moisture_max) }}  
-                        then:
-                          - action: switch.turn_on
-                            metadata: {}            
-                            target:
-                              entity_id: >
-                                {{ repeat.item if repeat is defined else '' }}
+                - action: switch.turn_on
+                  metadata: {}            
+                  target:
+                    entity_id: >
+                      {{ repeat.item if repeat is defined else '' }}
           - delay:
               seconds: !input set_mode_work
           - repeat:
