@@ -122,6 +122,17 @@ blueprint:
                 - label: Трижды с паузой
                   value: triple_mode_evening
               mode: dropdown
+        set_mode_pause:
+          name: Величина паузы
+          description: Величина паузы между включениями при режимах работы с паузами 
+          default: 0
+          selector:
+            number:
+              min: 1
+              max: 240
+              step: 1
+              mode: box
+              unit_of_measurement: sec
       
     plant_section:
       name: Настройки датчика почвы
