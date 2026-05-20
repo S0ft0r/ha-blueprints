@@ -28,60 +28,30 @@ blueprint:
           default: "08:00:00"
           selector:
             time: {}
-        set_on_time_morning_sensor:
-          name: Включить орошение по сенсору
-          description: |
-            Сенсор, определяющий время включения системы орошения утром.
-              * При выборе сенсора, время включения орошения утром, заданное в проекте, учитываться не будет.
-          default: []
-          selector:
-            entity:
-              filter:
-                - domain: 
-                  - input_datetime
               multiple: false
         set_on_time_evening:
           name: Выключить вечером в
           default: "20:00:00"
           selector:
             time: {}
-        set_on_time_evening_sensor:
-          name: Выключить подсветку по сенсору
-          description: |
-            Сенсор, определяющий время включения системы орошения вечером.
-              * При выборе сенсора, время включения орошения вечером, заданное в проекте, учитываться не будет.
-          default: []
-          selector:
-            entity:
-              filter:
-                - domain: 
-                  - input_datetime
-              multiple: false
       
 trigger_variables:
   waterpump:                      !input waterpump
 
-  set_on_time_morning_sensor:     !input set_on_time_morning_sensor
-  set_on_time_evening_sensor:     !input set_on_time_evening_sensor
-
   set_on_time_morning:            !input set_on_time_morning
   set_on_time_evening:            !input set_on_time_evening
-
-  on_time_morning: "{{ set_on_time_morning if set_on_time_morning_sensor == [] else states(set_on_time_morning_sensor) }}"
-  on_time_evening: "{{ set_on_time_evening if set_on_time_evening_sensor == [] else states(set_on_time_evening_sensor) }}"
 
   waterpump_entities: "{{ device_entities(waterpump) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'switch.') | list }}"
   waterpump_entities_count: "{{ device_entities(waterpump) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'switch.') | list | count }}"
 
 triggers:
-  - trigger:        template
-    value_template: "{{ now().strftime('%H:%M:00') == on_time_morning }}"
-    id:             on_time_morning_trigger
+  - trigger: time
+    at: !input set_up_time
+    id: on_time_morning_trigger
 
-  - trigger:        template
-#    value_template: "{{ now().strftime('%H:%M:00') == on_time_evening }}"
-    value_template: "{{ now().strftime('%H:%M:00') == '20:15:00' }}"
-    id:             on_time_evening_trigger
+  - trigger: time
+    at: !input set_down_time
+    id: on_time_evening_trigger
 
 actions:
   - choose:
