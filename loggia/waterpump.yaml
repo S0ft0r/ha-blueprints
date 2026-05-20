@@ -161,7 +161,7 @@ trigger_variables:
   set_mode_morning: !input set_mode_morning
   set_mode_evening: !input set_mode_evening
 
-  set_plant_sensor_set: !input set_plant_sensor_state
+  set_plant_sensor_state: !input set_plant_sensor_state
 
   is_on_time_morning_enabled: "{{ 'options_time' in automation_options and 'off_morning' not in set_working_day_morning }}"
   is_on_time_evening_enabled: "{{ 'options_time' in automation_options and 'off_evening' not in set_working_day_evening }}"
@@ -169,12 +169,12 @@ trigger_variables:
 variables:
   waterpump_entities: "{{ device_entities(waterpump) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'switch.') | list }}"
 
-  soil_moisture_entities: "{{ (device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('match', 'soil') | list)[0] }}"
-  temperature_entities: "{{ (device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('match', 'temperature') | list)[0] }}"
-  humidity_entities: "{{ (device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('match', 'humidity') | list)[0] }}"
+  soil_moisture_entities: "{{ (device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('search', 'soil_moisture') | list | join ) }}"
+  temperature_entities: "{{ (device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('search', 'temperature') | list) | join }}"
+  humidity_entities: "{{ (device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('search', 'air_humidity') | list) | join }}"
 
   set_soil_moisture_min: !input set_soil_moisture_min
-  
+
 triggers:
   - platform: time
     at: !input set_on_time_morning
@@ -194,7 +194,7 @@ actions:
               - on_time_morning_trigger
           - condition: template
             value_template: >
-              {{ true if not set_plant_sensor_set else (states(soil_moisture_entities) | int < set_soil_moisture_min) }}
+              {{ true if not set_plant_sensor_state else (states(soil_moisture_entities) | int < set_soil_moisture_min) }}
         sequence:
           - repeat:
               for_each: "{{ waterpump_entities }}"
