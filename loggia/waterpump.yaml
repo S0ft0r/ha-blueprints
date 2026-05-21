@@ -1,7 +1,7 @@
 blueprint:
   name: Управление системой полива
   description: |
-    (В РАЗРАБОТКЕ!!!)
+    (ТЕСТИРОВАНИЕ!!!)
     Управление поливом цветов по времени, датчикам влажности. 
       Версия 2026.05.00 
       Сборка 1
@@ -269,7 +269,7 @@ actions:
                         metadata: {}            
                         target:
                           entity_id: >
-                            {{ repeat.item if repeat is defined else '' }}
+                            {{ repeat.item if (repeat is defined and (true if not set_plant_sensor_pause else (states(soil_moisture_entities) | int < set_soil_moisture_max))) else '' }}
                 - delay:
                     seconds: !input set_mode_work
                 - repeat:
@@ -322,7 +322,7 @@ actions:
                         metadata: {}            
                         target:
                           entity_id: >
-                            {{ repeat.item if repeat is defined else '' }}
+                            {{ repeat.item if (repeat is defined and (true if not set_plant_sensor_pause else (states(soil_moisture_entities) | int < set_soil_moisture_max))) else '' }}
                 - delay:
                     seconds: !input set_mode_work
                 - repeat:
