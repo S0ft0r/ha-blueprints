@@ -386,6 +386,8 @@ actions:
             id:
               - mqtt_slider_up_trigger
           - condition: template
+            value_template: "{{ is_mqtt_device }}"
+          - condition: template
             value_template: |
               {{ device_attr(slider_device, 'name') == trigger.topic.split('/')[1] }}
         sequence:
@@ -406,6 +408,8 @@ actions:
           - condition: trigger
             id:
               - zha_slider_up_trigger
+          - condition: template
+            value_template: "{{ is_zha_device }}"
         sequence:
           - repeat:
               count: !input repeat_for
@@ -489,6 +493,8 @@ actions:
             id:
               - mqtt_slider_down_trigger
           - condition: template
+            value_template: "{{ is_mqtt_device }}"
+         - condition: template
             value_template: |
               {{ device_attr(slider_device, 'name') == trigger.topic.split('/')[1] }}
         sequence:
@@ -509,6 +515,8 @@ actions:
           - condition: trigger
             id:
               - zha_slider_down_trigger
+          - condition: template
+            value_template: "{{ is_zha_device }}"
         sequence:
           - repeat:
               count: !input repeat_for
