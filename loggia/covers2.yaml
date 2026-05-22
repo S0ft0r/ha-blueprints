@@ -315,7 +315,9 @@ trigger_variables:
   is_forecast_enabled: "{{ forecast_sensor != [] and 'extra_forecast' in automation_extra }}"
   is_sun_protect_enabled: "{{ (sun_elevation_variable != 0 or sun_azimuth_variable != 0) and 'extra_sun_protect' in automation_extra }}"
   is_open_until_enabled: "{{ do_not_blind_open_until_sensor != [] and 'extra_alarm_pause' in automation_extra }}"
-  # is_mqtt_enabled: "{{ slider_device != [] }}"
+
+  is_mqtt_device: "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'mqtt' }}"
+  is_zha_device: "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'zha' }}"
 
 variables:
   is_mqtt_device: "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'mqtt' }}"
