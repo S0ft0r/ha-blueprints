@@ -316,12 +316,12 @@ trigger_variables:
   is_sun_protect_enabled: "{{ (sun_elevation_variable != 0 or sun_azimuth_variable != 0) and 'extra_sun_protect' in automation_extra }}"
   is_open_until_enabled: "{{ do_not_blind_open_until_sensor != [] and 'extra_alarm_pause' in automation_extra }}"
 
-  is_mqtt_device: "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'mqtt' }}"
-  is_zha_device: "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'zha' }}"
+#  is_mqtt_device: "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'mqtt' }}"
+  is_zha_device:  "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'zha' }}"
 
 variables:
-  is_mqtt_device: "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'mqtt' }}"
-  is_zha_device: "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'zha' }}"
+#  is_mqtt_device: "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'mqtt' }}"
+  is_zha_device:  "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'zha' }}"
 
 triggers:
   - trigger: time
@@ -364,14 +364,14 @@ triggers:
       topic: !input basic_topic
       payload: !input payload_down
     id: mqtt_slider_down_trigger
-    enabled: "{{ is_mqtt_device }}"
+#    enabled: "{{ is_mqtt_device }}"
 
   - trigger: mqtt
     options:
       topic: !input basic_topic
       payload: !input payload_up
     id: mqtt_slider_up_trigger
-    enabled: "{{ is_mqtt_device }}"
+#    enabled: "{{ is_mqtt_device }}"
 
   - trigger: event
     event_type: zha_event
