@@ -214,8 +214,8 @@ blueprint:
           selector:
             entity:
               filter:
-                - integration: mqtt
-                  domain: sensor
+                - domain: 
+                    - sensor
               multiple: false
 
 trigger_variables:
