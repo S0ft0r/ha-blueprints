@@ -249,11 +249,11 @@ triggers:
     id: on_time_evening_trigger
     enabled: "{{ is_on_time_evening_enabled }}"
 
-  - platform: state
-    entity_id: >
-      {{ soil_moisture_entities }}
-    id: plant_state_trigger
-    enabled: "{{ is_plant_state_enabled }}"
+  # - platform: state
+  #   entity_id: >
+  #     {{ soil_moisture_entities }}
+  #   id: plant_state_trigger
+  #   enabled: "{{ is_plant_state_enabled }}"
 
 actions:
   - choose:
