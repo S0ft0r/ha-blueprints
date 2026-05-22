@@ -381,48 +381,48 @@ triggers:
 
 actions:
   - choose:
-      # - conditions: # Открыть по слайдеру
-      #     - condition: trigger
-      #       id:
-      #         - mqtt_slider_up_trigger
-      #     - condition: template
-      #       value_template: "{{ is_mqtt_device }}"
-      #     - condition: template
-      #       value_template: |
-      #         {{ device_attr(slider_device, 'name') == trigger.topic.split('/')[1] }}
-      #   sequence:
-      #     - repeat:
-      #         count: !input repeat_for
-      #         sequence:
-      #           - action: cover.set_cover_position
-      #             metadata: {}
-      #             target:
-      #               entity_id: !input blind
-      #             data:
-      #               position: |
-      #                 {{ (up_limit | int - (repeat_for | int - repeat.index)) }}
-      #           - delay:
-      #               seconds: 3
+      - conditions: # Открыть по слайдеру
+          - condition: trigger
+            id:
+              - mqtt_slider_up_trigger
+          - condition: template
+            value_template: "{{ is_mqtt_device }}"
+          - condition: template
+            value_template: |
+              {{ device_attr(slider_device, 'name') == trigger.topic.split('/')[1] }}
+        sequence:
+          - repeat:
+              count: !input repeat_for
+              sequence:
+                - action: cover.set_cover_position
+                  metadata: {}
+                  target:
+                    entity_id: !input blind
+                  data:
+                    position: |
+                      {{ (up_limit | int - (repeat_for | int - repeat.index)) }}
+                - delay:
+                    seconds: 3
 
-      # - conditions: # Открыть по слайдеру
-      #     - condition: trigger
-      #       id:
-      #         - zha_slider_up_trigger
-      #     - condition: template
-      #       value_template: "{{ is_zha_device }}"
-      #   sequence:
-      #     - repeat:
-      #         count: !input repeat_for
-      #         sequence:
-      #           - action: cover.set_cover_position
-      #             metadata: {}
-      #             target:
-      #               entity_id: !input blind
-      #             data:
-      #               position: |
-      #                 {{ (up_limit | int - (repeat_for | int - repeat.index)) }}
-      #           - delay:
-      #               seconds: 3
+      - conditions: # Открыть по слайдеру
+          - condition: trigger
+            id:
+              - zha_slider_up_trigger
+          - condition: template
+            value_template: "{{ is_zha_device }}"
+        sequence:
+          - repeat:
+              count: !input repeat_for
+              sequence:
+                - action: cover.set_cover_position
+                  metadata: {}
+                  target:
+                    entity_id: !input blind
+                  data:
+                    position: |
+                      {{ (up_limit | int - (repeat_for | int - repeat.index)) }}
+                - delay:
+                    seconds: 3
 
       - conditions: # Время открытия
           - condition: trigger
@@ -488,48 +488,48 @@ actions:
                 - delay:
                     seconds: 3
 
-      # - conditions: # Закрыть по слайдеру
-      #     - condition: trigger
-      #       id:
-      #         - mqtt_slider_down_trigger
-      #     - condition: template
-      #       value_template: "{{ is_mqtt_device }}"
-      #    - condition: template
-      #       value_template: |
-      #         {{ device_attr(slider_device, 'name') == trigger.topic.split('/')[1] }}
-      #   sequence:
-      #     - repeat:
-      #         count: !input repeat_for
-      #         sequence:
-      #           - action: cover.set_cover_position
-      #             metadata: {}
-      #             target:
-      #               entity_id: !input blind
-      #             data:
-      #               position: |
-      #                 {{ (down_limit | int + (repeat_for | int - repeat.index)) }}
-      #           - delay:
-      #               seconds: 3
+      - conditions: # Закрыть по слайдеру
+          - condition: trigger
+            id:
+              - mqtt_slider_down_trigger
+          - condition: template
+            value_template: "{{ is_mqtt_device }}"
+          - condition: template
+            value_template: |
+              {{ device_attr(slider_device, 'name') == trigger.topic.split('/')[1] }}
+        sequence:
+          - repeat:
+              count: !input repeat_for
+              sequence:
+                - action: cover.set_cover_position
+                  metadata: {}
+                  target:
+                    entity_id: !input blind
+                  data:
+                    position: |
+                      {{ (down_limit | int + (repeat_for | int - repeat.index)) }}
+                - delay:
+                    seconds: 3
 
-      # - conditions: # Закрыть по слайдеру
-      #     - condition: trigger
-      #       id:
-      #         - zha_slider_down_trigger
-      #     - condition: template
-      #       value_template: "{{ is_zha_device }}"
-      #   sequence:
-      #     - repeat:
-      #         count: !input repeat_for
-      #         sequence:
-      #           - action: cover.set_cover_position
-      #             metadata: {}
-      #             target:
-      #               entity_id: !input blind
-      #             data:
-      #               position: |
-      #                 {{ (down_limit | int + (repeat_for | int - repeat.index)) }}
-      #           - delay:
-      #               seconds: 3
+      - conditions: # Закрыть по слайдеру
+          - condition: trigger
+            id:
+              - zha_slider_down_trigger
+          - condition: template
+            value_template: "{{ is_zha_device }}"
+        sequence:
+          - repeat:
+              count: !input repeat_for
+              sequence:
+                - action: cover.set_cover_position
+                  metadata: {}
+                  target:
+                    entity_id: !input blind
+                  data:
+                    position: |
+                      {{ (down_limit | int + (repeat_for | int - repeat.index)) }}
+                - delay:
+                    seconds: 3
 
       - conditions: # Солнце село
           - condition: trigger
