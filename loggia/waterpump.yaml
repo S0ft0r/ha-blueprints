@@ -221,6 +221,7 @@ blueprint:
 trigger_variables:
   waterpump: !input waterpump
   plant: !input plant
+  rain: !input rain
 
   automation_options: !input automation_options
 
