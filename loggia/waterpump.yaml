@@ -217,6 +217,7 @@ blueprint:
               filter:
                 - domain: 
                     - sensor
+                  integration: mqtt
               multiple: false
 
 trigger_variables:
