@@ -249,7 +249,7 @@ blueprint:
         slider_device:
           name: Выключатель/слайдер
           description: |
-            Выключатель типа <strong>Aqara Z1 Pro</strong> со встроенным слайдером. Должен быть подключен через MQTT.
+            Выключатель типа <strong>Aqara Z1 Pro</strong> со встроенным слайдером. Может быть подключен через MQTT или ZHA.
           default: []
           selector:
             device:
