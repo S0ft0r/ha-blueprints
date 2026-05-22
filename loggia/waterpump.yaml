@@ -188,15 +188,34 @@ blueprint:
               step: 1
               mode: slider
               unit_of_measurement: "%"
+        set_debounce_pause:
+          name: Включить защиту от перелива
+          default: false
+          selector:
+            boolean: {}
+        set_debounce_time:
+          name: Пауза перед запуском
+          description: > 
+            Пауза перед следующем включением автоматизации. Используется только в режиме включения по показаниям датчика почвы 
+            <small>* Для защиты от перелива при медленном изменении показаний датчика почвы
+          default: "00:10:00"
+          selector:
+            time: {}
 
 trigger_variables:
   waterpump: !input waterpump
   plant: !input plant
 
+  automation_options: !input automation_options
+
   set_working_day_morning: !input set_working_day_morning
   set_working_day_evening: !input set_working_day_evening
   set_mode_morning: !input set_mode_morning
   set_mode_evening: !input set_mode_evening
+
+  set_debounce_pause: !input set_debounce_pause
+  set_debounce_time: !input set_debounce_time
+
 
   set_plant_sensor_state: !input set_plant_sensor_state
   set_soil_moisture_min: !input set_soil_moisture_min
@@ -204,6 +223,8 @@ trigger_variables:
 
   is_on_time_morning_enabled: "{{ 'options_time' in automation_options }}"
   is_on_time_evening_enabled: "{{ 'options_time' in automation_options }}"
+  is_plant_state_enabled: "{{ 'options_plant' in automation_options }}"
+  
 
 variables:
   waterpump_entities: "{{ device_entities(waterpump) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'switch.') | list }}"
@@ -219,15 +240,56 @@ triggers:
   - platform: time
     at: !input set_on_time_morning
     id: on_time_morning_trigger
-    # enabled: "{{ is_on_time_morning_enabled }}"
+    enabled: "{{ is_on_time_morning_enabled }}"
 
   - platform: time
     at: !input set_on_time_evening
     id: on_time_evening_trigger
-    # enabled: "{{ is_on_time_evening_enabled }}"
+    enabled: "{{ is_on_time_evening_enabled }}"
+
+  - platform: state
+    entity_id: >
+      {{ soil_moisture_entities }}
+    id: plant_state_trigger
+    enabled: "{{ is_plant_state_enabled }}"
 
 actions:
   - choose:
+      - conditions: # Состояние почвы
+          - condition: trigger
+            id:
+              - plant_state_trigger
+          - condition: template
+            value_template: >
+              {{ states(soil_moisture_entities) | int < set_soil_moisture_min }}
+        sequence:
+          - repeat:
+              for_each: "{{ waterpump_entities }}"
+              sequence:
+                - action: switch.turn_on
+                  metadata: {}            
+                  target:
+                    entity_id: >
+                      {{ repeat.item if repeat is defined else '' }}
+          - delay:
+              seconds: !input set_mode_work
+          - repeat:
+              for_each: "{{ waterpump_entities }}"
+              sequence:
+                - action: switch.turn_off
+                  metadata: {}            
+                  target:
+                    entity_id: >
+                      {{ repeat.item if repeat is defined else '' }}
+          - if:
+              - condition: template
+                value_template: "{{ set_debounce_pause }}"
+            then:
+              - delay: 
+                  hours: "{{ set_debounce_time.split(':')[0] | int(default=0) }}"
+                  minutes: "{{ set_debounce_time.split(':')[1] | int(default=0) }}"
+                  seconds: "{{ set_debounce_time.split(':')[2] | int(default=0) }}"
+
       - conditions: # Время включения утром
           - condition: trigger
             id:
