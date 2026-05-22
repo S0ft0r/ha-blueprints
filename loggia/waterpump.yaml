@@ -211,6 +211,7 @@ blueprint:
         rain:
           name: Детектор дождя
           description: Использовать датчик для определения дождя
+          default: []
           selector:
             entity:
               filter:
