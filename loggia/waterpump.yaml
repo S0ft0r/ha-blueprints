@@ -148,7 +148,7 @@ blueprint:
     plant_section:
       name: Настройки датчика почвы
       description: |
-        Устанавливается время включения системы орошения.
+        Настройки датчика почвы.
       icon: mdi:flower-tulip-outline
       input:
         plant:
@@ -201,6 +201,22 @@ blueprint:
           default: "00:10:00"
           selector:
             time: {}
+
+    rainwater_section:
+      name: Настройки детектора дождя
+      description: |
+        Настройки детектора дождя.
+      icon: mdi:weather-pouring
+      input:
+        rain:
+          name: Детектора дождя
+          description: Использовать датчик для определения дождя
+          selector:
+            entity:
+              filter:
+                - integration: mqtt
+                  domain: sensor
+              multiple: false
 
 trigger_variables:
   waterpump: !input waterpump
