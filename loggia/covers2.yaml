@@ -318,8 +318,8 @@ trigger_variables:
   # is_mqtt_enabled: "{{ slider_device != [] }}"
 
 variables:
-  is_zha_device: "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'zha' }}"
   is_mqtt_device: "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'mqtt' }}"
+  is_zha_device: "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'zha' }}"
 
 triggers:
   - trigger: time
