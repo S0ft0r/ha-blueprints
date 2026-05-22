@@ -76,6 +76,17 @@ blueprint:
                 - domain:
                     - weather
               multiple: false
+        sun_sensor:
+          name: "Датчик солнца"
+          description: >-
+            Датчик, по которому определяется положение солнца
+          default: "sun.sun"
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - sun
+              multiple: false
 
     time_section:
       name: Настройки управления по времени
@@ -94,21 +105,10 @@ blueprint:
           selector:
             time: {}
 
-    sun_section:
-      name: "Настройки управления по солнцу"
-      icon: mdi:weather-sunny
-      input:
-        sun_sensor:
-          name: "Датчик солнца"
-          description: >-
-            Датчик, по которому определяется положение солнца
-          default: "sun.sun"
-          selector:
-            entity:
-              filter:
-                - domain:
-                    - sun
-              multiple: false
+    # sun_section:
+    #   name: "Настройки управления по солнцу"
+    #   icon: mdi:weather-sunny
+    #   input:
 
     sun_protect_section:
       name: Настройка защиты от попадания прямых лучей
