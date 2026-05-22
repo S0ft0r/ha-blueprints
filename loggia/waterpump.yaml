@@ -209,7 +209,7 @@ blueprint:
       icon: mdi:weather-pouring
       input:
         rain:
-          name: Детектора дождя
+          name: Детектор дождя
           description: Использовать датчик для определения дождя
           selector:
             entity:
