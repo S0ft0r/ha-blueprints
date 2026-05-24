@@ -1,0 +1,246 @@
+blueprint:
+  name: Управление рулонными шторами
+  description: |
+    (РАЗРАБОТКА!!!)
+    Управление шторами по слайдеру. 
+    Версия 2026.05.00
+    Сборка 1
+  domain: automation
+  source_url: https://github.com/S0ft0r/ha-blueprints/blob/main/loggia/slider.yaml
+  author: Softor
+
+  input:
+    blind:
+      name: Шторы
+      description: Какими приводами штор необходимо управлять?
+      selector:
+        entity:
+          filter:
+            - domain:
+                - cover
+          reorder: false
+          multiple: true
+    slider_device:
+      name: Выключатель/слайдер
+      description: |
+        Выключатель типа <strong>Aqara Z1 Pro</strong> со встроенным слайдером. Может быть подключен через MQTT или ZHA.
+      default: []
+      selector:
+        device:
+          entity:
+            - integration: mqtt
+            - integration: zha
+          multiple: false
+
+    options_section:
+      name: "Дополнительные настройки"
+      icon: mdi:cog
+      input:
+        up_limit:
+          name: Верхний предел
+          description: |
+            Верхний предел при открытии штор.
+              <small>* Если нет нужды поднимать шторы до конца.</small>
+          default: 99
+          selector:
+            number:
+              min: 0
+              max: 100
+              step: 1
+              unit_of_measurement: "%"
+              mode: slider
+
+        down_limit:
+          name: Нижний предел
+          description: |
+            Нижний предел при закрытии штор.
+              <small>* Если нет нужды опускать шторы до конца.</small>
+          default: 0
+          selector:
+            number:
+              min: 0
+              max: 100
+              step: 1
+              unit_of_measurement: "%"
+              mode: slider
+
+        repeat_for:
+          name: Количество повторов
+          description: |
+            Для защиты от несработки открытия/закрытия штор.
+              <small>* При значении равным 1 защита отключена.</small>
+          default: 2
+          selector:
+            number:
+              min: 1
+              max: 5
+              step: 1
+              mode: box
+
+    device_section:
+      name: Настройки устройства управления шторами
+      icon: mdi:dip-switch
+      input:
+        basic_topic:
+          name: Базовый топик
+          description: |
+            Базовый топик устройства, подключенного через MQTT. Обычно это <strong><em>zigbee2mqtt/+/action</em></strong>, где вместо знака + будет АВТОМАТИЧЕСКИ подставлено имя выключателя/слайдера.
+            <small>* При выборе устройства, подключенного через ZHA, не учитывается.
+          default: "zigbee2mqtt/+/action"
+          selector:
+            text:
+
+        payload_up:
+          name: Сообщение движениия вверх
+          description: |
+            Сообщение, публикуемое устройством для определения движения "вверх".
+          default: "slider_up"
+          selector:
+            text:
+
+        payload_down:
+          name: Сообщение движения вниз
+          description: |
+            Сообщение, публикуемое устройством для определения движения "вниз".
+          default: "slider_down"
+          selector:
+            text:
+
+trigger_variables:
+  blind: !input blind
+  slider_device: !input slider_device
+
+  up_limit: !input up_limit
+  down_limit: !input down_limit
+  repeat_for: !input repeat_for
+
+  # is_mqtt_device: |
+  #   {{ false if slider_device == [] else config_entry_attr(config_entry_id(device_entities(slider_device)[0]), "domain") == "mqtt" }}
+  # is_zha_device:  |
+  #   {{ false if slider_device == [] else config_entry_attr(config_entry_id(device_entities(slider_device)[0]), "domain") == "zha" }}
+
+#variables:
+#  is_mqtt_device: "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'mqtt' }}"
+#  is_zha_device:  "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'zha' }}"
+
+triggers:
+  - trigger: mqtt
+    options:
+      topic: !input basic_topic
+      payload: !input payload_down
+    id: mqtt_slider_down_trigger
+    # enabled: "{{ is_mqtt_device }}"
+
+  - trigger: mqtt
+    options:
+      topic: !input basic_topic
+      payload: !input payload_up
+    id: mqtt_slider_up_trigger
+    # enabled: "{{ is_mqtt_device }}"
+
+  - trigger: event
+    event_type: zha_event
+    event_data:
+      device_id: !input slider_device
+      command: !input payload_down
+    id: zha_slider_down_trigger
+    # enabled: "{{ is_zha_device }}"
+    
+  - trigger: event
+    event_type: zha_event
+    event_data:
+      device_id: !input slider_device
+      command: !input payload_up
+    id: zha_slider_up_trigger
+    # enabled: "{{ is_zha_device }}"
+
+actions:
+  - choose:
+      - conditions: # Открыть по слайдеру
+          - condition: trigger
+            id:
+              - mqtt_slider_up_trigger
+          # - condition: template
+          #   value_template: "{{ is_mqtt_device }}"
+          - condition: template
+            value_template: |
+              {{ device_attr(slider_device, 'name') == trigger.topic.split('/')[1] }}
+        sequence:
+          - repeat:
+              count: !input repeat_for
+              sequence:
+                - action: cover.set_cover_position
+                  metadata: {}
+                  target:
+                    entity_id: !input blind
+                  data:
+                    position: |
+                      {{ (up_limit | int - (repeat_for | int - repeat.index)) }}
+                - delay:
+                    seconds: 3
+
+      # - conditions: # Открыть по слайдеру
+      #     - condition: trigger
+      #       id:
+      #         - zha_slider_up_trigger
+      #   #   - condition: template
+      #   #     value_template: "{{ is_zha_device }}"
+      #   sequence:
+      #     - repeat:
+      #         count: !input repeat_for
+      #         sequence:
+      #           - action: cover.set_cover_position
+      #             metadata: {}
+      #             target:
+      #               entity_id: !input blind
+      #             data:
+      #               position: |
+      #                 {{ (up_limit | int - (repeat_for | int - repeat.index)) }}
+      #           - delay:
+      #               seconds: 3
+
+
+      - conditions: # Закрыть по слайдеру
+          - condition: trigger
+            id:
+              - mqtt_slider_down_trigger
+          # - condition: template
+          #   value_template: "{{ is_mqtt_device }}"
+          - condition: template
+            value_template: |
+              {{ device_attr(slider_device, 'name') == trigger.topic.split('/')[1] }}
+        sequence:
+          - repeat:
+              count: !input repeat_for
+              sequence:
+                - action: cover.set_cover_position
+                  metadata: {}
+                  target:
+                    entity_id: !input blind
+                  data:
+                    position: |
+                      {{ (down_limit | int + (repeat_for | int - repeat.index)) }}
+                - delay:
+                    seconds: 3
+
+      # - conditions: # Закрыть по слайдеру
+      #     - condition: trigger
+      #       id:
+      #         - zha_slider_down_trigger
+      #     # - condition: template
+      #     #   value_template: "{{ is_zha_device }}"
+      #   sequence:
+      #     - repeat:
+      #         count: !input repeat_for
+      #         sequence:
+      #           - action: cover.set_cover_position
+      #             metadata: {}
+      #             target:
+      #               entity_id: !input blind
+      #             data:
+      #               position: |
+      #                 {{ (down_limit | int + (repeat_for | int - repeat.index)) }}
+      #           - delay:
+      #               seconds: 3
+
+mode: single
