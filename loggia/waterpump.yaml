@@ -282,7 +282,7 @@ triggers:
 
   - platform: template
     value_template: >
-      {{ false if plant == [] else states(soil_moisture_entities)
+      {{ false if plant == [] else states(soil_moisture_entities) }}
     id: plant_state_trigger
     enabled: "{{ is_plant_state_enabled }}"
 
