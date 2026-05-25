@@ -20,7 +20,7 @@ blueprint:
           multiple: false
     plant:
       name: Датчик почвы
-      description: Использовать датчик для определения состояния почвы
+      description: Использовать датчик для определения состояния почвы.
       selector:
         device:
           entity:
@@ -28,9 +28,9 @@ blueprint:
           multiple: false
 
     automation_options:
-      name: Настройки управления орошением
+      name: Выбор режима работы системы
       description: |
-        Настройки.
+        Настройки включения системы орошения. 
       default:
         - options_time
       selector:
