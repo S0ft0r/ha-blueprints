@@ -25,12 +25,11 @@ blueprint:
       description: |
         Выключатель типа <strong>Aqara Z1 Pro</strong> со встроенным слайдером. Подключение через MQTT.
 #      Может быть подключен через MQTT или ZHA.
-      default: []
       selector:
         device:
           entity:
             - integration: mqtt
-#            - integration: zha
+            - integration: zha
           multiple: false
 
     options_section:
@@ -42,7 +41,7 @@ blueprint:
           description: |
             Верхний предел при открытии штор.
               <small>* Если нет нужды поднимать шторы до конца.</small>
-          default: 99
+          default: 100
           selector:
             number:
               min: 0
@@ -116,9 +115,9 @@ trigger_variables:
   repeat_for: !input repeat_for
 
   is_mqtt_device: |
-    {{ false if slider_device == [] else config_entry_attr(config_entry_id(device_entities(slider_device)[0]), "domain") == "mqtt" }}
+    {{ config_entry_attr(config_entry_id(device_entities(slider_device)[0]), "domain") == "mqtt" }}
   is_zha_device:  |
-    {{ false if slider_device == [] else config_entry_attr(config_entry_id(device_entities(slider_device)[0]), "domain") == "zha" }}
+    {{ config_entry_attr(config_entry_id(device_entities(slider_device)[0]), "domain") == "zha" }}
 
 #variables:
 #  is_mqtt_device: "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'mqtt' }}"
