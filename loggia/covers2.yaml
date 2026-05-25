@@ -718,4 +718,4 @@ actions:
                 - delay:
                     seconds: 3
 
-mode: single
+mode: restart
