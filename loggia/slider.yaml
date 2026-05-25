@@ -115,10 +115,10 @@ trigger_variables:
   down_limit: !input down_limit
   repeat_for: !input repeat_for
 
-  # is_mqtt_device: |
-  #   {{ false if slider_device == [] else config_entry_attr(config_entry_id(device_entities(slider_device)[0]), "domain") == "mqtt" }}
-  # is_zha_device:  |
-  #   {{ false if slider_device == [] else config_entry_attr(config_entry_id(device_entities(slider_device)[0]), "domain") == "zha" }}
+  is_mqtt_device: |
+    {{ false if slider_device == [] else config_entry_attr(config_entry_id(device_entities(slider_device)[0]), "domain") == "mqtt" }}
+  is_zha_device:  |
+    {{ false if slider_device == [] else config_entry_attr(config_entry_id(device_entities(slider_device)[0]), "domain") == "zha" }}
 
 #variables:
 #  is_mqtt_device: "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'mqtt' }}"
