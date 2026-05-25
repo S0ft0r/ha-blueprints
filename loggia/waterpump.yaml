@@ -27,29 +27,49 @@ blueprint:
             - integration: plant
           multiple: false
 
-    automation_section:
-      name: Настройки автоматизации
-      icon: mdi:window-shutter-cog
-      collapsed: false
-      input:
-        automation_options:
-          name: Настройки управления орошением
-          description: |
-            Настройки.
-          default:
-            - options_time
-          selector:
-            select:
-              options:
-                # - label: Открытие/закрытие по времени
-                #   value: options_time
-                - label: Включать систему орошения по времени
-                  value: options_time
-                - label: Включать по показаниям сенсора почвы
-                  value: options_plant
-              multiple: true
-              sort: false
-              custom_value: false
+    automation_options:
+      name: Настройки управления орошением
+      description: |
+        Настройки.
+      default:
+        - options_time
+      selector:
+        select:
+          options:
+            # - label: Открытие/закрытие по времени
+            #   value: options_time
+            - label: Включать систему орошения по времени
+              value: options_time
+            - label: Включать по показаниям сенсора почвы
+              value: options_plant
+          multiple: true
+          sort: false
+          custom_value: false
+
+
+    # automation_section:
+    #   name: Настройки автоматизации
+    #   icon: mdi:window-shutter-cog
+    #   collapsed: false
+    #   input:
+    #     automation_options:
+    #       name: Настройки управления орошением
+    #       description: |
+    #         Настройки.
+    #       default:
+    #         - options_time
+    #       selector:
+    #         select:
+    #           options:
+    #             # - label: Открытие/закрытие по времени
+    #             #   value: options_time
+    #             - label: Включать систему орошения по времени
+    #               value: options_time
+    #             - label: Включать по показаниям сенсора почвы
+    #               value: options_plant
+    #           multiple: true
+    #           sort: false
+    #           custom_value: false
 
     time_section:
       name: Настройки управления по времени
