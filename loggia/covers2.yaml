@@ -4,7 +4,7 @@ blueprint:
     (ТЕСТИРОВАНИЕ!!!)
     Управление шторами по времени или положению солнца. 
     Версия 2026.05.00
-    Сборка 1
+    Сборка 2
   domain: automation
   source_url: https://github.com/S0ft0r/ha-blueprints/blob/main/loggia/covers2.yaml
   author: Softor
@@ -302,7 +302,7 @@ blueprint:
             text:
 
         payload_stop:
-          name: Сообщение достановки
+          name: Сообщение остановки
           description: |
             Сообщение, публикуемое устройством для определения остановки.
           default: "single_wireless"
