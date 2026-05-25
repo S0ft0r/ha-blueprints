@@ -27,29 +27,29 @@ blueprint:
             - integration: plant
           multiple: false
 
-    # automation_section:
-    #   name: Настройки автоматизации
-    #   icon: mdi:window-shutter-cog
-    #   collapsed: false
-    #   input:
-    #     automation_options:
-    #       name: Настройки управления орошением
-    #       description: |
-    #         Настройки.
-    #       default:
-    #         - options_time
-    #       selector:
-    #         select:
-    #           options:
-    #             # - label: Открытие/закрытие по времени
-    #             #   value: options_time
-    #             - label: Включать систему орошения по времени
-    #               value: options_time
-    #             - label: Включать по показаниям сенсора почвы
-    #               value: options_plant
-    #           multiple: true
-    #           sort: false
-    #           custom_value: false
+    automation_section:
+      name: Настройки автоматизации
+      icon: mdi:window-shutter-cog
+      collapsed: false
+      input:
+        automation_options:
+          name: Настройки управления орошением
+          description: |
+            Настройки.
+          default:
+            - options_time
+          selector:
+            select:
+              options:
+                # - label: Открытие/закрытие по времени
+                #   value: options_time
+                - label: Включать систему орошения по времени
+                  value: options_time
+                - label: Включать по показаниям сенсора почвы
+                  value: options_plant
+              multiple: true
+              sort: false
+              custom_value: false
 
     time_section:
       name: Настройки управления по времени
@@ -57,11 +57,11 @@ blueprint:
         Устанавливается время включения системы орошения.
       icon: mdi:clock-time-eight-outline
       input:
-        options_time:
-          name: Включать систему орошения по времени
-          default: true
-          selector:
-            boolean: {}
+        # options_time:
+        #   name: Включать систему орошения по времени
+        #   default: true
+        #   selector:
+        #     boolean: {}
         set_plant_sensor_state:
           name: Учитывать показания сенсора почвы
           default: false
@@ -85,10 +85,10 @@ blueprint:
       icon: mdi:flower-tulip-outline
       input:
         options_plant:
-          name: Включать систему орошения по показания датчика
-          default: false
-          selector:
-            boolean: {}
+          # name: Включать систему орошения по показания датчика
+          # default: false
+          # selector:
+          #   boolean: {}
         set_soil_moisture_min:
           name: Нижний предел влажности
           description: |
@@ -235,7 +235,7 @@ trigger_variables:
   plant: !input plant
 #  rain: !input rain
 
-#  automation_options: !input automation_options
+  automation_options: !input automation_options
 
   set_working_day_morning: !input set_working_day_morning
   set_working_day_evening: !input set_working_day_evening
@@ -250,11 +250,11 @@ trigger_variables:
   set_soil_moisture_min: !input set_soil_moisture_min
   set_soil_moisture_max: !input set_soil_moisture_max
 
-  options_time: !input options_time
-  options_plant: !input options_plant
+  # options_time: !input options_time
+  # options_plant: !input options_plant
 
-  is_on_time_enabled: "{{ options_time }}"
-  is_plant_state_enabled: "{{ options_plant }}"
+  is_on_time_enabled: "{{ 'options_time' in automation_options }}"
+  is_plant_state_enabled: "{{ 'options_plant' in automation_options }}"
 
   soil_moisture_entities: "{{ (device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('search', 'soil_moisture') | list | join ) }}"
 
