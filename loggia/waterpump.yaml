@@ -4,7 +4,7 @@ blueprint:
     (ТЕСТИРОВАНИЕ!!!)
     Управление поливом цветов по времени, датчикам влажности. 
       Версия 2026.05.00 
-      Сборка 1
+      Сборка 2
   domain: automation
   source_url: https://github.com/S0ft0r/ha-blueprints/blob/main/loggia/waterpump.yaml
   author: Softor
@@ -18,30 +18,38 @@ blueprint:
           entity:
             - domain: switch
           multiple: false
+    plant:
+      name: Датчик почвы
+      description: Использовать датчик для определения состояния почвы
+      selector:
+        device:
+          entity:
+            - integration: plant
+          multiple: false
 
-    automation_section:
-      name: Настройки автоматизации
-      icon: mdi:window-shutter-cog
-      collapsed: false
-      input:
-        automation_options:
-          name: Настройки управления орошением
-          description: |
-            Настройки.
-          default:
-            - options_time
-          selector:
-            select:
-              options:
-                # - label: Открытие/закрытие по времени
-                #   value: options_time
-                - label: Включать систему орошения по времени
-                  value: options_time
-                - label: Включать по показаниям сенсора почвы
-                  value: options_plant
-              multiple: true
-              sort: false
-              custom_value: false
+    # automation_section:
+    #   name: Настройки автоматизации
+    #   icon: mdi:window-shutter-cog
+    #   collapsed: false
+    #   input:
+    #     automation_options:
+    #       name: Настройки управления орошением
+    #       description: |
+    #         Настройки.
+    #       default:
+    #         - options_time
+    #       selector:
+    #         select:
+    #           options:
+    #             # - label: Открытие/закрытие по времени
+    #             #   value: options_time
+    #             - label: Включать систему орошения по времени
+    #               value: options_time
+    #             - label: Включать по показаниям сенсора почвы
+    #               value: options_plant
+    #           multiple: true
+    #           sort: false
+    #           custom_value: false
 
     time_section:
       name: Настройки управления по времени
@@ -49,6 +57,16 @@ blueprint:
         Устанавливается время включения системы орошения.
       icon: mdi:clock-time-eight-outline
       input:
+        options_time:
+          name: Включать систему орошения по времени
+          default: true
+          selector:
+            boolean: {}
+        set_plant_sensor_state:
+          name: Учитывать показания сенсора почвы
+          default: false
+          selector:
+            boolean: {}
         set_on_time_morning:
           name: Включить утром в
           default: "08:00:00"
@@ -57,6 +75,55 @@ blueprint:
         set_on_time_evening:
           name: Включить вечером в
           default: "20:00:00"
+          selector:
+            time: {}
+      
+    plant_section:
+      name: Настройки управления по показания датчика почвы
+      description: |
+        Настройки датчика почвы.
+      icon: mdi:flower-tulip-outline
+      input:
+        options_plant:
+          name: Включать систему орошения по показания датчика
+          default: false
+          selector:
+            boolean: {}
+        set_soil_moisture_min:
+          name: Нижний предел влажности
+          description: |
+            Включение системы орошения при понижении предела влажности почвы.
+            <small>* При включенной опции <em>Включать по показаниям сенсора почвы</em></small> 
+          default: 1
+          selector:
+            number:
+              min: 1
+              max: 100
+              step: 1
+              mode: slider
+              unit_of_measurement: "%"
+        set_soil_moisture_max:
+          name: Верхний предел влажности
+          description: При привышении предела влажности почвы система орошения включаться не будет.
+          default: 1
+          selector:
+            number:
+              min: 1
+              max: 100
+              step: 1
+              mode: slider
+              unit_of_measurement: "%"
+        set_debounce_pause:
+          name: Включить защиту от перелива
+          default: false
+          selector:
+            boolean: {}
+        set_debounce_time:
+          name: Пауза перед запуском
+          description: > 
+            Пауза перед следующем включением автоматизации. Используется только в режиме включения по показаниям датчика почвы 
+            <small>* Для защиты от перелива при медленном изменении показаний датчика почвы
+          default: "00:10:00"
           selector:
             time: {}
 
@@ -144,88 +211,31 @@ blueprint:
               step: 1
               mode: box
               unit_of_measurement: сек
-      
-    plant_section:
-      name: Настройки датчика почвы
-      description: |
-        Настройки датчика почвы.
-      icon: mdi:flower-tulip-outline
-      input:
-        plant:
-          name: Датчик почвы
-          description: Использовать датчик для определения состояния почвы
-          selector:
-            device:
-              entity:
-                - integration: plant
-              multiple: false
-        set_plant_sensor_state:
-          name: Учитывать показания сенсора почвы при включении по времени
-          default: false
-          selector:
-            boolean: {}
-        set_soil_moisture_min:
-          name: Нижний предел влажности
-          description: |
-            Включение системы орошения при понижении предела влажности почвы.
-            <small>* При включенной опции <em>Включать по показаниям сенсора почвы</em></small> 
-          default: 1
-          selector:
-            number:
-              min: 1
-              max: 100
-              step: 1
-              mode: slider
-              unit_of_measurement: "%"
-        set_soil_moisture_max:
-          name: Верхний предел влажности
-          description: При привышении предела влажности почвы система орошения включаться не будет.
-          default: 1
-          selector:
-            number:
-              min: 1
-              max: 100
-              step: 1
-              mode: slider
-              unit_of_measurement: "%"
-        set_debounce_pause:
-          name: Включить защиту от перелива
-          default: false
-          selector:
-            boolean: {}
-        set_debounce_time:
-          name: Пауза перед запуском
-          description: > 
-            Пауза перед следующем включением автоматизации. Используется только в режиме включения по показаниям датчика почвы 
-            <small>* Для защиты от перелива при медленном изменении показаний датчика почвы
-          default: "00:10:00"
-          selector:
-            time: {}
 
-    rainwater_section:
-      name: Настройки детектора дождя
-      description: |
-        Настройки детектора дождя.
-      icon: mdi:weather-pouring
-      input:
-        rain:
-          name: Детектор дождя
-          description: Использовать датчик для определения дождя
-          default: []
-          selector:
-            entity:
-              filter:
-                - domain: 
-                    - sensor
-                  integration: mqtt
-              multiple: false
+    # rainwater_section:
+    #   name: Настройки детектора дождя
+    #   description: |
+    #     Настройки детектора дождя.
+    #   icon: mdi:weather-pouring
+    #   input:
+    #     rain:
+    #       name: Детектор дождя
+    #       description: Использовать датчик для определения дождя
+    #       default: []
+    #       selector:
+    #         entity:
+    #           filter:
+    #             - domain: 
+    #                 - sensor
+    #               integration: mqtt
+    #           multiple: false
 
 trigger_variables:
   waterpump: !input waterpump
   plant: !input plant
-  rain: !input rain
+#  rain: !input rain
 
-  automation_options: !input automation_options
+#  automation_options: !input automation_options
 
   set_working_day_morning: !input set_working_day_morning
   set_working_day_evening: !input set_working_day_evening
@@ -240,9 +250,11 @@ trigger_variables:
   set_soil_moisture_min: !input set_soil_moisture_min
   set_soil_moisture_max: !input set_soil_moisture_max
 
-  is_on_time_morning_enabled: "{{ 'options_time' in automation_options }}"
-  is_on_time_evening_enabled: "{{ 'options_time' in automation_options }}"
-  is_plant_state_enabled: "{{ 'options_plant' in automation_options }}"
+  options_time: !input options_time
+  options_plant: !input options_plant
+
+  is_on_time_enabled: "{{ options_time }}"
+  is_plant_state_enabled: "{{ options_plant }}"
 
   soil_moisture_entities: "{{ (device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('search', 'soil_moisture') | list | join ) }}"
 
