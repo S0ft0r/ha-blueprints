@@ -129,14 +129,14 @@ triggers:
       topic: !input basic_topic
       payload: !input payload_down
     id: mqtt_slider_down_trigger
-    enabled: "{{ is_mqtt_device }}"
+#    enabled: "{{ is_mqtt_device }}"
 
   - trigger: mqtt
     options:
       topic: !input basic_topic
       payload: !input payload_up
     id: mqtt_slider_up_trigger
-    enabled: "{{ is_mqtt_device }}"
+#    enabled: "{{ is_mqtt_device }}"
 
   - trigger: event
     event_type: zha_event
@@ -144,7 +144,7 @@ triggers:
       device_id: !input slider_device
       command: !input payload_down
     id: zha_slider_down_trigger
-    enabled: "{{ is_zha_device }}"
+#    enabled: "{{ is_zha_device }}"
     
   - trigger: event
     event_type: zha_event
@@ -152,7 +152,7 @@ triggers:
       device_id: !input slider_device
       command: !input payload_up
     id: zha_slider_up_trigger
-    enabled: "{{ is_zha_device }}"
+#    enabled: "{{ is_zha_device }}"
 
 actions:
   - choose:
@@ -160,8 +160,8 @@ actions:
           - condition: trigger
             id:
               - mqtt_slider_up_trigger
-          # - condition: template
-          #   value_template: "{{ is_mqtt_device }}"
+          - condition: template
+            value_template: "{{ is_mqtt_device }}"
           - condition: template
             value_template: |
               {{ device_attr(slider_device, 'name') == trigger.topic.split('/')[1] }}
@@ -204,8 +204,8 @@ actions:
           - condition: trigger
             id:
               - mqtt_slider_down_trigger
-          # - condition: template
-          #   value_template: "{{ is_mqtt_device }}"
+          - condition: template
+            value_template: "{{ is_mqtt_device }}"
           - condition: template
             value_template: |
               {{ device_attr(slider_device, 'name') == trigger.topic.split('/')[1] }}
