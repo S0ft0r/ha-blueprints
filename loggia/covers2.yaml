@@ -389,21 +389,21 @@ triggers:
       topic: !input basic_topic
       payload: !input payload_down
     id: mqtt_slider_down_trigger
-    enabled: "{{ is_slider_enabled }}"
+#    enabled: "{{ is_slider_enabled }}"
 
   - trigger: mqtt
     options:
       topic: !input basic_topic
       payload: !input payload_up
     id: mqtt_slider_up_trigger
-    enabled: "{{ is_slider_enabled }}"
+#    enabled: "{{ is_slider_enabled }}"
 
   - trigger: mqtt
     options:
       topic: !input basic_topic
       payload: !input payload_stop
     id: mqtt_slider_stop_trigger
-    enabled: "{{ is_slider_enabled }}"
+#    enabled: "{{ is_slider_enabled }}"
 
   # - trigger: event
   #   event_type: zha_event
@@ -428,7 +428,7 @@ actions:
             id:
               - mqtt_slider_up_trigger
           - condition: template
-            value_template: "{{ false if slider_device == [] else true }}"
+            value_template: "{{ false if slider_device == [] else is_slider_enabled }}"
           - condition: template
             value_template: |
               {{ device_attr(slider_device, 'name') == trigger.topic.split('/')[1] }}
@@ -452,7 +452,7 @@ actions:
             id:
               - mqtt_slider_stop_trigger
           - condition: template
-            value_template: "{{ false if slider_device == [] else true }}"
+            value_template: "{{ false if slider_device == [] else is_slider_enabled }}"
           - condition: template
             value_template: |
               {{ device_attr(slider_device, 'name') == trigger.topic.split('/')[1] }}
@@ -473,7 +473,7 @@ actions:
             id:
               - mqtt_slider_down_trigger
           - condition: template
-            value_template: "{{ false if slider_device == [] else true }}"
+            value_template: "{{ false if slider_device == [] else is_slider_enabled }}"
           - condition: template
             value_template: |
               {{ device_attr(slider_device, 'name') == trigger.topic.split('/')[1] }}
