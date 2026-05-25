@@ -282,7 +282,7 @@ triggers:
 
   - platform: template
     value_template: >
-      {{ false if plant == [] else states(soil_moisture_entities) }}
+      {{ false if plant == [] else states(soil_moisture_entities) | int < set_soil_moisture_min }}
     id: plant_state_trigger
     enabled: "{{ is_plant_state_enabled }}"
 
@@ -292,9 +292,6 @@ actions:
           - condition: trigger
             id:
               - plant_state_trigger
-          - condition: template
-            value_template: >
-              {{ states(soil_moisture_entities) | int < set_soil_moisture_min }}
         sequence:
           - repeat:
               for_each: "{{ waterpump_entities }}"
