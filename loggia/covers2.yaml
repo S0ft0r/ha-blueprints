@@ -389,21 +389,24 @@ triggers:
       topic: !input basic_topic
       payload: !input payload_down
     id: mqtt_slider_down_trigger
-    enabled: "{{ is_slider_enabled }}"
+    enabled: "{{ is_sun_protect_enabled }}"
+#    enabled: "{{ is_slider_enabled }}"
 
   - trigger: mqtt
     options:
       topic: !input basic_topic
       payload: !input payload_up
     id: mqtt_slider_up_trigger
-    enabled: "{{ is_slider_enabled }}"
+    enabled: "{{ is_sun_protect_enabled }}"
+#    enabled: "{{ is_slider_enabled }}"
 
   - trigger: mqtt
     options:
       topic: !input basic_topic
       payload: !input payload_stop
     id: mqtt_slider_stop_trigger
-    enabled: "{{ is_slider_enabled }}"
+    enabled: "{{ is_sun_protect_enabled }}"
+#    enabled: "{{ is_slider_enabled }}"
 
   # - trigger: event
   #   event_type: zha_event
