@@ -397,7 +397,7 @@ variables:
   is_zha_device:  "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'zha' }}"
 
   up_time: "{{ set_up_time_workday if workday else set_up_time_weekend }}"
-  down_time: "{{ set_down_time if set_down_time_sensor == [] else states(set_down_time_sensor) }}"
+  down_time: "{{ set_down_time }}"
 
   sun_azimuth: "{{ set_sun_azimuth if set_sun_azimuth_sensor == [] else states(set_sun_azimuth_sensor) }}"
   sun_elevation: "{{ set_sun_elevation if set_sun_elevation_sensor == [] else states(set_sun_elevation_sensor) }}"
