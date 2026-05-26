@@ -100,16 +100,52 @@ blueprint:
           default: "06:10:00"
           selector:
             time: {}
+        set_up_time_workday_sensor:
+          name: Открыть шторы в будни по сенсору
+          description: |
+            Сенсор, определяющий время открытия штор.
+             + <small>При выборе сенсора, время открытия штор, заданное в проекте, учитываться не будет.</small>
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain: 
+                  - input_datetime
+              multiple: false
         set_up_time_weekend:
           name: Открыть шторы в выходные не ранее
           default: "07:10:00"
           selector:
             time: {}
+        set_up_time_weekend_sensor:
+          name: Открыть шторы в выходные по сенсору
+          description: |
+            Сенсор, определяющий время открытия штор.
+             + <small>При выборе сенсора, время открытия штор, заданное в проекте, учитываться не будет.</small>
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain: 
+                  - input_datetime
+              multiple: false
         set_down_time:
           name: Закрыть шторы на закате, но не позднее
           default: "21:00:00"
           selector:
             time: {}
+        set_down_time_sensor:
+          name: Закрывать шторы по сенсору
+          description: |
+            Сенсор, определяющий время открытия штор.
+             + <small>При выборе сенсора, время закрытия штор, заданное в проекте, учитываться не будет.</small>
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain: 
+                  - input_datetime
+              multiple: false
 
     sun_protect_section:
       name: Настройка защиты от попадания прямых лучей
@@ -129,7 +165,7 @@ blueprint:
               reorder: false
               multiple: true
 
-        sun_azimut:
+        set_sun_azimuth:
           name: Азимут солнца
           description: |
             Угол между направлением на север и направлением на солнце. 
@@ -143,7 +179,20 @@ blueprint:
               unit_of_measurement: "°"
               mode: slider
 
-        sun_elevation:
+        set_sun_azimuth_sensor:
+          name: Сенсор азимута солнца
+          description: |
+            Сенсор, определяющий азимут солнца для выключения подсветки.
+             + <small>При выборе сенсора, азимут солнца, заданный в проекте, учитываться не будет.</small>
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain: 
+                  - input_number
+              multiple: false
+
+        set_sun_elevation:
           name: Высота солнца
           description: |
             Угол возвышения солнца над горизонтом. 
@@ -157,11 +206,24 @@ blueprint:
               unit_of_measurement: "°"
               mode: slider
 
+        set_sun_elevation_sensor:
+          name: Сенсор высоты солнца
+          description: |
+            Сенсор, определяющий высоту солнца для включения подсветки.
+             + <small>При выборе сенсора, высота солнца, заданная в проекте, учитываться не будет.</small>
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain: 
+                  - input_number
+              multiple: false
+
     options_section:
       name: "Дополнительные настройки"
       icon: mdi:cog
       input:
-        up_limit:
+        set_up_limit:
           name: Верхний предел
           description: |
             Верхний предел при открытии штор.
@@ -175,7 +237,20 @@ blueprint:
               unit_of_measurement: "%"
               mode: slider
 
-        down_limit:
+        set_up_limit_sensor:
+          name: Сенсор верхнего предела
+          description: |
+            Сенсор, определяющий нижний предел при закрытии штор.
+             + <small>При выборе сенсора, нижний предел, заданная в проекте, учитываться не будет.</small>
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain: 
+                  - input_number
+              multiple: false
+
+        set_down_limit:
           name: Нижний предел
           description: |
             Нижний предел при закрытии штор.
@@ -188,6 +263,19 @@ blueprint:
               step: 1
               unit_of_measurement: "%"
               mode: slider
+
+        set_down_limit_sensor:
+          name: Сенсор нижнего предела
+          description: |
+            Сенсор, определяющий верхниц предел при закрытии штор.
+             + <small>При выборе сенсора, верхний предел, заданная в проекте, учитываться не будет.</small>
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain: 
+                  - input_number
+              multiple: false
 
         forecasts:
           name: Прогноз погоды
@@ -275,13 +363,20 @@ trigger_variables:
 
   forecasts: !input forecasts
 #  alarm_delay: !input alarm_delay
-  sun_azimut: !input sun_azimut
-  sun_elevation: !input sun_elevation
+  set_sun_azimuth: !input set_sun_azimuth
+  set_sun_azimuth_sensor: !input set_sun_azimuth_sensor
+  set_sun_elevation: !input set_sun_elevation
+  set_sun_elevation_sensor: !input set_sun_elevation_sensor
   set_up_time_workday: !input set_up_time_workday
+  set_up_time_workday_sensor: !input set_up_time_workday_sensor
   set_up_time_weekend: !input set_up_time_weekend
+  set_up_time_weekend_sensor: !input set_up_time_weekend_sensor
   set_down_time: !input set_down_time
-  up_limit: !input up_limit
-  down_limit: !input down_limit
+  set_down_time_sensor: !input set_down_time_sensor
+  set_up_limit: !input set_up_limit
+  set_up_limit_sensor: !input set_up_limit_sensor
+  set_down_limit: !input set_down_limit
+  set_down_limit_sensor: !input set_down_limit_sensor
   repeat_for: !input repeat_for
 
   is_forecast_enabled: "{{ forecast_sensor != [] and 'extra_forecast' in automation_extra }}"
@@ -300,7 +395,18 @@ variables:
   is_mqtt_device: "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'mqtt' }}"
   is_zha_device:  "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'zha' }}"
 
-  set_up_time: "{{ set_up_time_workday if workday else set_up_time_weekend }}"
+  up_time_workday: "{{ set_up_time_workday if set_up_time_workday_sensor == [] else states(set_up_time_workday_sensor) }}"
+  up_time_weekend: "{{ set_up_time_weekend if set_up_time_weekend_sensor == [] else states(set_up_time_weekend_sensor) }}"
+  up_time: "{{ up_time_workday if workday else up_time_weekend }}"
+
+  down_time: "{{ set_down_time if set_off_time_sensor == [] else states(set_down_time_sensor) }}"
+
+  sun_azimuth: "{{ set_sun_azimuth if set_sun_azimuth_sensor == [] else states(set_sun_azimuth_sensor) }}"
+  sun_elevation: "{{ set_sun_elevation if set_sun_elevation_sensor == [] else states(set_sun_elevation_sensor) }}"
+
+  up_limit: "{{ set_up_limit if set_up_limit_sensor == [] else states(set_up_limit_sensor) }}"
+  down_limit: "{{ set_down_limit if set_down_limit_sensor == [] else states(set_down_limit_sensor) }}"
+
   # current_position: |
   #   {% set ns = namespace(items=[]) %}
   #   {% for item in blind %}
@@ -311,20 +417,32 @@ variables:
   #   {{ }}
 
 triggers:
-  - trigger: time
-    at: !input set_up_time_workday
-    id: up_time_workday_trigger
+  - trigger: template
+    value_template: |
+      {{ {{ now().strftime('%H:%S:00') >= (up_time) }} }}
+    id: up_time_trigger
     enabled: "{{ is_open_until_enabled }}"
 
-  - trigger: time
-    at: !input set_up_time_weekend
-    id: up_time_weekend_trigger
-    enabled: "{{ is_open_until_enabled }}"
-
-  - trigger: time
-    at: !input set_down_time
+  - trigger: template
+    value_template: |
+      {{ {{ now().strftime('%H:%S:00') >= (down_time) }} }}
     id: down_time_trigger
-    enabled: "{{ is_down_until_enabled }}"
+    enabled: "{{ is_open_until_enabled }}"
+
+  # - trigger: time
+  #   at: !input set_up_time_workday
+  #   id: up_time_workday_trigger
+  #   enabled: "{{ is_open_until_enabled }}"
+
+  # - trigger: time
+  #   at: !input set_up_time_weekend
+  #   id: up_time_weekend_trigger
+  #   enabled: "{{ is_open_until_enabled }}"
+
+  # - trigger: time
+  #   at: !input set_down_time
+  #   id: down_time_trigger
+  #   enabled: "{{ is_down_until_enabled }}"
 
   - trigger: sun
     event: sunrise
@@ -472,7 +590,7 @@ actions:
       - conditions: # Время открытия в будни
           - condition: trigger
             id:
-              - up_time_workday_trigger
+              - up_time_trigger
           - condition: template # Будни
             value_template: "{{ workday }}" 
           - condition: template # Солнце выше горизонта
@@ -491,27 +609,27 @@ actions:
                 - delay:
                     seconds: "{{ delay_for_repeat }}"
 
-      - conditions: # Время открытия в выходные
-          - condition: trigger
-            id:
-              - up_time_workday_trigger
-          - condition: template # Выходные
-            value_template: "{{ weekend }}"
-          - condition: template # Солнце выше горизонта
-            value_template: "{{ states('sun.sun') != 'above_horizon' }}"
-        sequence:
-          - repeat:
-              count: !input repeat_for
-              sequence:
-                - action: cover.set_cover_position
-                  metadata: {}
-                  target:
-                    entity_id: !input blind
-                  data:
-                    position: |
-                      {{ (up_limit | int - (repeat_for | int - repeat.index)) }}
-                - delay:
-                    seconds: "{{ delay_for_repeat }}"
+      # - conditions: # Время открытия в выходные
+      #     - condition: trigger
+      #       id:
+      #         - up_time_workday_trigger
+      #     - condition: template # Выходные
+      #       value_template: "{{ weekend }}"
+      #     - condition: template # Солнце выше горизонта
+      #       value_template: "{{ states('sun.sun') != 'above_horizon' }}"
+      #   sequence:
+      #     - repeat:
+      #         count: !input repeat_for
+      #         sequence:
+      #           - action: cover.set_cover_position
+      #             metadata: {}
+      #             target:
+      #               entity_id: !input blind
+      #             data:
+      #               position: |
+      #                 {{ (up_limit | int - (repeat_for | int - repeat.index)) }}
+      #           - delay:
+      #               seconds: "{{ delay_for_repeat }}"
 
       - conditions: # Время закрытия
           - condition: trigger
@@ -544,7 +662,7 @@ actions:
             id:
               - sunrise_trigger
           - condition: template
-            value_template: "{{ true if not is_open_until_enabled else now() >= today_at(set_up_time) }}"
+            value_template: "{{ true if not is_open_until_enabled else now() >= today_at(up_time) }}"
         sequence:
           - repeat:
               count: !input repeat_for
@@ -646,7 +764,7 @@ actions:
                 and state_attr(sun_sensor,'elevation') | float(default=360) > (sun_elevation | int)) }}
           - condition: template
             value_template: |
-              {{ now() >= today_at(set_up_time) and now() <= today_at(set_down_time) }}
+              {{ true if not is_open_until_enabled else now() >= today_at(up_time) and now() <= today_at(down_time) }}
 
         sequence:
           - repeat:
@@ -677,7 +795,7 @@ actions:
                 and state_attr(sun_sensor,'elevation') | float(default=360) > (sun_elevation if sun_elevation_sensor == [] else states(sun_elevation_sensor) | int(0))) }}
           - condition: template
             value_template: |
-              {{ true if not is_automation_time_enabled else (now() >= today_at(set_up_time) and now() <= today_at(set_down_time)) }}
+             {{ true if not is_open_until_enabled else now() >= today_at(up_time) and now() <= today_at(down_time) }}
           - condition: template
             value_template: |
               {{ true if not is_automation_sun_enabled else (states(sun_sensor) == 'above_horizon') }}
