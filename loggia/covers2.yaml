@@ -140,7 +140,7 @@ blueprint:
           selector:
             entity:
               filter: 
-                - integration: 
+                - domain: 
                   - calendar
 
     # sun_section:
