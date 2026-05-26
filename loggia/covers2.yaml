@@ -60,6 +60,10 @@ blueprint:
                   value: extra_forecast
                 - label: Управление по слайдеру
                   value: extra_slider
+                - label: Ограничение по времени открытия
+                  value: extra_opening_until
+                - label: Ограничение по времени закрытия
+                  value: extra_close_until
               sort: false
               multiple: true
               custom_value: false
@@ -101,23 +105,43 @@ blueprint:
                 - integration: mqtt
 #                - integration: zha
               multiple: false
+        phytolamp:
+          name: Подсветка
+          description: Какими лампами / реле включения ламп необходимо управлять?
+          selector:
+            entity:
+              filter: 
+                - domain: 
+                  - light
+                  - switch
+              reorder: false
+              multiple: true
+
 
     time_section:
-      name: Настройки управления по времени
+      name: Настройки ограничения по времени
       description: |
         Устанавливается время открытия/закрытия штор.
       icon: mdi:clock-time-eight-outline
       input:
         set_up_time:
-          name: Открыть шторы в
-          default: "08:00:00"
+          name: Открыть шторы на рассвете но не ранее
+          default: "06:10:00"
           selector:
             time: {}
         set_down_time:
-          name: Закрыть шторы в
-          default: "20:00:00"
+          name: Закрыть шторы на закате но не позднее
+          default: "21:00:00"
           selector:
             time: {}
+        set_calendar:
+          name: Календарь работы
+          default:
+          selector:
+            entity:
+              filter: 
+                - integration: 
+                  - calendar
 
     # sun_section:
     #   name: "Настройки управления по солнцу"
@@ -718,4 +742,5 @@ actions:
                 - delay:
                     seconds: 3
 
-mode: restart
+mode: queued
+max: 10
