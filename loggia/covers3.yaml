@@ -561,7 +561,7 @@ actions:
           - condition: trigger
             id:
               - sunrise_trigger
-          - confition: template
+          - condition: template
             value_template: "{{ true if not is_open_until_enabled else now() >= today_at(set_up_time) }}"
         sequence:
           - repeat:
@@ -605,7 +605,7 @@ actions:
           - condition: trigger
             id:
               - sun_elevation_trigger
-          - confition: template
+          - condition: template
             value_template: "{{ now() <= today_at(set_down_time) }}"
         sequence:
           - repeat:
