@@ -98,7 +98,7 @@ blueprint:
           description: |
             Выключатель типа <strong>Aqara Z1 Pro</strong> со встроенным слайдером. 
           #Может быть подключен через MQTT или ZHA.
-          default: []
+          default: 
           selector:
             device:
               entity:
