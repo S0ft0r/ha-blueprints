@@ -39,7 +39,7 @@ jobs:
               comments-indentation: disable
 
   ha-validation:
-    name: 🏠 Валидация Home Assistant
+    name: Проверка Home Assistant
     runs-on: ubuntu-latest
     needs: yamllint
     steps:
