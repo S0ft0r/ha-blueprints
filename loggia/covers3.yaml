@@ -17,7 +17,7 @@ blueprint:
   author: Softor
 
   input:
-    blind:
+    blinds:
       name: Шторы
       description: Какими приводами штор необходимо управлять?
       selector:
@@ -27,6 +27,7 @@ blueprint:
                 - cover
           reorder: false
           multiple: true
+
     sun_sensor:
       name: Датчик солнца
       description: Датчик, по которому определяется положение солнца
@@ -77,6 +78,7 @@ blueprint:
                 - domain:
                     - weather
               multiple: false
+
         slider_device:
           name: Выключатель/слайдер
           description: |
@@ -101,58 +103,24 @@ blueprint:
           default: "06:10:00"
           selector:
             time: {}
-        # set_up_time_workday_sensor:
-        #   name: Открыть шторы в будни по сенсору
-        #   description: |
-        #     Сенсор, определяющий время открытия штор.
-        #      + <small>При выборе сенсора, время открытия штор, заданное в проекте, учитываться не будет.</small>
-        #   default: []
-        #   selector:
-        #     entity:
-        #       filter:
-        #         - domain: 
-        #           - input_datetime
-        #       multiple: false
+
         set_up_time_weekend:
           name: Открыть шторы в выходные не ранее
           default: "07:10:00"
           selector:
             time: {}
-        # set_up_time_weekend_sensor:
-        #   name: Открыть шторы в выходные по сенсору
-        #   description: |
-        #     Сенсор, определяющий время открытия штор.
-        #      + <small>При выборе сенсора, время открытия штор, заданное в проекте, учитываться не будет.</small>
-        #   default: []
-        #   selector:
-        #     entity:
-        #       filter:
-        #         - domain: 
-        #           - input_datetime
-        #       multiple: false
+
         set_down_time:
           name: Закрыть шторы на закате, но не позднее
           default: "21:00:00"
           selector:
             time: {}
-        # set_down_time_sensor:
-        #   name: Закрывать шторы по сенсору
-        #   description: |
-        #     Сенсор, определяющий время открытия штор.
-        #      + <small>При выборе сенсора, время закрытия штор, заданное в проекте, учитываться не будет.</small>
-        #   default: []
-        #   selector:
-        #     entity:
-        #       filter:
-        #         - domain: 
-        #           - input_datetime
-        #       multiple: false
 
     sun_protect_section:
       name: Настройка защиты от попадания прямых лучей
       icon: mdi:sun-wireless-outline
       input:
-        blind_for_protect:
+        blinds_for_protect:
           name: Шторы
           description: |
             Какими шторами необходимо управлять для защиты от прямых лучей солнца?
@@ -356,11 +324,10 @@ max: 10
 max_exceeded: silent
 
 trigger_variables:
-#  automation_options: !input automation_options
   automation_extra: !input automation_extra
 
-  blind: !input blind
-  blind_for_protect: !input blind_for_protect
+  blinds: !input blinds
+  blinds_for_protect: !input blinds_for_protect
 
   forecast_sensor: !input forecast_sensor
   sun_sensor: !input sun_sensor
@@ -405,28 +372,7 @@ variables:
   up_limit: "{{ set_up_limit if set_up_limit_sensor == [] else states(set_up_limit_sensor) }}"
   down_limit: "{{ set_down_limit if set_down_limit_sensor == [] else states(set_down_limit_sensor) }}"
 
-  # current_position: |
-  #   {% set ns = namespace(items=[]) %}
-  #   {% for item in blind %}
-  #     {% set ns.items = ns.items + [state_attr(item,'current_position')] %}
-  #   {% endfor %}
-  #   {% set maxp = ns.items | max %}
-  #   {% set minp = ns.items | min %}
-  #   {{ }}
-
 triggers:
-  # - trigger: template
-  #   value_template: |
-  #     {{ now().strftime('%H:%S:00') >= (up_time) }} 
-  #   id: up_time_trigger
-  #   enabled: "{{ is_open_until_enabled }}"
-
-  # - trigger: template
-  #   value_template: |
-  #     {{ now().strftime('%H:%S:00') >= (down_time) }}
-  #   id: down_time_trigger
-  #   enabled: "{{ is_close_until_enabled }}"
-
   - trigger: time
     at: !input set_up_time_workday
     id: up_time_workday_trigger
@@ -530,7 +476,7 @@ actions:
                 - action: cover.set_cover_position
                   metadata: {}
                   target:
-                    entity_id: !input blind
+                    entity_id: !input blinds
                   data:
                     position: |
                       {{ (up_limit | int - (repeat_for | int - repeat.index)) }}
@@ -553,7 +499,7 @@ actions:
                 - action: cover.stop_cover
                   metadata: {}
                   target:
-                    entity_id: !input blind
+                    entity_id: !input blinds
                   data: {}
 
       - conditions: # Закрыть по слайдеру
@@ -572,7 +518,7 @@ actions:
                 - action: cover.set_cover_position
                   metadata: {}
                   target:
-                    entity_id: !input blind
+                    entity_id: !input blinds
                   data:
                     position: |
                       {{ (down_limit | int + (repeat_for | int - repeat.index)) }}
@@ -600,7 +546,7 @@ actions:
                 - action: cover.set_cover_position
                   metadata: {}
                   target:
-                    entity_id: !input blind
+                    entity_id: !input blinds
                   data:
                     position: |
                       {{ (up_limit | int - (repeat_for | int - repeat.index)) }}
@@ -622,7 +568,7 @@ actions:
                 - action: cover.set_cover_position
                   metadata: {}
                   target:
-                    entity_id: !input blind
+                    entity_id: !input blinds
                   data:
                     position: |
                       {{ (up_limit | int - (repeat_for | int - repeat.index)) }}
@@ -642,7 +588,7 @@ actions:
                 - action: cover.set_cover_position
                   metadata: {}
                   target:
-                    entity_id: !input blind
+                    entity_id: !input blinds
                   data:
                     position: |
                       {{ (down_limit | int + (repeat_for | int - repeat.index)) }}
@@ -668,7 +614,7 @@ actions:
                 - action: cover.set_cover_position
                   metadata: {}
                   target:
-                    entity_id: !input blind
+                    entity_id: !input blinds
                   data:
                     position: |
                       {{ (up_limit | int - (repeat_for | int - repeat.index)) }}
@@ -686,7 +632,7 @@ actions:
                 - action: cover.set_cover_position
                   metadata: {}
                   target:
-                    entity_id: !input blind
+                    entity_id: !input blinds
                   data:
                     position: |
                       {{ (down_limit | int + (repeat_for | int - repeat.index)) }}
@@ -713,7 +659,7 @@ actions:
                   metadata: {}
                   target:
                     entity_id: >
-                      {{ (blind if blind_for_protect == [] else  blind_for_protect) | list }}
+                      {{ (blinds if blinds_for_protect == [] else  blinds_for_protect) | list }}
                   data:
                     position: |
                       {{ (up_limit | int - (repeat_for | int - repeat.index)) }}
@@ -735,7 +681,7 @@ actions:
                   metadata: {}
                   target:
                     entity_id: >
-                      {{ (blind if blind_for_protect == [] else  blind_for_protect) | list }}
+                      {{ (blinds if blinds_for_protect == [] else  blinds_for_protect) | list }}
                   data:
                     position: |
                       {{ (down_limit | int + (repeat_for | int - repeat.index)) }}
@@ -772,7 +718,7 @@ actions:
                   metadata: {}
                   target:
                     entity_id: >
-                      {{ (blind if blind_for_protect == [] else  blind_for_protect) | list }}
+                      {{ (blinds if blinds_for_protect == [] else  blinds_for_protect) | list }}
                   data:
                     position: |
                       {{ (down_limit | int + (repeat_for | int - repeat.index)) }}
@@ -805,10 +751,9 @@ actions:
                   metadata: {}
                   target:
                     entity_id: >
-                      {{ (blind if blind_for_protect == [] else  blind_for_protect) | list }}
+                      {{ (blinds if blinds_for_protect == [] else  blinds_for_protect) | list }}
                   data:
                     position: |
                       {{ (up_limit | int - (repeat_for | int - repeat.index)) }}
                 - delay:
                     seconds: "{{ delay_for_repeat }}"
-
