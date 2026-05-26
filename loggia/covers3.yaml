@@ -86,7 +86,7 @@ blueprint:
             device:
               entity:
                 - integration: mqtt
-                - integration: zha
+                # - integration: zha
               multiple: false
 
     time_section:
@@ -386,14 +386,14 @@ trigger_variables:
   is_close_until_enabled: "{{ 'extra_close_until' in automation_extra }}"
 
   is_mqtt_device: "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'mqtt' }}"
-  is_zha_device:  "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'zha'  }}"
+  # is_zha_device:  "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'zha'  }}"
 
 variables:
   workday: "{{ now().weekday() < 5 }}"
   weekend: "{{ not workday }}"
   delay_for_repeat: 1
   is_mqtt_device: "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'mqtt' }}"
-  is_zha_device:  "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'zha' }}"
+  # is_zha_device:  "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'zha' }}"
 
   up_time_workday: "{{ set_up_time_workday if set_up_time_workday_sensor == [] else states(set_up_time_workday_sensor) }}"
   up_time_weekend: "{{ set_up_time_weekend if set_up_time_weekend_sensor == [] else states(set_up_time_weekend_sensor) }}"
@@ -485,26 +485,26 @@ triggers:
       payload: !input payload_stop
     id: mqtt_slider_stop_trigger
 
-  - trigger: event
-    event_type: zha_event
-    event_data:
-      device_id: !input slider_device
-      command: !input payload_down
-    id: zha_slider_down_trigger
+  # - trigger: event
+  #   event_type: zha_event
+  #   event_data:
+  #     device_id: !input slider_device
+  #     command: !input payload_down
+  #   id: zha_slider_down_trigger
     
-  - trigger: event
-    event_type: zha_event
-    event_data:
-      device_id: !input slider_device
-      command: !input payload_up
-    id: zha_slider_up_trigger
+  # - trigger: event
+  #   event_type: zha_event
+  #   event_data:
+  #     device_id: !input slider_device
+  #     command: !input payload_up
+  #   id: zha_slider_up_trigger
 
-  - trigger: event
-    event_type: zha_event
-    event_data:
-      device_id: !input slider_device
-      command: !input payload_stop
-    id: zha_slider_stop_trigger
+  # - trigger: event
+  #   event_type: zha_event
+  #   event_data:
+  #     device_id: !input slider_device
+  #     command: !input payload_stop
+  #   id: zha_slider_stop_trigger
 
 actions:
   - choose:
@@ -519,7 +519,7 @@ actions:
           - condition: trigger
             id:
               - mqtt_slider_up_trigger
-              - zha_slider_up_trigger
+              # - zha_slider_up_trigger
         sequence:
           - condition: template # При наличии устройства и включенной опции
             value_template: "{{ false if slider_device == [] else is_slider_enabled }}"
@@ -543,7 +543,7 @@ actions:
           - condition: trigger
             id:
               - mqtt_slider_stop_trigger
-              - zha_slider_stop_trigger
+              # - zha_slider_stop_trigger
           - condition: template # При наличии устройства и включенной опции
             value_template: "{{ false if slider_device == [] else is_slider_enabled }}"
           - condition: template
@@ -562,7 +562,7 @@ actions:
           - condition: trigger
             id:
               - mqtt_slider_down_trigger
-              - zha_slider_down_trigger
+              # - zha_slider_down_trigger
           - condition: template # При наличии устройства и включенной опции
             value_template: "{{ false if slider_device == [] else is_slider_enabled }}"
           - condition: template
