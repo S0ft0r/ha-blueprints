@@ -12,7 +12,7 @@ blueprint:
      + Защита от ошибок открытия/закрытия штор 
      + Управление работы штор с устройств со встроенным слайдером
      + Использование внешних сенсоров для некоторых параметров
-    <small><a href="https://4pda.to/forum/index.php?showtopic=871505">Специально для 4PDA</a></small>
+    <small><a href="https://4pda.to/forum/index.php?showtopic=871505&view=findpost&p=143572987">Специально для 4PDA</a></small>
   domain: automation
   source_url: https://github.com/S0ft0r/ha-blueprints/blob/main/loggia/covers.yaml
   author: Softor
