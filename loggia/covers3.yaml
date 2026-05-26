@@ -292,7 +292,7 @@ trigger_variables:
   slider_device: !input slider_device
 
   forecasts: !input forecasts
-  alarm_delay: !input alarm_delay
+#  alarm_delay: !input alarm_delay
   sun_azimut: !input sun_azimut
   sun_elevation: !input sun_elevation
   set_up_time_workday: !input set_up_time_workday
