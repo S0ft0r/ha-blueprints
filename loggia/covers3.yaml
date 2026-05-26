@@ -101,52 +101,52 @@ blueprint:
           default: "06:10:00"
           selector:
             time: {}
-        set_up_time_workday_sensor:
-          name: Открыть шторы в будни по сенсору
-          description: |
-            Сенсор, определяющий время открытия штор.
-             + <small>При выборе сенсора, время открытия штор, заданное в проекте, учитываться не будет.</small>
-          default: []
-          selector:
-            entity:
-              filter:
-                - domain: 
-                  - input_datetime
-              multiple: false
+        # set_up_time_workday_sensor:
+        #   name: Открыть шторы в будни по сенсору
+        #   description: |
+        #     Сенсор, определяющий время открытия штор.
+        #      + <small>При выборе сенсора, время открытия штор, заданное в проекте, учитываться не будет.</small>
+        #   default: []
+        #   selector:
+        #     entity:
+        #       filter:
+        #         - domain: 
+        #           - input_datetime
+        #       multiple: false
         set_up_time_weekend:
           name: Открыть шторы в выходные не ранее
           default: "07:10:00"
           selector:
             time: {}
-        set_up_time_weekend_sensor:
-          name: Открыть шторы в выходные по сенсору
-          description: |
-            Сенсор, определяющий время открытия штор.
-             + <small>При выборе сенсора, время открытия штор, заданное в проекте, учитываться не будет.</small>
-          default: []
-          selector:
-            entity:
-              filter:
-                - domain: 
-                  - input_datetime
-              multiple: false
+        # set_up_time_weekend_sensor:
+        #   name: Открыть шторы в выходные по сенсору
+        #   description: |
+        #     Сенсор, определяющий время открытия штор.
+        #      + <small>При выборе сенсора, время открытия штор, заданное в проекте, учитываться не будет.</small>
+        #   default: []
+        #   selector:
+        #     entity:
+        #       filter:
+        #         - domain: 
+        #           - input_datetime
+        #       multiple: false
         set_down_time:
           name: Закрыть шторы на закате, но не позднее
           default: "21:00:00"
           selector:
             time: {}
-        set_down_time_sensor:
-          name: Закрывать шторы по сенсору
-          description: |
-            Сенсор, определяющий время открытия штор.
-             + <small>При выборе сенсора, время закрытия штор, заданное в проекте, учитываться не будет.</small>
-          default: []
-          selector:
-            entity:
-              filter:
-                - domain: 
-                  - input_datetime
-              multiple: false
+        # set_down_time_sensor:
+        #   name: Закрывать шторы по сенсору
+        #   description: |
+        #     Сенсор, определяющий время открытия штор.
+        #      + <small>При выборе сенсора, время закрытия штор, заданное в проекте, учитываться не будет.</small>
+        #   default: []
+        #   selector:
+        #     entity:
+        #       filter:
+        #         - domain: 
+        #           - input_datetime
+        #       multiple: false
 
     sun_protect_section:
       name: Настройка защиты от попадания прямых лучей
