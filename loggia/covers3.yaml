@@ -419,13 +419,13 @@ variables:
 triggers:
   - trigger: template
     value_template: |
-      {{ {{ now().strftime('%H:%S:00') >= (up_time) }} }}
+      {{ now().strftime('%H:%S:00') >= (up_time) }} 
     id: up_time_trigger
     enabled: "{{ is_open_until_enabled }}"
 
   - trigger: template
     value_template: |
-      {{ {{ now().strftime('%H:%S:00') >= (down_time) }} }}
+      {{ now().strftime('%H:%S:00') >= (down_time) }}
     id: down_time_trigger
     enabled: "{{ is_open_until_enabled }}"
 
