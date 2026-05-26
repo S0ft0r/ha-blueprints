@@ -12,6 +12,7 @@ blueprint:
      + Защита от ошибок поднятия/опускания штор
      + Управление работы штор с утройств со встроенным слайдером
     <small><a href="https://4pda.to/forum/index.php?showtopic=871505">Специально для 4PDA</a></small>
+    <style>Специально для 4PDA {text-align: right}</style>
   domain: automation
   source_url: https://github.com/S0ft0r/ha-blueprints/blob/main/loggia/covers3.yaml
   author: Softor
