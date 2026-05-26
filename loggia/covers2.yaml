@@ -105,17 +105,17 @@ blueprint:
                 - integration: mqtt
 #                - integration: zha
               multiple: false
-        phytolamp:
-          name: Подсветка
-          description: Какими лампами / реле включения ламп необходимо управлять?
-          selector:
-            entity:
-              filter: 
-                - domain: 
-                  - light
-                  - switch
-              reorder: false
-              multiple: true
+        # phytolamp:
+        #   name: Подсветка
+        #   description: Какими лампами / реле включения ламп необходимо управлять?
+        #   selector:
+        #     entity:
+        #       filter: 
+        #         - domain: 
+        #           - light
+        #           - switch
+        #       reorder: false
+        #       multiple: true
 
 
     time_section:
