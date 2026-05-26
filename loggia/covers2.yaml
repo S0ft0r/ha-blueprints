@@ -376,13 +376,14 @@ trigger_variables:
   # is_zha_device:  |
   #   {{ false if slider_device == [] else config_entry_attr(config_entry_id(device_entities(slider_device)[0]), "domain") == "zha" }}
 
-#variables:
+variables:
 #  is_mqtt_device: "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'mqtt' }}"
 #  is_zha_device:  "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'zha' }}"
+  set_up_time: "{{ set_up_time_workday if now().weekday() < 5 else set_up_time_weekend }}"
 
 triggers:
   - trigger: time
-    at: set_up_time
+    at: "{{ set_up_time }}"
     id: up_time_trigger
     enabled: "{{ is_automation_time_enabled }}"
 
