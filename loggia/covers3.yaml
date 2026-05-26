@@ -421,32 +421,32 @@ variables:
   #   {{ }}
 
 triggers:
-  - trigger: template
-    value_template: |
-      {{ now().strftime('%H:%S:00') >= (up_time) }} 
-    id: up_time_trigger
+  # - trigger: template
+  #   value_template: |
+  #     {{ now().strftime('%H:%S:00') >= (up_time) }} 
+  #   id: up_time_trigger
+  #   enabled: "{{ is_open_until_enabled }}"
+
+  # - trigger: template
+  #   value_template: |
+  #     {{ now().strftime('%H:%S:00') >= (down_time) }}
+  #   id: down_time_trigger
+  #   enabled: "{{ is_close_until_enabled }}"
+
+  - trigger: time
+    at: !input set_up_time_workday
+    id: up_time_workday_trigger
     enabled: "{{ is_open_until_enabled }}"
 
-  - trigger: template
-    value_template: |
-      {{ now().strftime('%H:%S:00') >= (down_time) }}
+  - trigger: time
+    at: !input set_up_time_weekend
+    id: up_time_weekend_trigger
+    enabled: "{{ is_open_until_enabled }}"
+
+  - trigger: time
+    at: !input set_down_time
     id: down_time_trigger
     enabled: "{{ is_close_until_enabled }}"
-
-  # - trigger: time
-  #   at: !input set_up_time_workday
-  #   id: up_time_workday_trigger
-  #   enabled: "{{ is_open_until_enabled }}"
-
-  # - trigger: time
-  #   at: !input set_up_time_weekend
-  #   id: up_time_weekend_trigger
-  #   enabled: "{{ is_open_until_enabled }}"
-
-  # - trigger: time
-  #   at: !input set_down_time
-  #   id: down_time_trigger
-  #   enabled: "{{ is_down_until_enabled }}"
 
   - trigger: sun
     event: sunrise
@@ -594,7 +594,7 @@ actions:
       - conditions: # Время открытия в будни
           - condition: trigger
             id:
-              - up_time_trigger
+              - up_time_workday_trigger
           - condition: template # Будни
             value_template: "{{ workday }}" 
           - condition: template # Солнце выше горизонта
@@ -613,27 +613,27 @@ actions:
                 - delay:
                     seconds: "{{ delay_for_repeat }}"
 
-      # - conditions: # Время открытия в выходные
-      #     - condition: trigger
-      #       id:
-      #         - up_time_workday_trigger
-      #     - condition: template # Выходные
-      #       value_template: "{{ weekend }}"
-      #     - condition: template # Солнце выше горизонта
-      #       value_template: "{{ states('sun.sun') != 'above_horizon' }}"
-      #   sequence:
-      #     - repeat:
-      #         count: !input repeat_for
-      #         sequence:
-      #           - action: cover.set_cover_position
-      #             metadata: {}
-      #             target:
-      #               entity_id: !input blind
-      #             data:
-      #               position: |
-      #                 {{ (up_limit | int - (repeat_for | int - repeat.index)) }}
-      #           - delay:
-      #               seconds: "{{ delay_for_repeat }}"
+      - conditions: # Время открытия в выходные
+          - condition: trigger
+            id:
+              - up_time_weekend_trigger
+          - condition: template # Выходные
+            value_template: "{{ weekend }}"
+          - condition: template # Солнце выше горизонта
+            value_template: "{{ states('sun.sun') != 'above_horizon' }}"
+        sequence:
+          - repeat:
+              count: !input repeat_for
+              sequence:
+                - action: cover.set_cover_position
+                  metadata: {}
+                  target:
+                    entity_id: !input blind
+                  data:
+                    position: |
+                      {{ (up_limit | int - (repeat_for | int - repeat.index)) }}
+                - delay:
+                    seconds: "{{ delay_for_repeat }}"
 
       - conditions: # Время закрытия
           - condition: trigger
