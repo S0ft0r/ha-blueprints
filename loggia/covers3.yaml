@@ -2,7 +2,7 @@ blueprint:
   name: Управление рулонными шторами
   description: |
     ### Управление шторами по положению солнца.
-    Версия 2026.05.00 Сборка 3
+    <small>Версия 2026.05.00 Сборка 3</small>
     **Особенности:**
      + Отсрочка открытия штор до определенного времени 
      + Установка времени опускания штор в определенное время до заката
@@ -11,6 +11,7 @@ blueprint:
      + Установка лимита поднятия/опускания штор
      + Защита от ошибок поднятия/опускания штор
      + Управление работы штор с утройств со встроенным слайдером
+     <p align="left"><strong><small>[Специально для 4PDA](https://4pda.to/forum/index.php?showtopic=871505)</small></strong></p>
   domain: automation
   source_url: https://github.com/S0ft0r/ha-blueprints/blob/main/loggia/covers3.yaml
   author: Softor
