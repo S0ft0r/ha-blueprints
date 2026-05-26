@@ -124,13 +124,18 @@ blueprint:
         Устанавливается время открытия/закрытия штор.
       icon: mdi:clock-time-eight-outline
       input:
-        set_up_time:
-          name: Открыть шторы на рассвете но не ранее
+        set_up_time_workday:
+          name: Открыть шторы в будни не ранее
+          default: "06:10:00"
+          selector:
+            time: {}
+        set_up_time_weekend:
+          name: Открыть шторы в выходные не ранее
           default: "06:10:00"
           selector:
             time: {}
         set_down_time:
-          name: Закрыть шторы на закате но не позднее
+          name: Закрыть шторы на закате не позднее
           default: "21:00:00"
           selector:
             time: {}
@@ -349,7 +354,8 @@ trigger_variables:
   alarm_delay: !input alarm_delay
   sun_azimut: !input sun_azimut
   sun_elevation: !input sun_elevation
-  set_up_time: !input set_up_time
+  set_up_time_workday: !input set_up_time_workday
+  set_up_time_weekend: !input set_up_time_weekend
   set_down_time: !input set_down_time
   up_limit: !input up_limit
   down_limit: !input down_limit
@@ -362,6 +368,8 @@ trigger_variables:
   is_slider_enabled: "{{ 'extra_slider' in automation_extra }}"
   is_sun_protect_enabled: "{{ (sun_elevation_variable != 0 or sun_azimuth_variable != 0) and 'extra_sun_protect' in automation_extra }}"
   is_open_until_enabled: "{{ do_not_blind_open_until_sensor != [] and 'extra_alarm_pause' in automation_extra }}"
+
+  set_up_time: "{{ set_up_time_workday if now().weekday() < 5 else set_up_time_weekend }}"
 
   # is_mqtt_device: |
   #   {{ false if slider_device == [] else config_entry_attr(config_entry_id(device_entities(slider_device)[0]), "domain") == "mqtt" }}
