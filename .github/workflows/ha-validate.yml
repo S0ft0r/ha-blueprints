@@ -16,7 +16,7 @@ on:
 
 jobs:
   yamllint:
-    name: 🧹 Проверка синтаксиса YAML
+    name: Проверка синтаксиса YAML
     runs-on: ubuntu-latest
     steps:
       - name: Скачивание репозитория
