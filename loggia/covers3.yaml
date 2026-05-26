@@ -11,7 +11,7 @@ blueprint:
      + Установка лимита поднятия/опускания штор
      + Защита от ошибок поднятия/опускания штор
      + Управление работы штор с утройств со встроенным слайдером
-     [Специально для 4PDA](https://4pda.to/forum/index.php?showtopic=871505)
+     <p align="right"> [Специально для 4PDA](https://4pda.to/forum/index.php?showtopic=871505) </p>
   domain: automation
   source_url: https://github.com/S0ft0r/ha-blueprints/blob/main/loggia/covers3.yaml
   author: Softor
