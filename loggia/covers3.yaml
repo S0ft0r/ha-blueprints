@@ -1,10 +1,8 @@
 blueprint:
   name: Управление рулонными шторами
   description: |
-    (МОДЕРНИЗАЦИЯ!!!)
-    Управление шторами по времени или положению солнца. 
-    Версия 2026.05.00
-    Сборка 3
+    ###Управление шторами по положению солнца.
+    Версия 2026.05.00 Сборка 3
   domain: automation
   source_url: https://github.com/S0ft0r/ha-blueprints/blob/main/loggia/covers3.yaml
   author: Softor
@@ -20,40 +18,30 @@ blueprint:
                 - cover
           reorder: false
           multiple: true
+    sun_sensor:
+      name: "Датчик солнца"
+      description: >-
+        Датчик, по которому определяется положение солнца
+      default: "sun.sun"
+      selector:
+        entity:
+          filter:
+            - domain:
+                - sun
+          multiple: false
 
     automation_section:
       name: Настройки автоматизации
       icon: mdi:window-shutter-cog
       collapsed: false
       input:
-        # automation_options:
-        #   name: Настройки управления шторами
-        #   description: |
-        #     Выбор между открытием/закрытием штор по времени и по рассвету/закату солнца.
-        #   default:
-        #     - options_sun
-        #   selector:
-        #     select:
-        #       options:
-        #         - label: Открытие/закрытие по времени
-        #           value: options_time
-        #         - label: Открытие/закрытие по солнцу
-        #           value: options_sun
-        #       multiple: false
-        #       sort: false
-        #       custom_value: false
-
         automation_extra:
-          name: Дополнительные настройки
-          description: Дополнительные настройки автоматизации
+          name: Режимы работы 
+          description: Режимы работы автоматизации
           default: []
           selector:
             select:
               options:
-                # - label: Задержка открытия до срабатывания будильника
-                #   value: extra_alarm_pause
-                # - label: Ограничение закрытия штор %
-                #   value: extra_limit_down
                 - label: Защита от прямых лучей солнца
                   value: extra_sun_protect
                 - label: Учитывать прогноз погоды
@@ -73,7 +61,7 @@ blueprint:
           name: Прогнозный сенсор
           description: |
             Сенсор, определяющий прогноз погоды.
-              <small>* Параметр обязателен только при выборе параметра <em>"Учитывать прогноз погоды"</em>.
+              <small>+ Параметр обязателен только при выборе параметра <em>"Учитывать прогноз погоды"</em>.
               Если ничего не выбрано, то дополнительный параметр учитываться не будет.</small>
           default: []
           selector:
@@ -82,22 +70,12 @@ blueprint:
                 - domain:
                     - weather
               multiple: false
-        sun_sensor:
-          name: "Датчик солнца"
-          description: >-
-            Датчик, по которому определяется положение солнца
-          default: "sun.sun"
-          selector:
-            entity:
-              filter:
-                - domain:
-                    - sun
-              multiple: false
         slider_device:
           name: Выключатель/слайдер
           description: |
-            Выключатель типа <strong>Aqara Z1 Pro</strong> со встроенным слайдером. 
-          #Может быть подключен через MQTT или ZHA.
+            Выключатель типа <strong>Aqara Z1 Pro</strong> со встроенным слайдером. Может быть подключен через MQTT или ZHA.
+              <small>+ Параметр обязателен только при выборе параметра <em>"Управление по слайдеру"</em>.
+              Если ничего не выбрано, то дополнительный параметр учитываться не будет.</small>
           default: 
           selector:
             device:
@@ -119,7 +97,7 @@ blueprint:
             time: {}
         set_up_time_weekend:
           name: Открыть шторы в выходные не ранее
-          default: "06:10:00"
+          default: "07:10:00"
           selector:
             time: {}
         set_down_time:
@@ -136,8 +114,7 @@ blueprint:
           name: Шторы
           description: |
             Какими шторами необходимо управлять для защиты от прямых лучей солнца?
-              <small>* Параметр не обязателен.
-                Если ничего не выбрано, то используются все шторы</small>
+              <small>+ Параметр не обязателен. Если ничего не выбрано, то используются все шторы</small>
           default: []
           selector:
             entity:
@@ -151,7 +128,7 @@ blueprint:
           name: Азимут солнца
           description: >-
             Угол между направлением на север и направлением на солнце. 
-              <small>* Для автоматического закрытия штор при включенной опции защиты от прямых лучей солнца.</small>
+              <small>+ Для автоматического закрытия штор при включенной опции защиты от прямых лучей солнца.</small>
           default: 0
           selector:
             number:
@@ -165,7 +142,7 @@ blueprint:
           name: Высота солнца
           description: >-
             Угол возвышения солнца над горизонтом. 
-              <small>* Для автоматического открытия штор при включенной защите от прямых лучей солнца.</small>
+              <small>+ Для автоматического открытия штор при включенной защите от прямых лучей солнца.</small>
           default: 0
           selector:
             number:
@@ -183,7 +160,7 @@ blueprint:
           name: Верхний предел
           description: |
             Верхний предел при открытии штор.
-              <small>* Если нет нужды поднимать шторы до конца.</small>
+              <small>+ Если нет нужды поднимать шторы до конца.</small>
           default: 99
           selector:
             number:
@@ -197,7 +174,7 @@ blueprint:
           name: Нижний предел
           description: |
             Нижний предел при закрытии штор.
-              <small>* Если нет нужды опускать шторы до конца.</small>
+              <small>+ Если нет нужды опускать шторы до конца.</small>
           default: 0
           selector:
             number:
@@ -234,7 +211,7 @@ blueprint:
           name: Количество повторов
           description: |
             Для защиты от несработки открытия/закрытия штор.
-              <small>* При значении равным 1 защита отключена.</small>
+              <small>+ При значении равным 1 защита отключена.</small>
           default: 2
           selector:
             number:
@@ -251,7 +228,7 @@ blueprint:
           name: Базовый топик
           description: |
             Базовый топик устройства, подключенного через MQTT. Обычно это <strong><em>zigbee2mqtt/+/action</em></strong>, где вместо знака + будет АВТОМАТИЧЕСКИ подставлено имя выключателя/слайдера.
-            <small>* При выборе устройства, подключенного через ZHA, не учитывается.
+              <small>+ При выборе устройства, подключенного через ZHA, не учитывается.
           default: "zigbee2mqtt/+/action"
           selector:
             text:
