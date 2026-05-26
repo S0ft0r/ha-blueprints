@@ -382,7 +382,7 @@ trigger_variables:
 
 triggers:
   - trigger: time
-    at: !input set_up_time
+    at: set_up_time
     id: up_time_trigger
     enabled: "{{ is_automation_time_enabled }}"
 
