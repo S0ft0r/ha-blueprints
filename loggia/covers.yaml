@@ -552,7 +552,7 @@ actions:
           - condition: template # Будни
             value_template: "{{ workday }}" 
           - condition: template # Солнце выше горизонта
-            value_template: "{{ states('sun.sun') != 'above_horizon' }}"
+            value_template: "{{ states('sun.sun') == 'above_horizon' }}"
         sequence:
           - repeat:
               count: !input repeat_for
@@ -574,7 +574,7 @@ actions:
           - condition: template # Выходные
             value_template: "{{ weekend }}"
           - condition: template # Солнце выше горизонта
-            value_template: "{{ states('sun.sun') != 'above_horizon' }}"
+            value_template: "{{ states('sun.sun') == 'above_horizon' }}"
         sequence:
           - repeat:
               count: !input repeat_for
