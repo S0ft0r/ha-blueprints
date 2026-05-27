@@ -27,7 +27,7 @@ blueprint:
         target:
           entity:
             - domain: switch
-          multiple: false
+#          multiple: false
     plant:
       name: Датчик почвы
       description: Использовать датчик для определения состояния почвы.
