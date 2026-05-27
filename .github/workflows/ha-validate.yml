@@ -31,11 +31,13 @@ jobs:
               document-start: disable
               truthy: disable
               trailing-spaces: disable
-              new-line-at-end-of-file: disable
+              new-line-at-end-of-file: 
+                level: warning
               braces: disable
               brackets: disable
               comments: disable
-              comments-indentation: disable
+              comments-indentation: 
+                level: warning
   ha-validation:
     name: Проверка Home Assistant
     runs-on: ubuntu-latest
