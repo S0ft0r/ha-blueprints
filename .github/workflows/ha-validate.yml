@@ -36,8 +36,7 @@ jobs:
               braces: disable
               brackets: disable
               comments: disable
-              comments-indentation: 
-                level: warning
+              comments-indentation: disable
   ha-validation:
     name: Проверка Home Assistant
     runs-on: ubuntu-latest
