@@ -906,7 +906,6 @@ actions:
             for:
               minutes: 1
 
-
         sequence:
           - repeat:
               count: !input repeat_for
