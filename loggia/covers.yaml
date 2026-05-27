@@ -3,19 +3,17 @@ blueprint:
   description: |
     ### Управление шторами по положению солнца.
     <small>Версия 2026.05.01 Сборка 3</small>
+    <small><a href="https://4pda.to/forum/index.php?showtopic=871505&view=findpost&p=143572987">Специально для 4PDA</a></small>
     **Особенности:**
      + Отсрочка открытия штор до определенного времени 
      + Установка времени закрытия штор в определенное время до заката
      + Управление открытием/закрытием штор для защиты от попадания прямых лучей солнца
-     + В работе учитывается прогноз погоды
+     + Учитывается прогноз погоды
      + Установка лимита открытия/закрытия штор
      + Защита от ошибок открытия/закрытия штор 
      + Управление работы штор с устройств со встроенным слайдером
      + Использование внешних сенсоров для некоторых параметров
-    
-    <small><a href="https://4pda.to/forum/index.php?showtopic=871505&view=findpost&p=143572987">Специально для 4PDA</a></small>
-
-    Предупреждение: 
+    <small><a href="https://github.com/S0ft0r/ha-blueprints/blob/main/as-is.md">Отказ от ответственности</a></small>
   domain: automation
   source_url: https://github.com/S0ft0r/ha-blueprints/blob/main/loggia/covers.yaml
   author: Softor
