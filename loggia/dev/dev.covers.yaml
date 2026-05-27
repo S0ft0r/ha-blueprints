@@ -472,9 +472,9 @@ variables:
     {{ ns.items | min }}
 
   text_helper: |
-    {% set rising = (state_attr(sun_sensor,'next_rising').strftime('%H:%M:%S') | as_datetime) if not is_open_until_enabled else up_time %}
+    {% set rising = (state_attr(sun_sensor,'next_rising').strftime('%H:%M:%S') | as_datetime | as_local) if not is_open_until_enabled else up_time %}
     {% set rising = rising.split(':')[0] ~ ":" ~ rising.split(':')[1]%}
-    {% set setting = (state_attr(sun_sensor,'next_setting') | as_datetime).strftime('%H:%M:%S') if not is_close_until_enabled else down_time %}
+    {% set setting = (state_attr(sun_sensor,'next_setting') | as_datetime | as_local).strftime('%H:%M:%S') if not is_close_until_enabled else down_time %}
     {% set setting = setting.split(':')[0] ~ ":" ~ setting.split(':')[1] %}
     {{ 'Откроются в ' ~ rising if now() > today_at(down_time) else 'Закроются в ' ~ setting }}
 
