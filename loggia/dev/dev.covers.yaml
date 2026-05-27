@@ -865,7 +865,7 @@ actions:
             value_template: |
               {{ states(illuminance_sensor) | int >= set_max_illuminance }}
             for:
-              minutes: 1
+              seconds: 60
 
         sequence:
           - repeat:
