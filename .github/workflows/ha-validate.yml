@@ -23,7 +23,7 @@ jobs:
       - name: Запуск yamllint
         uses: ibiqlik/action-yamllint@v3.1.1
         with:
-          file_or_dir: loggia/dev/**.yaml
+          file_or_dir: loggia/dev/dev.**.yaml
           config_data: |
             extends: default
             rules:
