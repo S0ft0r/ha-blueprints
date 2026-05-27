@@ -13,6 +13,7 @@ blueprint:
      + Защита от ошибок открытия/закрытия штор 
      + Управление работы штор с устройств со встроенным слайдером
      + Использование внешних сенсоров для некоторых параметров
+     + Добавлена установка паузы для защиты от часто срабатывающего датчика освещения (например, Xiaomi BLE)
     <small><a href="https://github.com/S0ft0r/ha-blueprints/blob/main/as-is.md">Отказ от ответственности</a></small>
   domain: automation
   source_url: https://github.com/S0ft0r/ha-blueprints/blob/main/loggia/dev/dev.covers.yaml
