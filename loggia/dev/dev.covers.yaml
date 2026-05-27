@@ -300,7 +300,7 @@ blueprint:
               max: 100000
               step: 100
               mode: box
-              unit_of_measurement: "lux"
+              unit_of_measurement: "люкс"
 
         set_max_illuminance:
           name: Верхний порог освещенности
@@ -314,7 +314,7 @@ blueprint:
               max: 100000
               step: 100
               mode: box
-              unit_of_measurement: "lux"
+              unit_of_measurement: "люкс"
 
         set_illuminance_delay:
           name: Задержка при скачках изменений освещенности
@@ -328,7 +328,7 @@ blueprint:
               max: 600
               step: 10
               mode: slider
-              unit_of_measurement: "seconds"
+              unit_of_measurement: "секунд"
 
 
         repeat_for:
