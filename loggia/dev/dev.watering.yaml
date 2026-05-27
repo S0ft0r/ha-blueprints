@@ -204,7 +204,7 @@ blueprint:
               unit_of_measurement: сек
         set_working_day_evening:
           name: Режим включения вечером
-          default: off_evening
+          default: every_day_evening
           selector:
             select:
               options:
