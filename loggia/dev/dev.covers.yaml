@@ -880,9 +880,9 @@ actions:
           - condition: template
             value_template: |
               {{ states(illuminance_sensor) | int >= set_max_illuminance }}
-            for:
-              minutes: "{{ '%d' % (set_illuminance_delay / 60) }}"
-              seconds: "{{ '%d' % (set_illuminance_delay % 60) }}"
+#            for:
+#              minutes: "{{ '%d' % (set_illuminance_delay / 60) }}"
+#              seconds: "{{ '%d' % (set_illuminance_delay % 60) }}"
 
         sequence:
           - repeat:
