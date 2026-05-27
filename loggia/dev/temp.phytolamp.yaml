@@ -16,8 +16,8 @@ blueprint:
         entity:
           filter: 
             - domain: 
-              - light
-              - switch
+                - light
+                - switch
           reorder: false
           multiple: true
 
@@ -78,7 +78,7 @@ blueprint:
             entity:
               filter:
                 - domain: 
-                  - weather
+                    - weather
               multiple: false
 
     time_section:
@@ -102,7 +102,7 @@ blueprint:
             entity:
               filter:
                 - domain: 
-                  - input_datetime
+                    - input_datetime
               multiple: false
         set_off_time:
           name: Выключить подсветку в
@@ -119,7 +119,7 @@ blueprint:
             entity:
               filter:
                 - domain: 
-                  - input_datetime
+                    - input_datetime
               multiple: false
 
     sun_section:
@@ -162,7 +162,7 @@ blueprint:
             entity:
               filter:
                 - domain: 
-                  - input_number
+                    - input_number
               multiple: false
 
         sun_elevation:
@@ -189,7 +189,7 @@ blueprint:
             entity:
               filter:
                 - domain: 
-                  - input_number
+                    - input_number
               multiple: false
 
     options_section:
@@ -249,12 +249,12 @@ trigger_variables:
   is_sun_position_on_enabled: "{{ sun_sensor != [] and 'extra_sun_position_on' in automation_extra }}"
   is_sun_position_off_enabled: "{{ sun_sensor != [] and 'extra_sun_position_off' in automation_extra }}"
 
-  on_time:  | 
+  on_time: | 
     {{ as_timestamp(today_at(set_on_time)) | timestamp_custom("%H:%M") 
       if set_on_time_sensor == [] else 
       as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(states(set_on_time_sensor))) | timestamp_custom("%H:%M") }}
 
-  off_time:  | 
+  off_time: | 
     {{ as_timestamp(today_at(set_off_time)) | timestamp_custom("%H:%M") 
       if set_off_time_sensor == [] else 
       as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(states(set_off_time_sensor))) | timestamp_custom("%H:%M") }}

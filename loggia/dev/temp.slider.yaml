@@ -116,7 +116,7 @@ trigger_variables:
 
   is_mqtt_device: |
     {{ config_entry_attr(config_entry_id(device_entities(slider_device)[0]), "domain") == "mqtt" }}
-  is_zha_device:  |
+  is_zha_device: |
     {{ config_entry_attr(config_entry_id(device_entities(slider_device)[0]), "domain") == "zha" }}
 
 #variables:
