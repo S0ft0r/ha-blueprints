@@ -114,7 +114,7 @@ blueprint:
         Настройки датчика почвы.
       icon: mdi:flower-tulip-outline
       input:
-        options_plant:
+        # options_plant:
           # name: Включать систему орошения по показания датчика
           # default: false
           # selector:
