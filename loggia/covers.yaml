@@ -54,7 +54,7 @@ blueprint:
               options:
                 - label: Защита от прямых лучей солнца
                   value: extra_sun_protect
-                - label: Учитывать прогноз погоды
+                - label: Учитывать прогноз погоды или освещенность
                   value: extra_forecast
                 - label: Управление по слайдеру
                   value: extra_slider
@@ -67,11 +67,22 @@ blueprint:
               custom_value: false
               mode: list
 
+        illuminance_sensor:
+          name: Сенсор освещенности
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - sensor
+                  device_class: 
+                    - illuminance
+
         forecast_sensor:
           name: Прогнозный сенсор
           description: |
             Сенсор, определяющий прогноз погоды.
-             + <small>Параметр обязателен только при выборе параметра <em>"Учитывать прогноз погоды"</em>. Если ничего не выбрано, то дополнительный параметр учитываться не будет.</small>
+             + <small>Параметр обязателен только при выборе параметра <em>"Учитывать прогноз погоды или освещенность"</em> и отсутствии сенсора осещенности. Если ничего не выбрано, то дополнительный параметр учитываться не будет.</small>
           default: []
           selector:
             entity:
@@ -179,7 +190,7 @@ blueprint:
         set_sun_elevation_sensor:
           name: Сенсор высоты солнца
           description: |
-            Сенсор, определяющий высоту солнца для включения подсветки.
+            Сенсор, определяющий высоту солнца для открытия штор.
              + <small>При выборе сенсора, высота солнца, заданная в проекте, учитываться не будет.</small>
           default: []
           selector:
@@ -197,7 +208,7 @@ blueprint:
           name: Верхний предел
           description: |
             Верхний предел при открытии штор.
-             + <small>Если нет нужды поднимать шторы до конца.</small>
+             + <small>Если нет нужды открывать шторы до конца.</small>
           default: 99
           selector:
             number:
@@ -224,7 +235,7 @@ blueprint:
           name: Нижний предел
           description: |
             Нижний предел при закрытии штор.
-             + <small>Если нет нужды опускать шторы до конца.</small>
+             + <small>Если нет нужды закрывать шторы до конца.</small>
           default: 0
           selector:
             number:
@@ -237,7 +248,7 @@ blueprint:
         set_down_limit_sensor:
           name: Сенсор нижнего предела
           description: |
-            Сенсор, определяющий верхниц предел при закрытии штор.
+            Сенсор, определяющий верхний предел при закрытии штор.
              + <small>При выборе сенсора, верхний предел, заданная в проекте, учитываться не будет.</small>
           default: []
           selector:
@@ -269,6 +280,34 @@ blueprint:
               multiple: true
               custom_value: false
               mode: list
+
+        set_min_illuminance:
+          name: Нижний порог освещенности
+          description: |
+            Нижний порог освещенности 
+             + <small>Для открытия штор при включенной защите от попадания прямых лучей.</small>
+          default: 0
+          selector:
+            number:
+              min: 0
+              max: 10000
+              step: 1
+              mode: box
+              unit_of_measurement: "lux"
+
+        set_max_illuminance:
+          name: Верхний порог освещенности
+          description: |
+            Верхний порог освещенности 
+             + <small>Для закрытия штор при включенной защите от попадания прямых лучей.</small>
+          default: []
+          selector:
+            number:
+              min: 0
+              max: 10000
+              step: 1
+              mode: box
+              unit_of_measurement: "lux"
 
         repeat_for:
           name: Количество повторов
@@ -333,6 +372,7 @@ trigger_variables:
   forecast_sensor: !input forecast_sensor
   sun_sensor: !input sun_sensor
   slider_device: !input slider_device
+  illuminance_sensor: !input illuminance_sensor
 
   forecasts: !input forecasts
   set_sun_azimuth: !input set_sun_azimuth
@@ -347,10 +387,13 @@ trigger_variables:
   set_down_limit: !input set_down_limit
   set_down_limit_sensor: !input set_down_limit_sensor
   repeat_for: !input repeat_for
+  set_min_illuminance: !input set_min_illuminance
+  set_max_illuminance: !input set_max_illuminance
 
   is_forecast_enabled: "{{ forecast_sensor != [] and 'extra_forecast' in automation_extra }}"
+  is_illuminance_enabled: "{{ illuminance_sensor != [] and (set_min_illuminance != 0 or set_max_illuminance != 0) and 'extra_forecast' in automation_extra }}"
   is_slider_enabled: "{{ 'extra_slider' in automation_extra }}"
-  is_sun_protect_enabled: "{{ (sun_elevation_variable != 0 or sun_azimuth_variable != 0) and 'extra_sun_protect' in automation_extra }}"
+  is_sun_protect_enabled: "{{ (sun_elevation != 0 or sun_azimuth != 0) and 'extra_sun_protect' in automation_extra }}"
   is_open_until_enabled: "{{ 'extra_opening_until' in automation_extra }}"
   is_close_until_enabled: "{{ 'extra_close_until' in automation_extra }}"
 
