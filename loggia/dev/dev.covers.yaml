@@ -475,7 +475,8 @@ variables:
     {% set rising = (state_attr(sun_sensor,'next_rising').strftime('%H:%M:%S') | as_datetime) if not is_open_until_enabled else up_time %}
     {% set rising = rising.split(':')[0] ~ ":" ~ rising.split(':')[1]%}
     {% set setting = (state_attr(sun_sensor,'next_setting') | as_datetime).strftime('%H:%M:%S') if not is_close_until_enabled else down_time %}
-    {% set setting = setting.split(':')[0] ~ ":" ~ setting.split(':')[1]%}
+    {% set setting = setting.split(':')[0] ~ ":" ~ setting.split(':')[1] %}
+    {{ 'Откроются в ' ~ rising if now() > down_time else 'Закроются в ' ~ setting }}
 
 triggers:
   - trigger: time
@@ -567,6 +568,7 @@ actions:
       entity_id: !input text_rising_setting_sensor
     data:
       value: "{{ text_helper }}"
+    continue_on_error: true
 
   - choose:
 
