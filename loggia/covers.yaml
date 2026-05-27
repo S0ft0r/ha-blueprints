@@ -551,8 +551,8 @@ actions:
               - up_time_workday_trigger
           - condition: template # Будни
             value_template: "{{ workday }}" 
-          - condition: template # Солнце выше горизонта
-            value_template: "{{ states('sun.sun') == 'above_horizon' }}"
+          # - condition: template # Солнце выше горизонта
+          #   value_template: "{{ states('sun.sun') == 'above_horizon' }}"
         sequence:
           - repeat:
               count: !input repeat_for
@@ -573,8 +573,8 @@ actions:
               - up_time_weekend_trigger
           - condition: template # Выходные
             value_template: "{{ weekend }}"
-          - condition: template # Солнце выше горизонта
-            value_template: "{{ states('sun.sun') == 'above_horizon' }}"
+          # - condition: template # Солнце выше горизонта
+          #   value_template: "{{ states('sun.sun') == 'above_horizon' }}"
         sequence:
           - repeat:
               count: !input repeat_for
@@ -593,8 +593,8 @@ actions:
           - condition: trigger
             id:
               - down_time_trigger
-          - condition: template
-            value_template: "{{ is_close_until_enabled }}"
+          # - condition: template
+          #   value_template: "{{ is_close_until_enabled }}"
         sequence:
           - repeat:
               count: !input repeat_for
