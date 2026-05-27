@@ -381,6 +381,22 @@ blueprint:
           selector:
             text:
 
+    helpers_section:
+      name: Настройки вспомогательных сенсоров
+      icon: mdi:settings-helper
+      input:
+        text_rising_setting_sensor:
+          name: Текстовый сенсор
+          description: Текстовый сенсор, используемый для отобоажения следующего времени открытия/закрытия штор
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain: 
+                    - input_text
+              multiple: false
+
+
 mode: queued
 max: 10
 max_exceeded: silent
@@ -395,6 +411,7 @@ trigger_variables:
   sun_sensor: !input sun_sensor
   slider_device: !input slider_device
   illuminance_sensor: !input illuminance_sensor
+  text_rising_setting_sensor: !input text_rising_setting_sensor
 
   forecasts: !input forecasts
   set_sun_azimuth: !input set_sun_azimuth
@@ -426,6 +443,8 @@ trigger_variables:
 variables:
   workday: "{{ now().weekday() < 5 }}"
   weekend: "{{ not workday }}"
+  nextday: "{{ (now().weekday() + 1) % 7 }}"
+  
   delay_for_repeat: 1
   is_mqtt_device: "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'mqtt' }}"
   is_zha_device: "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'zha' }}"
@@ -451,6 +470,13 @@ variables:
       {% set ns.items = ns.items + [state_attr(item,'current_position')] %}
     {% endfor %}
     {{ ns.items | min }}
+
+  text_helper: |
+    {% set rising = state_attr('sun_sensor','next_rising') if not is_open_until_enabled else up_time %}
+    {% set rising = rising.split(':')[0] ~ ":" ~ rising.split(':')[1]%}
+    {% set setting = state_attr('sun_sensor','next_setting') if not is_close_until_enabled else down_time %}
+    {% set setting = setting.split(':')[0] ~ ":" ~ setting.split(':')[1]%}
+    {{ 'Откроются в ' ~ rising if now() > today_at(down_time) else 'Закроются в ' ~ setting }}
 
 triggers:
   - trigger: time
@@ -536,6 +562,13 @@ triggers:
     id: zha_slider_stop_trigger
 
 actions:
+  - action: input_text.set_value
+    metadata: {}
+    target:
+      entity_id: !input next_rising_setting_sensor
+    data:
+      value: "{{ text_helper }}"
+
   - choose:
 
 #########################################################################################################
