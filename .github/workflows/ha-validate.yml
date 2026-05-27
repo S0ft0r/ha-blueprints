@@ -44,14 +44,14 @@ jobs:
     needs: yamllint
     steps:
       - name: Скачивание репозитория
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Подготовка тестовой среды HA # ИСПРАВЛЕНО: Убран лишний префикс папки, теперь файлы реально копируются в песочницу для тестов
         run: |
           mkdir -p fake_config/blueprints/automation/test
           find loggia/ -type f -name "*.yaml" -exec cp {} fake_config/blueprints/automation/test/ \; 
           echo "default_config:" > fake_config/configuration.yaml
       - name: Проверка конфигурации через HA CLI
-        uses: frenck/action-home-assistant@v1
+        uses: frenck/action-home-assistant@v1.4.1
         continue-on-error: false # Шаг жестко упадет, если в коде будет хоть одна ошибка
         with:
           path: "fake_config"
