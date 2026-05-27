@@ -1,12 +1,22 @@
 blueprint:
   name: Управление системой полива
   description: |
-    (МОДИФИКАЦИЯ!!!)
-    Управление поливом цветов по времени, датчикам влажности. 
-      Версия 2026.05.00 
-      Сборка 2
+    ###  Управление поливом цветов по времени, датчикам влажности.
+    <small>Версия 2026.05.01 Сборка 2</small> 
+    <small><a href="https://4pda.to/forum/index.php?showtopic=871505&view=findpost&p=143572987">Специально для 4PDA</a></small>
+    **Особенности:**
+    <small><a href="https://github.com/S0ft0r/ha-blueprints/blob/main/as-is.md">Отказ от ответственности</a></small>
+  #  + Отсрочка открытия штор до определенного времени 
+  #  + Установка времени закрытия штор в определенное время до заката
+  #  + Управление открытием/закрытием штор для защиты от попадания прямых лучей солнца
+  #  + Учитывается прогноз погоды и/или датчик освещенности 
+  #  + Установка лимита открытия/закрытия штор
+  #  + Защита от ошибок открытия/закрытия штор 
+  #  + Управление работы штор с устройств со встроенным слайдером
+  #  + Использование внешних сенсоров для некоторых параметров
+  #  + Добавлена установка паузы для защиты от часто срабатывающего датчика освещения (например, Xiaomi BLE)
   domain: automation
-  source_url: https://github.com/S0ft0r/ha-blueprints/blob/main/loggia/waterpump.yaml
+  source_url: https://github.com/S0ft0r/ha-blueprints/blob/main/loggia/dev/dev.watering.yaml
   author: Softor
 
   input:
@@ -14,7 +24,7 @@ blueprint:
       name: Оросительная система
       description: Какими системами необходимо управлять?
       selector:
-        device:
+        target:
           entity:
             - domain: switch
           multiple: false
