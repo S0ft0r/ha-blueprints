@@ -295,8 +295,8 @@ blueprint:
           selector:
             number:
               min: 0
-              max: 10000
-              step: 1
+              max: 100000
+              step: 100
               mode: box
               unit_of_measurement: "lux"
 
@@ -309,8 +309,8 @@ blueprint:
           selector:
             number:
               min: 0
-              max: 10000
-              step: 1
+              max: 100000
+              step: 100
               mode: box
               unit_of_measurement: "lux"
 
