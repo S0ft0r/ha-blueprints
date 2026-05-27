@@ -303,7 +303,7 @@ blueprint:
           description: |
             Верхний порог освещенности 
              + <small>Для закрытия штор при включенной защите от попадания прямых лучей.</small>
-          default: []
+          default: 0
           selector:
             number:
               min: 0
