@@ -318,96 +318,96 @@ triggers:
 
 actions:
   - choose:
-      - conditions: # Состояние почвы
-          - condition: trigger
-            id:
-              - plant_state_trigger
-        sequence:
-          - repeat:
-              for_each: "{{ waterpump_entities }}"
-#              for_each: !input waterpump
-              sequence:
-                - action: switch.turn_on
-                  metadata: {}            
-                  target:
-                    entity_id: >
-                      {{ repeat.item if repeat is defined else '' }}
-          - delay:
-              seconds: !input set_mode_work
-          - repeat:
-              for_each: "{{ waterpump_entities }}"
-              # for_each: !input waterpump
-              sequence:
-                - action: switch.turn_off
-                  metadata: {}            
-                  target:
-                    entity_id: >
-                      {{ repeat.item if repeat is defined else '' }}
-          - if:
-              - condition: template
-                value_template: "{{ set_debounce_pause }}"
-            then:
-              - delay: 
-                  hours: "{{ set_debounce_time.split(':')[0] | int(default=0) }}"
-                  minutes: "{{ set_debounce_time.split(':')[1] | int(default=0) }}"
-                  seconds: "{{ set_debounce_time.split(':')[2] | int(default=0) }}"
+#       - conditions: # Состояние почвы
+#           - condition: trigger
+#             id:
+#               - plant_state_trigger
+#         sequence:
+#           - repeat:
+#               for_each: "{{ waterpump_entities }}"
+# #              for_each: !input waterpump
+#               sequence:
+#                 - action: switch.turn_on
+#                   metadata: {}            
+#                   target:
+#                     entity_id: >
+#                       {{ repeat.item if repeat is defined else '' }}
+#           - delay:
+#               seconds: !input set_mode_work
+#           - repeat:
+#               for_each: "{{ waterpump_entities }}"
+#               # for_each: !input waterpump
+#               sequence:
+#                 - action: switch.turn_off
+#                   metadata: {}            
+#                   target:
+#                     entity_id: >
+#                       {{ repeat.item if repeat is defined else '' }}
+#           - if:
+#               - condition: template
+#                 value_template: "{{ set_debounce_pause }}"
+#             then:
+#               - delay: 
+#                   hours: "{{ set_debounce_time.split(':')[0] | int(default=0) }}"
+#                   minutes: "{{ set_debounce_time.split(':')[1] | int(default=0) }}"
+#                   seconds: "{{ set_debounce_time.split(':')[2] | int(default=0) }}"
 
-      - conditions: # Время включения утром
-          - condition: trigger
-            id:
-              - on_time_morning_trigger
-          # - condition: template
-          #   value_template: >
-          #     {{ 'off_morning' not in set_working_day_morning }}
-          - condition: template
-            value_template: >
-              {{ true if not set_plant_sensor_state else (states(soil_moisture_entities) | int < set_soil_moisture_max) }}
-        sequence:
-          - repeat:
-              for_each: "{{ waterpump_entities }}"
-              # for_each: !input waterpump
-              sequence:
-                - action: switch.turn_on
-                  metadata: {}            
-                  target:
-                    entity_id: >
-                      {{ repeat.item if repeat is defined else '' }}
-          - delay:
-              seconds: !input set_mode_work
-          - repeat:
-              for_each: "{{ waterpump_entities }}"
-              # for_each: !input waterpump
-              sequence:
-                - action: switch.turn_off
-                  metadata: {}            
-                  target:
-                    entity_id: >
-                      {{ repeat.item if repeat is defined else '' }}
-          - repeat:
-              count: "{{ mode_repeat_morning }}"
-              sequence:
-                - delay:
-                    seconds: !input set_mode_pause
-                - repeat:
-                    for_each: "{{ waterpump_entities }}"
-                    # for_each: !input waterpump
-                    sequence:
-                      - action: switch.turn_on
-                        metadata: {}            
-                        target:
-                          entity_id: >
-                            {{ repeat.item if (repeat is defined and (true if not set_plant_sensor_pause else (states(soil_moisture_entities) | int < set_soil_moisture_max))) else '' }}
-                - delay:
-                    seconds: !input set_mode_work
-                - repeat:
-                    for_each: "{{ waterpump_entities }}"
-                    # for_each: !input waterpump
-                    sequence:
-                      - action: switch.turn_off
-                        metadata: {}            
-                        target:
-                          entity_id: >
-                            {{ repeat.item if repeat is defined else '' }}
+#       - conditions: # Время включения утром
+#           - condition: trigger
+#             id:
+#               - on_time_morning_trigger
+#           # - condition: template
+#           #   value_template: >
+#           #     {{ 'off_morning' not in set_working_day_morning }}
+#           - condition: template
+#             value_template: >
+#               {{ true if not set_plant_sensor_state else (states(soil_moisture_entities) | int < set_soil_moisture_max) }}
+#         sequence:
+#           - repeat:
+#               for_each: "{{ waterpump_entities }}"
+#               # for_each: !input waterpump
+#               sequence:
+#                 - action: switch.turn_on
+#                   metadata: {}            
+#                   target:
+#                     entity_id: >
+#                       {{ repeat.item if repeat is defined else '' }}
+#           - delay:
+#               seconds: !input set_mode_work
+#           - repeat:
+#               for_each: "{{ waterpump_entities }}"
+#               # for_each: !input waterpump
+#               sequence:
+#                 - action: switch.turn_off
+#                   metadata: {}            
+#                   target:
+#                     entity_id: >
+#                       {{ repeat.item if repeat is defined else '' }}
+#           - repeat:
+#               count: "{{ mode_repeat_morning }}"
+#               sequence:
+#                 - delay:
+#                     seconds: !input set_mode_pause
+#                 - repeat:
+#                     for_each: "{{ waterpump_entities }}"
+#                     # for_each: !input waterpump
+#                     sequence:
+#                       - action: switch.turn_on
+#                         metadata: {}            
+#                         target:
+#                           entity_id: >
+#                             {{ repeat.item if (repeat is defined and (true if not set_plant_sensor_pause else (states(soil_moisture_entities) | int < set_soil_moisture_max))) else '' }}
+#                 - delay:
+#                     seconds: !input set_mode_work
+#                 - repeat:
+#                     for_each: "{{ waterpump_entities }}"
+#                     # for_each: !input waterpump
+#                     sequence:
+#                       - action: switch.turn_off
+#                         metadata: {}            
+#                         target:
+#                           entity_id: >
+#                             {{ repeat.item if repeat is defined else '' }}
 
       - conditions: # Время включения вечером
           - condition: trigger
