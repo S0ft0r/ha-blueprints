@@ -314,6 +314,21 @@ blueprint:
               mode: box
               unit_of_measurement: "lux"
 
+        set_illuminance_delay:
+          name: Задержка при скачках изменений освещенности
+          description: |
+            Величина задержки при скачках изменений освещенности 
+             + <small>Для того, чтобы отсечь очень частые пограничные изменения освещенности</small>
+          default: 60
+          selector:
+            number:
+              min: 0
+              max: 480
+              step: 1
+              mode: slider
+              unit_of_measurement: "seconds"
+
+
         repeat_for:
           name: Количество повторов
           description: |
@@ -394,6 +409,7 @@ trigger_variables:
   repeat_for: !input repeat_for
   set_min_illuminance: !input set_min_illuminance
   set_max_illuminance: !input set_max_illuminance
+  set_illuminance_delay: !input set_illuminance_delay
 
   is_forecast_enabled: "{{ forecast_sensor != [] and 'extra_forecast' in automation_extra }}"
   is_illuminance_enabled: "{{ illuminance_sensor != [] and (set_min_illuminance != 0 or set_max_illuminance != 0) and 'extra_illuminance' in automation_extra }}"
@@ -865,7 +881,8 @@ actions:
             value_template: |
               {{ states(illuminance_sensor) | int >= set_max_illuminance }}
             for:
-              seconds: 60
+              minutes: "{{ '%d' % (set_illuminance_delay / 60) }}"
+              seconds: "{{ '%d' % (set_illuminance_delay % 60) }}"
 
         sequence:
           - repeat:
