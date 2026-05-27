@@ -27,7 +27,7 @@ jobs:
           config_data: |
             extends: default
             rules:
-              new-line: disable
+              new-lines: disable
               line-length: disable
               document-start: disable
               truthy: disable
