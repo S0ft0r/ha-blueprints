@@ -18,10 +18,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Скачивание репозитория
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Запуск yamllint
-        uses: ibiqlik/action-yamllint@v3
+        uses: ibiqlik/action-yamllint@v3.1.1
         with:
           file_or_dir: loggia/dev/**.yaml
           config_data: |
