@@ -14,7 +14,7 @@ blueprint:
      + Использование внешних сенсоров для некоторых параметров
     <small><a href="https://4pda.to/forum/index.php?showtopic=871505&view=findpost&p=143572987">Специально для 4PDA</a></small>
   domain: automation
-  source_url: https://github.com/S0ft0r/ha-blueprints/blob/main/loggia/covers.yaml
+  source_url: https://github.com/S0ft0r/ha-blueprints/blob/main/loggia/dev/dev.covers.yaml
   author: Softor
 
   input:
@@ -834,7 +834,7 @@ actions:
                       {{ (up_limit | int - (repeat_for | int - repeat.index)) }}
                 - delay:
                     seconds: "{{ delay_for_repeat }}"
-                    
+
 #########################################################################################################
 #
 # УПРАВЛЕНИЕ ПО ОСВЕЩЕННОСТИ
@@ -852,7 +852,15 @@ actions:
                 and state_attr(sun_sensor,'elevation') | float(default=360) > (sun_elevation | int)) }}
           - condition: template
             value_template: |
-              {{ true if not is_open_until_enabled else now() >= today_at(up_time) and now() <= today_at(down_time) }}
+              {{ true if not is_open_until_enabled else now() >= today_at(up_time) }}
+          - condition: template
+            value_template: |
+              {{ true if not is_close_until_enabled else now() <= today_at(down_time) }}
+          - condition: template
+            value_template: |
+              {{ states(sun_sensor) == 'above_horizon' }}
+          - condition: template
+            value_template: 
 
         sequence:
           - repeat:

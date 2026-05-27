@@ -424,18 +424,18 @@ variables:
   up_limit: "{{ set_up_limit if set_up_limit_sensor == [] else states(set_up_limit_sensor) }}"
   down_limit: "{{ set_down_limit if set_down_limit_sensor == [] else states(set_down_limit_sensor) }}"
 
-  maxp: |
-    {% set ns = namespace(items=[]) %}
-    {% for item in blind %}
-      {% set ns.items = ns.items + [state_attr(item,'current_position')] %}
-    {% endfor %}
-    {{ ns.items | max }}
-  minp: |
-    {% set ns = namespace(items=[]) %}
-    {% for item in blind %}
-      {% set ns.items = ns.items + [state_attr(item,'current_position')] %}
-    {% endfor %}
-    {{ ns.items | min }}
+  # maxp: |
+  #   {% set ns = namespace(items=[]) %}
+  #   {% for item in blinds %}
+  #     {% set ns.items = ns.items + [state_attr(item,'current_position')] %}
+  #   {% endfor %}
+  #   {{ ns.items | max }}
+  # minp: |
+  #   {% set ns = namespace(items=[]) %}
+  #   {% for item in blinds %}
+  #     {% set ns.items = ns.items + [state_attr(item,'current_position')] %}
+  #   {% endfor %}
+  #   {{ ns.items | min }}
 
 triggers:
   - trigger: time
