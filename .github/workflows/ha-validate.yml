@@ -5,13 +5,13 @@ on:
       - main
       - master
     paths:
-      - 'loggia/dev/**.yaml' # ИСПРАВЛЕНО: GitHub Actions проверяет пути относительно корня репозитория
+      - 'loggia/**.yaml' # ИСПРАВЛЕНО: GitHub Actions проверяет пути относительно корня репозитория
   pull_request:
     branches:
       - main
       - master
     paths:
-      - 'loggia/dev/**.yaml' # ИСПРАВЛЕНО
+      - 'loggia/**.yaml' # ИСПРАВЛЕНО
 jobs:
   yamllint:
     name: Проверка синтаксиса YAML
@@ -23,6 +23,7 @@ jobs:
       - name: Запуск yamllint
         uses: ibiqlik/action-yamllint@v3
         with:
+          file_or_dir: loggia/dev/**.yaml
           config_data: |
             extends: default
             rules:
