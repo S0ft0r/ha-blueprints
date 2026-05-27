@@ -429,12 +429,12 @@ actions:
           #         target:
           #           entity_id: >
           #             {{ repeat.item if repeat is defined else '' }}
-          - action: switch.turn_on
+          - service: homeassistant.turn_on
             metadata: {}            
             target: !input waterpump
           - delay:
               seconds: !input set_mode_work
-          - action: switch.turn_off
+          - service: homeassistant.turn_off
             metadata: {}            
             target: !input waterpump
           # - repeat:
