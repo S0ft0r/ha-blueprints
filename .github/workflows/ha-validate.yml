@@ -6,13 +6,13 @@ on:
       - main
       - master
     paths:
-      - 'ha-blueprints/loggia/**.yaml'
+      - 'loggia/**.yaml' # ИСПРАВЛЕНО: GitHub Actions проверяет пути относительно корня репозитория
   pull_request:
     branches:
       - main
       - master
     paths:
-      - 'ha-blueprints/loggia/**.yaml'
+      - 'loggia/**.yaml' # ИСПРАВЛЕНО
 
 jobs:
   yamllint:
@@ -49,12 +49,12 @@ jobs:
       - name: Подготовка тестовой среды HA
         run: |
           mkdir -p fake_config/blueprints/automation/test
-          find ha-blueprints/loggia/ -type f -name "*.yaml" -exec cp {} fake_config/blueprints/automation/test/ \;
+          find loggia/ -type f -name "*.yaml" -exec cp {} fake_config/blueprints/automation/test/ \; # ИСПРАВЛЕНО: Убран лишний префикс папки, теперь файлы реально копируются в песочницу для тестов
           echo "default_config:" > fake_config/configuration.yaml
 
       - name: Проверка конфигурации через HA CLI
         uses: frenck/action-home-assistant@v1
-        continue-on-error: false  # <-- Шаг жестко упадет, если в коде будет хоть одна ошибка
+        continue-on-error: false # Шаг жестко упадет, если в коде будет хоть одна ошибка
         with:
           path: "fake_config"
-          version: "stable"  # <-- Будет брать самый свежий стабильный релиз
+          version: "stable" # Берем свежий стабильный релиз ядра для проверки

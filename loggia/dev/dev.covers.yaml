@@ -423,13 +423,13 @@ variables:
 
   maxp: |
     {% set ns = namespace(items=[]) %}
-    {% for item in blind %}
+    {% for item in blinds %}
       {% set ns.items = ns.items + [state_attr(item,'current_position')] %}
     {% endfor %}
     {{ ns.items | max }}
   minp: |
     {% set ns = namespace(items=[]) %}
-    {% for item in blind %}
+    {% for item in blinds %}
       {% set ns.items = ns.items + [state_attr(item,'current_position')] %}
     {% endfor %}
     {{ ns.items | min }}
@@ -860,7 +860,8 @@ actions:
             value_template: |
               {{ states(sun_sensor) == 'above_horizon' }}
           - condition: template
-            value_template: 
+            value_template: |
+              {{ states(illuminance_sensor) | int >= set_max_illuminance }}
 
         sequence:
           - repeat:
@@ -874,5 +875,42 @@ actions:
                   data:
                     position: |
                       {{ (down_limit | int + (repeat_for | int - repeat.index)) }}
+                - delay:
+                    seconds: "{{ delay_for_repeat }}"
+
+      - conditions: # Открыть при изменении уровня освещенности при включенном режиме защиты от прямых лучей
+          - condition: trigger
+            id:
+              - illuminance_trigger
+          - condition: template
+            value_template: |
+              {{ true if not is_sun_protect_enabled 
+                else (state_attr(sun_sensor,'azimuth') | float(default=45) > (sun_azimuth | int) 
+                and state_attr(sun_sensor,'elevation') | float(default=360) > (sun_elevation | int)) }}
+          - condition: template
+            value_template: |
+              {{ true if not is_open_until_enabled else now() >= today_at(up_time) }}
+          - condition: template
+            value_template: |
+              {{ true if not is_close_until_enabled else now() <= today_at(down_time) }}
+          - condition: template
+            value_template: |
+              {{ states(sun_sensor) == 'above_horizon' }}
+          - condition: template
+            value_template: |
+              {{ states(illuminance_sensor) | int <= set_min_illuminance }}
+
+        sequence:
+          - repeat:
+              count: !input repeat_for
+              sequence:
+                - action: cover.set_cover_position
+                  metadata: {}
+                  target:
+                    entity_id: >
+                      {{ (blinds if blinds_for_protect == [] else  blinds_for_protect) | list }}
+                  data:
+                    position: |
+                      {{ (up_limit | int - (repeat_for | int - repeat.index)) }}
                 - delay:
                     seconds: "{{ delay_for_repeat }}"
