@@ -324,8 +324,8 @@ actions:
               - plant_state_trigger
         sequence:
           - repeat:
-                    # for_each: "{{ waterpump_entities }}"
-              for_each: !input waterpump
+              for_each: "{{ waterpump_entities }}"
+#              for_each: !input waterpump
               sequence:
                 - action: switch.turn_on
                   metadata: {}            
@@ -335,8 +335,8 @@ actions:
           - delay:
               seconds: !input set_mode_work
           - repeat:
-                    # for_each: "{{ waterpump_entities }}"
-              for_each: !input waterpump
+              for_each: "{{ waterpump_entities }}"
+              # for_each: !input waterpump
               sequence:
                 - action: switch.turn_off
                   metadata: {}            
@@ -364,8 +364,8 @@ actions:
               {{ true if not set_plant_sensor_state else (states(soil_moisture_entities) | int < set_soil_moisture_max) }}
         sequence:
           - repeat:
-                    # for_each: "{{ waterpump_entities }}"
-              for_each: !input waterpump
+              for_each: "{{ waterpump_entities }}"
+              # for_each: !input waterpump
               sequence:
                 - action: switch.turn_on
                   metadata: {}            
@@ -375,8 +375,8 @@ actions:
           - delay:
               seconds: !input set_mode_work
           - repeat:
-                    # for_each: "{{ waterpump_entities }}"
-              for_each: !input waterpump
+              for_each: "{{ waterpump_entities }}"
+              # for_each: !input waterpump
               sequence:
                 - action: switch.turn_off
                   metadata: {}            
@@ -389,8 +389,8 @@ actions:
                 - delay:
                     seconds: !input set_mode_pause
                 - repeat:
-                    # for_each: "{{ waterpump_entities }}"
-                    for_each: !input waterpump
+                    for_each: "{{ waterpump_entities }}"
+                    # for_each: !input waterpump
                     sequence:
                       - action: switch.turn_on
                         metadata: {}            
@@ -400,8 +400,8 @@ actions:
                 - delay:
                     seconds: !input set_mode_work
                 - repeat:
-                    # for_each: "{{ waterpump_entities }}"
-                    for_each: !input waterpump
+                    for_each: "{{ waterpump_entities }}"
+                    # for_each: !input waterpump
                     sequence:
                       - action: switch.turn_off
                         metadata: {}            
@@ -420,49 +420,55 @@ actions:
             value_template: >
               {{ true if not set_plant_sensor_state else (states(soil_moisture_entities) | int < set_soil_moisture_max) }}
         sequence:
-          - repeat:
-                    # for_each: "{{ waterpump_entities }}"
-              for_each: !input waterpump
-              sequence:
-                - action: switch.turn_on
-                  metadata: {}            
-                  target:
-                    entity_id: >
-                      {{ repeat.item if repeat is defined else '' }}
+          # - repeat:
+          #     for_each: "{{ waterpump_entities }}"
+          #     # for_each: !input waterpump
+          #     sequence:
+          #       - action: switch.turn_on
+          #         metadata: {}            
+          #         target:
+          #           entity_id: >
+          #             {{ repeat.item if repeat is defined else '' }}
+          - action: switch.turn_on
+            metadata: {}            
+            target: !input waterpump
           - delay:
               seconds: !input set_mode_work
-          - repeat:
-                    # for_each: "{{ waterpump_entities }}"
-              for_each: !input waterpump
-              sequence:
-                - action: switch.turn_off
-                  metadata: {}            
-                  target:
-                    entity_id: >
-                      {{ repeat.item if repeat is defined else '' }}
-          - repeat:
-              count: "{{ mode_repeat_evening }}"
-              sequence:
-                - delay:
-                    seconds: !input set_mode_pause
-                - repeat:
-                    for_each: "{{ waterpump_entities }}"
-                    sequence:
-                      - action: switch.turn_on
-                        metadata: {}            
-                        target:
-                          entity_id: >
-                            {{ repeat.item if (repeat is defined and (true if not set_plant_sensor_pause else (states(soil_moisture_entities) | int < set_soil_moisture_max))) else '' }}
-                - delay:
-                    seconds: !input set_mode_work
-                - repeat:
-                    # for_each: "{{ waterpump_entities }}"
-                    for_each: !input waterpump
-                    sequence:
-                      - action: switch.turn_off
-                        metadata: {}            
-                        target:
-                          entity_id: >
-                            {{ repeat.item if repeat is defined else '' }}
+          - action: switch.turn_off
+            metadata: {}            
+            target: !input waterpump
+          # - repeat:
+          #     for_each: "{{ waterpump_entities }}"
+          #     # for_each: !input waterpump
+          #     sequence:
+          #       - action: switch.turn_off
+          #         metadata: {}            
+          #         target:
+          #           entity_id: >
+          #             {{ repeat.item if repeat is defined else '' }}
+          # - repeat:
+          #     count: "{{ mode_repeat_evening }}"
+          #     sequence:
+          #       - delay:
+          #           seconds: !input set_mode_pause
+          #       - repeat:
+          #           for_each: "{{ waterpump_entities }}"
+          #           sequence:
+          #             - action: switch.turn_on
+          #               metadata: {}            
+          #               target:
+          #                 entity_id: >
+          #                   {{ repeat.item if (repeat is defined and (true if not set_plant_sensor_pause else (states(soil_moisture_entities) | int < set_soil_moisture_max))) else '' }}
+          #       - delay:
+          #           seconds: !input set_mode_work
+          #       - repeat:
+          #           for_each: "{{ waterpump_entities }}"
+          #           # for_each: !input waterpump
+          #           sequence:
+          #             - action: switch.turn_off
+          #               metadata: {}            
+          #               target:
+          #                 entity_id: >
+          #                   {{ repeat.item if repeat is defined else '' }}
 
 mode: single
