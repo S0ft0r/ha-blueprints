@@ -565,7 +565,7 @@ actions:
   - action: input_text.set_value
     metadata: {}
     target:
-      entity_id: !input next_rising_setting_sensor
+      entity_id: !input text_rising_setting_sensor
     data:
       value: "{{ text_helper }}"
 
