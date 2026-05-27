@@ -529,7 +529,6 @@ actions:
             id:
               - mqtt_slider_up_trigger
               - zha_slider_up_trigger
-        sequence:
           - condition: template # При наличии устройства и включенной опции
             value_template: "{{ false if slider_device == [] else is_slider_enabled }}"
           - condition: template

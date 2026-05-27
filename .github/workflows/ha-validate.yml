@@ -1,5 +1,4 @@
 name: Проверка Blueprints (Home Assistant)
-
 on:
   push:
     branches:
@@ -13,7 +12,6 @@ on:
       - master
     paths:
       - 'loggia/**.yaml' # ИСПРАВЛЕНО
-
 jobs:
   yamllint:
     name: Проверка синтаксиса YAML
@@ -37,7 +35,6 @@ jobs:
               brackets: disable
               comments: disable
               comments-indentation: disable
-
   ha-validation:
     name: Проверка Home Assistant
     runs-on: ubuntu-latest
@@ -45,13 +42,11 @@ jobs:
     steps:
       - name: Скачивание репозитория
         uses: actions/checkout@v4
-
-      - name: Подготовка тестовой среды HA
+      - name: Подготовка тестовой среды HA # ИСПРАВЛЕНО: Убран лишний префикс папки, теперь файлы реально копируются в песочницу для тестов
         run: |
           mkdir -p fake_config/blueprints/automation/test
-          find loggia/ -type f -name "*.yaml" -exec cp {} fake_config/blueprints/automation/test/ \; # ИСПРАВЛЕНО: Убран лишний префикс папки, теперь файлы реально копируются в песочницу для тестов
+          find loggia/ -type f -name "*.yaml" -exec cp {} fake_config/blueprints/automation/test/ \; 
           echo "default_config:" > fake_config/configuration.yaml
-
       - name: Проверка конфигурации через HA CLI
         uses: frenck/action-home-assistant@v1
         continue-on-error: false # Шаг жестко упадет, если в коде будет хоть одна ошибка
