@@ -387,7 +387,7 @@ blueprint:
       input:
         text_rising_setting_sensor:
           name: Текстовый сенсор
-          description: Текстовый сенсор, используемый для отобоажения следующего времени открытия/закрытия штор
+          description: Текстовый сенсор, используемый для отображения следующего времени открытия/закрытия штор
           default: []
           selector:
             entity:
@@ -472,11 +472,10 @@ variables:
     {{ ns.items | min }}
 
   text_helper: |
-    {% set rising = state_attr('sun_sensor','next_rising') if not is_open_until_enabled else up_time %}
+    {% set rising = (state_attr(sun_sensor,'next_rising').strftime('%H:%M:%S') | as_datetime) if not is_open_until_enabled else up_time %}
     {% set rising = rising.split(':')[0] ~ ":" ~ rising.split(':')[1]%}
-    {% set setting = state_attr('sun_sensor','next_setting') if not is_close_until_enabled else down_time %}
+    {% set setting = (state_attr(sun_sensor,'next_setting') | as_datetime).strftime('%H:%M:%S') if not is_close_until_enabled else down_time %}
     {% set setting = setting.split(':')[0] ~ ":" ~ setting.split(':')[1]%}
-    {{ 'Откроются в ' ~ rising if now() > today_at(down_time) else 'Закроются в ' ~ setting }}
 
 triggers:
   - trigger: time
