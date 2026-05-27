@@ -175,7 +175,7 @@ blueprint:
             entity:
               filter:
                 - domain: 
-                  - input_number
+                    - input_number
               multiple: false
 
         set_sun_elevation:
@@ -202,7 +202,7 @@ blueprint:
             entity:
               filter:
                 - domain: 
-                  - input_number
+                    - input_number
               multiple: false
 
     options_section:
@@ -233,7 +233,7 @@ blueprint:
             entity:
               filter:
                 - domain: 
-                  - input_number
+                    - input_number
               multiple: false
 
         set_down_limit:
@@ -260,7 +260,7 @@ blueprint:
             entity:
               filter:
                 - domain: 
-                  - input_number
+                    - input_number
               multiple: false
 
         forecasts:
@@ -403,14 +403,14 @@ trigger_variables:
   is_close_until_enabled: "{{ 'extra_close_until' in automation_extra }}"
 
   is_mqtt_device: "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'mqtt' }}"
-  is_zha_device:  "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'zha'  }}"
+  is_zha_device: "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'zha' }}"
 
 variables:
   workday: "{{ now().weekday() < 5 }}"
   weekend: "{{ not workday }}"
   delay_for_repeat: 1
   is_mqtt_device: "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'mqtt' }}"
-  is_zha_device:  "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'zha' }}"
+  is_zha_device: "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'zha' }}"
 
   up_time: "{{ set_up_time_workday if workday else set_up_time_weekend }}"
   down_time: "{{ set_down_time }}"
