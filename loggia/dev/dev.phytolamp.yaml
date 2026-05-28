@@ -252,7 +252,7 @@ max_exceeded: silent
 trigger_variables:
   automation_extra: !input automation_extra
 
-  phytolamp: !input blinds
+  phytolamp: !input phytolamp
 
   forecast_sensor: !input forecast_sensor
   sun_sensor: !input sun_sensor
@@ -289,17 +289,17 @@ variables:
 
 triggers:
   - trigger: time
-    at: !input set_up_time_workday
+    at: !input set_on_time_workday
     id: on_time_workday_trigger
     enabled: "{{ is_on_until_enabled }}"
 
   - trigger: time
-    at: !input set_up_time_weekend
+    at: !input set_on_time_weekend
     id: on_time_weekend_trigger
     enabled: "{{ is_on_until_enabled }}"
 
   - trigger: time
-    at: !input set_down_time
+    at: !input set_off_time
     id: off_time_trigger
     enabled: "{{ is_off_until_enabled }}"
 
