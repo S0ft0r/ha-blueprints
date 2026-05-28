@@ -298,13 +298,13 @@ triggers:
     at: !input set_off_time
     id: off_time_trigger
 
-  - trigger: sun
-    event: sunrise
-    id: sunrise_trigger
+  # - trigger: sun
+  #   event: sunrise
+  #   id: sunrise_trigger
 
-  - trigger: sun
-    event: sunset
-    id: sunset_trigger
+  # - trigger: sun
+  #   event: sunset
+  #   id: sunset_trigger
 
   - trigger: state
     entity_id: !input forecast_sensor
