@@ -184,8 +184,8 @@ blueprint:
                   value: every_day_morning
                 - label: Через день
                   value: every_over_day_morning
-               - label: Выбор
-                 value: select_morning
+                - label: Выбор
+                  value: select_morning
         set_select_days_evening:
           name: Выбор дней 
           description: Выбор дней
