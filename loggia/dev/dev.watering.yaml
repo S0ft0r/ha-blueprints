@@ -149,7 +149,6 @@ blueprint:
               step: 1
               mode: box
               unit_of_measurement: "сек"
-              mode: dropdown
         set_mode_morning:
           name: Режим работы системы
           default: mode_2_morning
@@ -186,6 +185,7 @@ blueprint:
                   value: every_over_day_morning
                 - label: Выбор
                   value: select_morning
+              mode: dropdown
         set_select_days_evening:
           name: Выбор дней 
           description: Выбор дней
