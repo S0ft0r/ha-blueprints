@@ -297,7 +297,7 @@ triggers:
     value_template: >
       {% set soil_moisture_entity = (device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('search', 'soil_moisture') | list | first ) %}
       {% set debounce_delay = set_debounce_time.split(':')[0] | int(default=0) * 3600 + set_debounce_time.split(':')[1] | int(default=0) * 60 + set_debounce_time.split(':')[2] | int(default=0) %}
-      {% set soil_moisture_low = states(soil_moisture_entities) | int(0) < set_soil_moisture_min %}
+      {% set soil_moisture_low = states(soil_moisture_entity) | int(0) < set_soil_moisture_min %}
       {% set debounce_time_ok = not set_debounce_pause or this.attributes.last_triggered is none or (now() - this.attributes.last_triggered).total_seconds() > debounce_delay %}
       {{ soil_moisture_low and debounce_time_ok }}
     id: plant_state_trigger
