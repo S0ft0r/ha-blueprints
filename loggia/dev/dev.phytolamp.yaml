@@ -243,7 +243,7 @@ blueprint:
               max: 600
               step: 10
               mode: slider
-              unit_of_measurement: "секунд"
+              unit_of_measurement: "сек"
 
 mode: queued
 max: 10
