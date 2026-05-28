@@ -228,6 +228,17 @@ blueprint:
           default: false
           selector:
             boolean: {}
+        set_time_work_plant:
+          name: Включать на
+          description: Время, на которое включается система орошения 
+          default: 1
+          selector:
+            number:
+              min: 1
+              max: 240
+              step: 1
+              mode: box
+              unit_of_measurement: "сек"
         set_soil_moisture_min:
           name: Нижний предел влажности
           description: |
@@ -448,7 +459,7 @@ actions:
             metadata: {}            
             target: !input waterpump
           - delay:
-              seconds: !input set_time_work_morning
+              seconds: !input set_time_work_plant
           - service: homeassistant.turn_off
             metadata: {}            
             target: !input waterpump
