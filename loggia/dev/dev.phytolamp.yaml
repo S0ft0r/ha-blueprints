@@ -52,16 +52,16 @@ blueprint:
           selector:
             select:
               options:
-                - label: Включение/выключения солнца
-                  value: extra_sun_protect
+                - label: Включение/выключение по положнию солнца
+                  value: extra_sun_position
                 - label: Учитывать освещенность
                   value: extra_illuminance
                 - label: Учитывать прогноз погоды
                   value: extra_forecast
-                - label: Ограничение по времени открытия
-                  value: extra_on_until
-                - label: Ограничение по времени закрытия
-                  value: extra_off_until
+                # - label: Ограничение по времени открытия
+                #   value: extra_on_until
+                # - label: Ограничение по времени закрытия
+                #   value: extra_off_until
               sort: false
               multiple: true
               custom_value: false
@@ -95,30 +95,30 @@ blueprint:
               multiple: false
 
     time_section:
-      name: Настройки ограничения по времени
+      name: Настройки управления по времени
       description: |
         Устанавливается время включения/выключения подсветки.
       icon: mdi:clock-time-eight-outline
       input:
         set_on_time_workday:
-          name: Включать подсветку в будни не ранее
+          name: Включать подсветку в будни в
           default: "06:10:00"
           selector:
             time: {}
 
         set_on_time_weekend:
-          name: Включать подсветку в выходные не ранее
+          name: Включать подсветку в выходные в
           default: "07:10:00"
           selector:
             time: {}
 
         set_off_time:
-          name: Выключать подсветку на закате, но не позднее
+          name: Выключать подсветку в
           default: "21:00:00"
           selector:
             time: {}
 
-    sun_protect_section:
+    sun_position_section:
       name: Настройка включения/выключения по положению солнца
       icon: mdi:sun-wireless-outline
       input:
@@ -272,7 +272,7 @@ trigger_variables:
 
   is_forecast_enabled: "{{ forecast_sensor != [] and 'extra_forecast' in automation_extra }}"
   is_illuminance_enabled: "{{ illuminance_sensor != [] and (set_min_illuminance != 0 or set_max_illuminance != 0) and 'extra_illuminance' in automation_extra }}"
-  is_sun_protect_enabled: "{{ (sun_elevation != 0 or sun_azimuth != 0) and 'extra_sun_protect' in automation_extra }}"
+  is_sun_position_enabled: "{{ 'extra_sun_position' in automation_extra }}"
   is_on_until_enabled: "{{ 'extra_on_until' in automation_extra }}"
   is_off_until_enabled: "{{ 'extra_off_until' in automation_extra }}"
 
@@ -324,12 +324,12 @@ triggers:
   - trigger: template
     value_template: "{{ state_attr(sun_sensor,'azimuth') | float > (sun_azimut | int) }}"
     id: sun_azimut_trigger
-    enabled: "{{ is_sun_protect_enabled }}"
+    enabled: "{{ is_sun_position_enabled }}"
 
   - trigger: template
     value_template: "{{ state_attr(sun_sensor,'elevation') | float < (sun_elevation | int) }}"
     id: sun_elevation_trigger
-    enabled: "{{ is_sun_protect_enabled }}"
+    enabled: "{{ is_sun_positiont_enabled }}"
 
 actions:
   - choose:
@@ -387,33 +387,33 @@ actions:
 #
 #########################################################################################################
 
-      - conditions: # Включить
-          - condition: trigger
-            id:
-              - sun_elevation_trigger
-          - condition: template
-            value_template: "{{ now() <= today_at(set_off_time) }}"
-        sequence:
-          - action: homeassistant.turn_on
-            metadata: {}
-            target:
-              entity_id: !input phytolamp
+      # - conditions: # Включить
+      #     - condition: trigger
+      #       id:
+      #         - sun_elevation_trigger
+      #     - condition: template
+      #       value_template: "{{ now() <= today_at(set_off_time) }}"
+      #   sequence:
+      #     - action: homeassistant.turn_on
+      #       metadata: {}
+      #       target:
+      #         entity_id: !input phytolamp
 
-      - conditions: # Выключить
-          - condition: trigger
-            id:
-              - sun_azimut_trigger
-          - condition: template
-            value_template: |
-              {{ true if not is_forecast_enabled else (states(forecast_sensor) in forecasts) }}
-          - condition: template
-            value_template: |
-              {{ true if not is_illuminance_enabled else states(illuminance_sensor) | int >= set_max_illuminance }}
-        sequence:
-          - action: homeassistant.turn_off
-            metadata: {}
-            target:
-              entity_id: !input phytolamp
+      # - conditions: # Выключить
+      #     - condition: trigger
+      #       id:
+      #         - sun_azimut_trigger
+      #     - condition: template
+      #       value_template: |
+      #         {{ true if not is_forecast_enabled else (states(forecast_sensor) in forecasts) }}
+      #     - condition: template
+      #       value_template: |
+      #         {{ true if not is_illuminance_enabled else states(illuminance_sensor) | int >= set_max_illuminance }}
+      #   sequence:
+      #     - action: homeassistant.turn_off
+      #       metadata: {}
+      #       target:
+      #         entity_id: !input phytolamp
 
 #########################################################################################################
 #
@@ -431,7 +431,7 @@ actions:
               {{ states(forecast_sensor) in forecasts }}
           - condition: template
             value_template: |
-              {{ is_sun_protect_enabled and
+              {{ is_sun_position_enabled and
                 (state_attr(sun_sensor,'azimuth') | float(default=45) > sun_azimuth | int
                 and state_attr(sun_sensor,'elevation') | float(default=360) > sun_elevation | int) }}
           - condition: template
@@ -450,7 +450,7 @@ actions:
             target:
               entity_id: !input phytolamp
 
-      - conditions: # Выключить при изменении погоды при включенном пположения
+      - conditions: # Выключить при изменении погоды при включенном положения
           - condition: trigger
             id:
               - forecast_trigger
@@ -459,7 +459,7 @@ actions:
               {{ states(forecast_sensor) not in forecasts }}
           - condition: template
             value_template: |
-              {{ is_sun_protect_enabled and
+              {{ is_sun_position_enabled and
                 (state_attr(sun_sensor,'azimuth') | float(default=45) > sun_azimuth | int
                 and state_attr(sun_sensor,'elevation') | float(default=360) > sun_elevation | int) }}
           - condition: template
@@ -492,7 +492,7 @@ actions:
               {{ this.attributes.last_triggered is none or (now() - this.attributes.last_triggered).total_seconds() > set_illuminance_delay | int }}             
           - condition: template
             value_template: |
-              {{ true if not is_sun_protect_enabled 
+              {{ true if not is_sun_position_enabled 
                 else (state_attr(sun_sensor,'azimuth') | float(default=45) > (sun_azimuth | int) 
                 and state_attr(sun_sensor,'elevation') | float(default=360) > (sun_elevation | int)) }}
           - condition: template
