@@ -317,7 +317,7 @@ triggers:
 
 conditions:
   - condition: template
-    value_template: "{{ true if not plant_protect_global else (states(plant) | int < set_soil_moisture_max) }}"
+    value_template: "{{ true if not global_plant_protect else (states(plant) | int < set_soil_moisture_max) }}"
 
   - condition: template
     value_template: |
