@@ -149,18 +149,6 @@ blueprint:
               step: 1
               mode: box
               unit_of_measurement: "сек"
-        set_working_day_morning:
-          name: Режим включения
-          default: every_day_morning
-          selector:
-            select:
-              options:
-                - label: Ежедневно
-                  value: every_day_morning
-                - label: Через день
-                  value: every_over_day_morning
-#                - label: Выбор
-#                  value: select_morning
               mode: dropdown
         set_mode_morning:
           name: Режим работы системы
@@ -186,6 +174,39 @@ blueprint:
               step: 1
               mode: box
               unit_of_measurement: сек
+        set_working_day_morning:
+          name: Режим включения
+          default: every_day_morning
+          selector:
+            select:
+              options:
+                - label: Ежедневно
+                  value: every_day_morning
+                - label: Через день
+                  value: every_over_day_morning
+               - label: Выбор
+                 value: select_morning
+        set_select_days_evening:
+          name: Выбор дней 
+          description: Выбор дней
+          default: []
+          selector:
+            select:
+              options:
+                - label: Понедельник
+                  value: day_0_morning
+                - label: Вторник
+                  value: day_1_morning
+                - label: Среда
+                  value: day_2_morning
+                - label: Четверг
+                  value: day_3_morning
+                - label: Пятница
+                  value: day_4_morning
+                - label: Суббота
+                  value: day_5_morning
+                - label: Воскресенье
+                  value: day_6_morning
 
     evening_section:
       name: Настройки системы для работы вечером
@@ -214,19 +235,6 @@ blueprint:
               step: 1
               mode: box
               unit_of_measurement: "сек"
-        set_working_day_evening:
-          name: Режим включения вечером
-          default: every_day_evening
-          selector:
-            select:
-              options:
-                - label: Ежедневно
-                  value: every_day_evening
-                - label: Через день
-                  value: every_over_day_evening
-                # - label: Выбор
-                #   value: select_evening
-              mode: dropdown
         set_mode_evening:
           name: Режим работы системы вечером
           default: mode_1_evening
@@ -251,6 +259,44 @@ blueprint:
               step: 1
               mode: box
               unit_of_measurement: сек
+        set_working_day_evening:
+          name: Режим включения вечером
+          default: every_day_evening
+          selector:
+            select:
+              options:
+                - label: Ежедневно
+                  value: every_day_evening
+                - label: Через день
+                  value: every_over_day_evening
+                - label: Выбор
+                  value: select_evening
+              mode: dropdown
+        set_select_days_evening:
+          name: Выбор дней 
+          description: Выбор дней
+          default: []
+          selector:
+            select:
+              options:
+                - label: Понедельник
+                  value: day_0_evening
+                - label: Вторник
+                  value: day_1_evening
+                - label: Среда
+                  value: day_2_evening
+                - label: Четверг
+                  value: day_3_evening
+                - label: Пятница
+                  value: day_4_evening
+                - label: Суббота
+                  value: day_5_evening
+                - label: Воскресенье
+                  value: day_6_evening
+              sort: false
+              multiple: true
+              custom_value: false
+              mode: list
       
 trigger_variables:
   waterpump: !input waterpump
@@ -261,6 +307,9 @@ trigger_variables:
   set_working_day_evening: !input set_working_day_evening
   set_mode_morning: !input set_mode_morning
   set_mode_evening: !input set_mode_evening
+
+  set_select_days_morning: !input set_select_days_morning
+  set_select_days_evening: !input set_select_days_evening
 
   set_debounce_pause: !input set_debounce_pause
   set_debounce_time: !input set_debounce_time
@@ -284,6 +333,9 @@ variables:
     {{ set_debounce_time.split(':')[0] | int(default=0) * 3600 +
       set_debounce_time.split(':')[1] | int(default=0) * 60 +
       set_debounce_time.split(':')[2] | int(default=0) }}
+
+  # select_days_morning: []
+  # select_days_evening: []
 
 triggers:
   - platform: time
@@ -334,6 +386,9 @@ actions:
           - condition: template
             value_template: |
               {{ true if ('every_over_day_morning' not in set_working_day_morning) else ((now().timestamp() / 86400) | int % 2 == 0) }}
+          - condition: template
+            value_template: |
+              {{ true if ('select_evening' not in set_working_day_morning) else ((now().timestamp() / 86400) | int % 2 == 0) }}
         sequence:
           - service: homeassistant.turn_on
             metadata: {}            
