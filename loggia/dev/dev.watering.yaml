@@ -270,8 +270,6 @@ trigger_variables:
   set_soil_moisture_min: !input set_soil_moisture_min
   set_soil_moisture_max: !input set_soil_moisture_max
 
-
-
   global_plant_protect: !input global_plant_protect
 
 #   soil_moisture_entities: "{{ (device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('search', 'soil_moisture') | list | join ) }}"
@@ -283,8 +281,8 @@ variables:
 #   temperature_entities: "{{ (device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('search', 'temperature') | list) | join }}"
 #   humidity_entities: "{{ (device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('search', 'air_humidity') | list) | join }}"
 
-  mode_repeat_morning: "{{ set_mode_morning.split('_')[1] | int - 1 }}"
-  mode_repeat_evening: "{{ set_mode_evening.split('_')[1] | int - 1 }}"
+  mode_repeat_morning: "{{ set_mode_morning.split('_')[1] | int(1) - 1 }}"
+  mode_repeat_evening: "{{ set_mode_evening.split('_')[1] | int(1) - 1 }}"
 
   # debounce_delay: |
   #   {{ set_debounce_time.split(':')[0] | int(default=0) * 3600 +
