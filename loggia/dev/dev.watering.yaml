@@ -274,8 +274,6 @@ trigger_variables:
 
   global_plant_protect: !input global_plant_protect
 
-  is_plant_protect_enabled: "{{ global_plant_protect }}"
-
 #   soil_moisture_entities: "{{ (device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('search', 'soil_moisture') | list | join ) }}"
 
 variables:
@@ -321,7 +319,7 @@ triggers:
 
 conditions:
   - condition: template
-    value_template: "{{ true if not is_plant_protect_enabled else (states(plant) | int < set_soil_moisture_max) }}"
+    value_template: "{{ true if not plant_protect_global else (states(plant) | int < set_soil_moisture_max) }}"
 
   - condition: template
     value_template: |
