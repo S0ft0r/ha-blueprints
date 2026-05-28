@@ -28,33 +28,33 @@ blueprint:
           entity:
             - domain: switch
 #          multiple: false
-    plant:
-      name: Датчик почвы
-      description: Использовать датчик для определения состояния почвы.
-      selector:
-        device:
-          entity:
-            - integration: plant
-#          multiple: false
+#     plant:
+#       name: Датчик почвы
+#       description: Использовать датчик для определения состояния почвы.
+#       selector:
+#         device:
+#           entity:
+#             - integration: plant
+# #          multiple: false
 
-    automation_options:
-      name: Выбор режима работы системы
-      description: |
-        Настройки включения системы орошения. 
-      default:
-        - options_time
-      selector:
-        select:
-          options:
-            # - label: Открытие/закрытие по времени
-            #   value: options_time
-            - label: Включать систему орошения по времени
-              value: options_time
-            - label: Включать по показаниям сенсора почвы
-              value: options_plant
-          multiple: true
-          sort: false
-          custom_value: false
+#     automation_options:
+#       name: Выбор режима работы системы
+#       description: |
+#         Настройки включения системы орошения. 
+#       default:
+#         - options_time
+#       selector:
+#         select:
+#           options:
+#             # - label: Открытие/закрытие по времени
+#             #   value: options_time
+#             - label: Включать систему орошения по времени
+#               value: options_time
+#             - label: Включать по показаниям сенсора почвы
+#               value: options_plant
+#           multiple: true
+#           sort: false
+#           custom_value: false
 
 
     # automation_section:
@@ -87,160 +87,160 @@ blueprint:
         Устанавливается время включения системы орошения.
       icon: mdi:clock-time-eight-outline
       input:
-        # options_time:
-        #   name: Включать систему орошения по времени
-        #   default: true
+        # # options_time:
+        # #   name: Включать систему орошения по времени
+        # #   default: true
+        # #   selector:
+        # #     boolean: {}
+        # set_plant_sensor_state:
+        #   name: Учитывать показания сенсора почвы
+        #   default: false
         #   selector:
         #     boolean: {}
-        set_plant_sensor_state:
-          name: Учитывать показания сенсора почвы
-          default: false
-          selector:
-            boolean: {}
-        set_on_time_morning:
-          name: Включить утром в
-          default: "08:00:00"
-          selector:
-            time: {}
+        # set_on_time_morning:
+        #   name: Включить утром в
+        #   default: "08:00:00"
+        #   selector:
+        #     time: {}
         set_on_time_evening:
           name: Включить вечером в
           default: "20:00:00"
           selector:
             time: {}
       
-    plant_section:
-      name: Настройки управления по показания датчика почвы
-      description: |
-        Настройки датчика почвы.
-      icon: mdi:flower-tulip-outline
-      input:
-        # options_plant:
-          # name: Включать систему орошения по показания датчика
-          # default: false
-          # selector:
-          #   boolean: {}
-        set_soil_moisture_min:
-          name: Нижний предел влажности
-          description: |
-            Включение системы орошения при понижении предела влажности почвы.
-            <small>* При включенной опции <em>Включать по показаниям сенсора почвы</em></small> 
-          default: 1
-          selector:
-            number:
-              min: 1
-              max: 100
-              step: 1
-              mode: slider
-              unit_of_measurement: "%"
-        set_soil_moisture_max:
-          name: Верхний предел влажности
-          description: При привышении предела влажности почвы система орошения включаться не будет.
-          default: 1
-          selector:
-            number:
-              min: 1
-              max: 100
-              step: 1
-              mode: slider
-              unit_of_measurement: "%"
-        set_debounce_pause:
-          name: Включить защиту от перелива
-          default: false
-          selector:
-            boolean: {}
-        set_debounce_time:
-          name: Пауза перед запуском
-          description: > 
-            Пауза перед следующем включением автоматизации. Используется только в режиме включения по показаниям датчика почвы 
-            <small>* Для защиты от перелива при медленном изменении показаний датчика почвы
-          default: "00:10:00"
-          selector:
-            time: {}
+    # plant_section:
+    #   name: Настройки управления по показания датчика почвы
+    #   description: |
+    #     Настройки датчика почвы.
+    #   icon: mdi:flower-tulip-outline
+    #   input:
+    #     # options_plant:
+    #       # name: Включать систему орошения по показания датчика
+    #       # default: false
+    #       # selector:
+    #       #   boolean: {}
+    #     set_soil_moisture_min:
+    #       name: Нижний предел влажности
+    #       description: |
+    #         Включение системы орошения при понижении предела влажности почвы.
+    #         <small>* При включенной опции <em>Включать по показаниям сенсора почвы</em></small> 
+    #       default: 1
+    #       selector:
+    #         number:
+    #           min: 1
+    #           max: 100
+    #           step: 1
+    #           mode: slider
+    #           unit_of_measurement: "%"
+    #     set_soil_moisture_max:
+    #       name: Верхний предел влажности
+    #       description: При привышении предела влажности почвы система орошения включаться не будет.
+    #       default: 1
+    #       selector:
+    #         number:
+    #           min: 1
+    #           max: 100
+    #           step: 1
+    #           mode: slider
+    #           unit_of_measurement: "%"
+    #     set_debounce_pause:
+    #       name: Включить защиту от перелива
+    #       default: false
+    #       selector:
+    #         boolean: {}
+    #     set_debounce_time:
+    #       name: Пауза перед запуском
+    #       description: > 
+    #         Пауза перед следующем включением автоматизации. Используется только в режиме включения по показаниям датчика почвы 
+    #         <small>* Для защиты от перелива при медленном изменении показаний датчика почвы
+    #       default: "00:10:00"
+    #       selector:
+    #         time: {}
 
-    mode_section:
-      name: Настройки режимов работы системы
-      description: |
-        Настройка.
-      icon: mdi:cog
-      input:
-        set_working_day_morning:
-          name: Режим включения утром
-          default: every_day_morning
-          selector:
-            select:
-              options:
-                # - label: Выключено
-                #   value: off_morning
-                - label: Ежедневно
-                  value: every_day_morning
-                - label: Через день
-                  value: every_over_day_morning
-                - label: Выбор
-                  value: select_morning
-              mode: dropdown
-        set_mode_morning:
-          name: Режим работы системы утром
-          default: mode_2_morning
-          selector:
-            select:
-              options:
-                - label: Однократно
-                  value: mode_1_morning
-                - label: Дважды с паузой
-                  value: mode_2_morning
-                - label: Трижды с паузой
-                  value: mode_3_morning
-              mode: dropdown
-        set_mode_work:
-          name: Включать на
-          description: Время, на которе включается система орошения 
-          default: 1
-          selector:
-            number:
-              min: 1
-              max: 240
-              step: 1
-              mode: box
-              unit_of_measurement: сек
-        set_working_day_evening:
-          name: Режим включения вечером
-          default: every_day_evening
-          selector:
-            select:
-              options:
-                # - label: Выключено
-                #   value: off_evening
-                - label: Ежедневно
-                  value: every_day_evening
-                - label: Через день
-                  value: every_over_day_evening
-                - label: Выбор
-                  value: select_evening
-              mode: dropdown
-        set_mode_evening:
-          name: Режим работы системы вечером
-          default: mode_1_evening
-          selector:
-            select:
-              options:
-                - label: Однократно
-                  value: mode_1_evening
-                - label: Дважды с паузой
-                  value: mode_2_evening
-                - label: Трижды с паузой
-                  value: mode_3_evening
-              mode: dropdown
-        set_mode_pause:
-          name: Величина паузы
-          description: Величина паузы между включениями при режимах работы с паузами 
-          default: 1
-          selector:
-            number:
-              min: 1
-              max: 240
-              step: 1
-              mode: box
-              unit_of_measurement: сек
+    # mode_section:
+    #   name: Настройки режимов работы системы
+    #   description: |
+    #     Настройка.
+    #   icon: mdi:cog
+    #   input:
+    #     set_working_day_morning:
+    #       name: Режим включения утром
+    #       default: every_day_morning
+    #       selector:
+    #         select:
+    #           options:
+    #             # - label: Выключено
+    #             #   value: off_morning
+    #             - label: Ежедневно
+    #               value: every_day_morning
+    #             - label: Через день
+    #               value: every_over_day_morning
+    #             - label: Выбор
+    #               value: select_morning
+    #           mode: dropdown
+    #     set_mode_morning:
+    #       name: Режим работы системы утром
+    #       default: mode_2_morning
+    #       selector:
+    #         select:
+    #           options:
+    #             - label: Однократно
+    #               value: mode_1_morning
+    #             - label: Дважды с паузой
+    #               value: mode_2_morning
+    #             - label: Трижды с паузой
+    #               value: mode_3_morning
+    #           mode: dropdown
+    #     set_mode_work:
+    #       name: Включать на
+    #       description: Время, на которе включается система орошения 
+    #       default: 1
+    #       selector:
+    #         number:
+    #           min: 1
+    #           max: 240
+    #           step: 1
+    #           mode: box
+    #           unit_of_measurement: сек
+    #     set_working_day_evening:
+    #       name: Режим включения вечером
+    #       default: every_day_evening
+    #       selector:
+    #         select:
+    #           options:
+    #             # - label: Выключено
+    #             #   value: off_evening
+    #             - label: Ежедневно
+    #               value: every_day_evening
+    #             - label: Через день
+    #               value: every_over_day_evening
+    #             - label: Выбор
+    #               value: select_evening
+    #           mode: dropdown
+    #     set_mode_evening:
+    #       name: Режим работы системы вечером
+    #       default: mode_1_evening
+    #       selector:
+    #         select:
+    #           options:
+    #             - label: Однократно
+    #               value: mode_1_evening
+    #             - label: Дважды с паузой
+    #               value: mode_2_evening
+    #             - label: Трижды с паузой
+    #               value: mode_3_evening
+    #           mode: dropdown
+    #     set_mode_pause:
+    #       name: Величина паузы
+    #       description: Величина паузы между включениями при режимах работы с паузами 
+    #       default: 1
+    #       selector:
+    #         number:
+    #           min: 1
+    #           max: 240
+    #           step: 1
+    #           mode: box
+    #           unit_of_measurement: сек
 
     # rainwater_section:
     #   name: Настройки детектора дождя
@@ -262,42 +262,42 @@ blueprint:
 
 trigger_variables:
   waterpump: !input waterpump
-  plant: !input plant
-#  rain: !input rain
+#   plant: !input plant
+# #  rain: !input rain
 
-  automation_options: !input automation_options
+#   automation_options: !input automation_options
 
-  set_working_day_morning: !input set_working_day_morning
-  set_working_day_evening: !input set_working_day_evening
-  set_mode_morning: !input set_mode_morning
-  set_mode_evening: !input set_mode_evening
+#   set_working_day_morning: !input set_working_day_morning
+#   set_working_day_evening: !input set_working_day_evening
+#   set_mode_morning: !input set_mode_morning
+#   set_mode_evening: !input set_mode_evening
 
-  set_debounce_pause: !input set_debounce_pause
-  set_debounce_time: !input set_debounce_time
-
-
-  set_plant_sensor_state: !input set_plant_sensor_state
-  set_soil_moisture_min: !input set_soil_moisture_min
-  set_soil_moisture_max: !input set_soil_moisture_max
-
-  # options_time: !input options_time
-  # options_plant: !input options_plant
-
-  is_on_time_enabled: "{{ 'options_time' in automation_options }}"
-  is_plant_state_enabled: "{{ 'options_plant' in automation_options }}"
-
-  soil_moisture_entities: "{{ (device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('search', 'soil_moisture') | list | join ) }}"
+#   set_debounce_pause: !input set_debounce_pause
+#   set_debounce_time: !input set_debounce_time
 
 
-variables:
-#  waterpump_entities: "{{ device_entities(waterpump.device_id) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'switch.') | list + waterpump.entity_id}}"
+#   set_plant_sensor_state: !input set_plant_sensor_state
+#   set_soil_moisture_min: !input set_soil_moisture_min
+#   set_soil_moisture_max: !input set_soil_moisture_max
 
-  soil_moisture_entities: "{{ (device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('search', 'soil_moisture') | list | join ) }}"
-  temperature_entities: "{{ (device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('search', 'temperature') | list) | join }}"
-  humidity_entities: "{{ (device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('search', 'air_humidity') | list) | join }}"
+#   # options_time: !input options_time
+#   # options_plant: !input options_plant
 
-  mode_repeat_morning: "{{ set_mode_morning.split('_')[1] | int - 1 }}"
-  mode_repeat_evening: "{{ set_mode_evening.split('_')[1] | int - 1 }}"
+#   is_on_time_enabled: "{{ 'options_time' in automation_options }}"
+#   is_plant_state_enabled: "{{ 'options_plant' in automation_options }}"
+
+#   soil_moisture_entities: "{{ (device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('search', 'soil_moisture') | list | join ) }}"
+
+
+# variables:
+# #  waterpump_entities: "{{ device_entities(waterpump.device_id) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'switch.') | list + waterpump.entity_id}}"
+
+#   soil_moisture_entities: "{{ (device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('search', 'soil_moisture') | list | join ) }}"
+#   temperature_entities: "{{ (device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('search', 'temperature') | list) | join }}"
+#   humidity_entities: "{{ (device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('search', 'air_humidity') | list) | join }}"
+
+#   mode_repeat_morning: "{{ set_mode_morning.split('_')[1] | int - 1 }}"
+#   mode_repeat_evening: "{{ set_mode_evening.split('_')[1] | int - 1 }}"
 
 triggers:
 #   - platform: time
