@@ -437,9 +437,6 @@ trigger_variables:
   is_open_until_enabled: "{{ 'extra_opening_until' in automation_extra }}"
   is_close_until_enabled: "{{ 'extra_close_until' in automation_extra }}"
 
-  is_mqtt_device: "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'mqtt' }}"
-  is_zha_device: "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'zha' }}"
-
 variables:
   workday: "{{ now().weekday() < 5 }}"
   weekend: "{{ not workday }}"
