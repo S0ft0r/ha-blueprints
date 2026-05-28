@@ -31,9 +31,11 @@ blueprint:
       name: Датчик почвы
       description: Использовать датчик для определения состояния почвы.
       selector:
-        device:
-          entity:
+        entity:
+          filter:
             - integration: plant
+              domain: sensor
+              device_class: moisture
     global_plant_protect:
       name: Учитывать показания датчика состояния почвы при включение системы в назначенное время
       default: false
