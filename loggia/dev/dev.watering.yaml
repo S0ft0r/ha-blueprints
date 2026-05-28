@@ -186,7 +186,7 @@ blueprint:
                 - label: Выбор
                   value: select_morning
               mode: dropdown
-        set_select_days_evening:
+        set_select_days_morning:
           name: Выбор дней 
           description: Выбор дней
           default: []
