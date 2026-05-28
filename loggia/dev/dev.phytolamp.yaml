@@ -270,9 +270,9 @@ trigger_variables:
   set_max_illuminance: !input set_max_illuminance
   set_illuminance_delay: !input set_illuminance_delay
 
-  is_forecast_enabled: "{{ forecast_sensor != [] and 'extra_forecast' in automation_extra }}"
-  is_illuminance_enabled: "{{ illuminance_sensor != [] and (set_min_illuminance != 0 or set_max_illuminance != 0) and 'extra_illuminance' in automation_extra }}"
-  is_sun_position_enabled: "{{ 'extra_sun_position' in automation_extra }}"
+  # is_forecast_enabled: "{{ forecast_sensor != [] and 'extra_forecast' in automation_extra }}"
+  # is_illuminance_enabled: "{{ illuminance_sensor != [] and (set_min_illuminance != 0 or set_max_illuminance != 0) and 'extra_illuminance' in automation_extra }}"
+  # is_sun_position_enabled: "{{ 'extra_sun_position' in automation_extra }}"
 
 variables:
   workday: "{{ now().weekday() < 5 }}"
