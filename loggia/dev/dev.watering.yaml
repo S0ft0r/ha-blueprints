@@ -424,8 +424,6 @@ variables:
   mode_repeat_morning: "{{ set_mode_morning.split('_')[1] | int - 1 }}"
   mode_repeat_evening: "{{ set_mode_evening.split('_')[1] | int - 1 }}"
 
-
-
 triggers:
   - platform: time
     at: !input set_on_time_morning
