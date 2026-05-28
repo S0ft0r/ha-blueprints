@@ -300,6 +300,12 @@ triggers:
     id: on_time_evening_trigger
     enabled: !input evening_enabled
 
+  - platform: numeric_state
+    below: !input set_soil_moisture_min
+    entity_id: >-
+      {% set entity = (device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('search', 'soil_moisture') | list | first ) %}
+      {{ entity }}      
+
   - platform: template
     value_template: >-
       {% set entity = (device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('search', 'soil_moisture') | list | first ) %}
