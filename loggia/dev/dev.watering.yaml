@@ -207,6 +207,10 @@ blueprint:
                   value: day_5_morning
                 - label: Воскресенье
                   value: day_6_morning
+              sort: false
+              multiple: true
+              custom_value: false
+              mode: list
 
     evening_section:
       name: Настройки системы для работы вечером
@@ -386,9 +390,9 @@ actions:
           - condition: template
             value_template: |
               {{ true if ('every_over_day_morning' not in set_working_day_morning) else ((now().timestamp() / 86400) | int % 2 == 0) }}
-          - condition: template
-            value_template: |
-              {{ true if ('select_evening' not in set_working_day_morning) else ((now().timestamp() / 86400) | int % 2 == 0) }}
+          # - condition: template
+          #   value_template: |
+          #     {{ true if ('select_evening' not in set_working_day_morning) else ((now().timestamp() / 86400) | int % 2 == 0) }}
         sequence:
           - service: homeassistant.turn_on
             metadata: {}            
