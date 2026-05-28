@@ -270,6 +270,8 @@ trigger_variables:
   set_soil_moisture_min: !input set_soil_moisture_min
   set_soil_moisture_max: !input set_soil_moisture_max
 
+
+
   global_plant_protect: !input global_plant_protect
 
   is_plant_protect_enabled: "{{ global_plant_protect }}"
@@ -319,7 +321,7 @@ triggers:
 
 conditions:
   - condition: template
-    value_template: "{{ true if not is_plant_protect_enabled else (states(soil_moisture_entity) | int < set_soil_moisture_max) }}"
+    value_template: "{{ true if not is_plant_protect_enabled else (states(plant) | int < set_soil_moisture_max) }}"
 
   - condition: template
     value_template: |
