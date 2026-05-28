@@ -412,7 +412,7 @@ variables:
   debounce_delay: |
     {{ set_debounce_time.split(':')[0] | int(default=0) * 3600 +
       set_debounce_time.split(':')[1] | int(default=0) * 60 +
-      set_debounce_time.split(':')[2] | int(default=0)) }}
+      set_debounce_time.split(':')[2] | int(default=0) }}
 
 
 triggers:
