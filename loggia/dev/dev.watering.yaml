@@ -280,10 +280,10 @@ variables:
 #   temperature_entities: "{{ (device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('search', 'temperature') | list) | join }}"
 #   humidity_entities: "{{ (device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('search', 'air_humidity') | list) | join }}"
 
-  # debounce_delay: |
-  #   {{ set_debounce_time.split(':')[0] | int(default=0) * 3600 +
-  #     set_debounce_time.split(':')[1] | int(default=0) * 60 +
-  #     set_debounce_time.split(':')[2] | int(default=0) }}
+  debounce_delay: |
+    {{ set_debounce_time.split(':')[0] | int(default=0) * 3600 +
+      set_debounce_time.split(':')[1] | int(default=0) * 60 +
+      set_debounce_time.split(':')[2] | int(default=0) }}
 
 triggers:
   - platform: time
@@ -296,20 +296,14 @@ triggers:
     id: on_time_evening_trigger
     enabled: !input evening_enabled
 
-  - platform: numeric_state
-    below: !input set_soil_moisture_min
+  - platform: state
     entity_id: !input plant
     id: plant_state_trigger
     enabled: !input plant_enabled
 
-# conditions:
-#   - condition: template
-#     value_template: "{{ true if not global_plant_protect else (states(plant) | int < set_soil_moisture_max) }}"
-
-  # - condition: template
-  #   value_template: |
-  #     {% set delay = set_debounce_time.split(':')[0] | int(default=0) * 3600 + set_debounce_time.split(':')[1] | int(default=0) * 60 + set_debounce_time.split(':')[2] | int(default=0) %}
-  #     {{ true if (trigger.id != 'plant_state_trigger') else (not set_debounce_pause or this.attributes.last_triggered is none or (now() - this.attributes.last_triggered).total_seconds() > delay) }}
+conditions:
+  - condition: template
+    value_template: "{{ true if not global_plant_protect else (states(plant) | int < set_soil_moisture_max) }}"
 
 actions:
   - choose:
@@ -317,6 +311,12 @@ actions:
           - condition: trigger
             id:
               - plant_state_trigger
+          - condition: numeric_state
+            entity_id: !input plant
+            below: !input set_soil_moisture_min
+          - condition: template
+            value_template: |
+              {{ true if (trigger.id != 'plant_state_trigger') else (not set_debounce_pause or this.attributes.last_triggered is none or (now() - this.attributes.last_triggered).total_seconds() > debounce_delay) }}
         sequence:
           - service: homeassistant.turn_on
             metadata: {}            
