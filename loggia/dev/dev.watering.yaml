@@ -290,7 +290,7 @@ trigger_variables:
 
 
 variables:
-  waterpump_entities: "{{ device_entities(waterpump.device_id) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'switch.') | list + waterpump.entity_id}}"
+#  waterpump_entities: "{{ device_entities(waterpump.device_id) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'switch.') | list + waterpump.entity_id}}"
 
   soil_moisture_entities: "{{ (device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('search', 'soil_moisture') | list | join ) }}"
   temperature_entities: "{{ (device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('search', 'temperature') | list) | join }}"
@@ -300,21 +300,21 @@ variables:
   mode_repeat_evening: "{{ set_mode_evening.split('_')[1] | int - 1 }}"
 
 triggers:
-  - platform: time
-    at: !input set_on_time_morning
-    id: on_time_morning_trigger
- #   enabled: "{{ is_on_time_enabled }}"
+#   - platform: time
+#     at: !input set_on_time_morning
+#     id: on_time_morning_trigger
+#  #   enabled: "{{ is_on_time_enabled }}"
 
   - platform: time
     at: !input set_on_time_evening
     id: on_time_evening_trigger
 #    enabled: "{{ is_on_time_enabled }}"
 
-  - platform: template
-    value_template: >
-      {{ false if plant == [] else states(soil_moisture_entities) | int < set_soil_moisture_min }}
-    id: plant_state_trigger
- #   enabled: "{{ is_plant_state_enabled }}"
+#   - platform: template
+#     value_template: >
+#       {{ false if plant == [] else states(soil_moisture_entities) | int < set_soil_moisture_min }}
+#     id: plant_state_trigger
+#  #   enabled: "{{ is_plant_state_enabled }}"
 
 actions:
   - choose:
@@ -416,9 +416,9 @@ actions:
           # - condition: template
           #   value_template: >
           #     {{ 'off_evening' not in set_working_day_evening }}
-          - condition: template
-            value_template: >
-              {{ true if not set_plant_sensor_state else (states(soil_moisture_entities) | int < set_soil_moisture_max) }}
+          # - condition: template
+          #   value_template: >
+          #     {{ true if not set_plant_sensor_state else (states(soil_moisture_entities) | int < set_soil_moisture_max) }}
         sequence:
           # - repeat:
           #     for_each: "{{ waterpump_entities }}"

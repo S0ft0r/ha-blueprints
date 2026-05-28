@@ -471,6 +471,21 @@ variables:
     {% endfor %}
     {{ ns.items | min }}
 
+  maxpp: |
+    {% set ns = namespace(items=[]) %}
+    {% for item in blinds_for_protect %}
+      {% set ns.items = ns.items + [state_attr(item,'current_position')] %}
+    {% endfor %}
+    {{ ns.items | max }}
+  minpp: |
+    {% set ns = namespace(items=[]) %}
+    {% for item in blinds_for_protect %}
+      {% set ns.items = ns.items + [state_attr(item,'current_position')] %}
+    {% endfor %}
+    {{ ns.items | min }}
+
+  error: "{{ minp != maxp and minpp != maxpp }}"
+
   text_helper: |
     {% set rising = (state_attr(sun_sensor,'next_rising').strftime('%H:%M:%S') | as_datetime | as_local) if not is_open_until_enabled else up_time %}
     {% set rising = rising.split(':')[0] ~ ":" ~ rising.split(':')[1]%}
