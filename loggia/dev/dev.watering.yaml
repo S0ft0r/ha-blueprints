@@ -324,11 +324,9 @@ triggers:
 #     id: plant_state_trigger
 #  #   enabled: "{{ is_plant_state_enabled }}"
 
-conditions:
-  - condition: template
-    value_template: |
-      {{ true if not is_plant_protect else (states(soil_moisture_entities) | int < set_soil_moisture_max) }}
-
+# conditions:
+#   - condition: template
+#     value_template: "{{ true if not is_plant_protect_enabled else (states(soil_moisture_entities) | int < set_soil_moisture_max) }}"
 
 actions:
   - choose:
