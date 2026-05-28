@@ -433,7 +433,8 @@ actions:
             metadata: {}            
             target: !input waterpump
           - delay:
-              seconds: !input set_mode_work
+#              seconds: !input set_mode_work
+              seconds: 1
           - service: homeassistant.turn_off
             metadata: {}            
             target: !input waterpump
