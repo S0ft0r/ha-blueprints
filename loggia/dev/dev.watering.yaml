@@ -87,7 +87,7 @@ blueprint:
       name: Настройки системы для работы утром
       description: |
         Устанавливается время включения, режим работы системы орошения.
-      icon: mdi:clock-time-
+      icon: mdi:clock-time-four-outline
       input:
         morning_enabled:
           name: Включать систему орошения утром
@@ -99,6 +99,56 @@ blueprint:
           default: "08:00:00"
           selector:
             time: {}
+        set_time_work_morning:
+          name: Включать на
+          description: Время, на которе включается система орошения 
+          default: 1
+          selector:
+            number:
+              min: 1
+              max: 240
+              step: 1
+              mode: box
+              unit_of_measurement: "секунд"
+        set_working_day_morning:
+          name: Режим включения
+          default: every_day_morning
+          selector:
+            select:
+              options:
+                # - label: Выключено
+                #   value: off_morning
+                - label: Ежедневно
+                  value: every_day_morning
+                - label: Через день
+                  value: every_over_day_morning
+#                - label: Выбор
+#                  value: select_morning
+              mode: dropdown
+        set_mode_morning:
+          name: Режим работы системы
+          default: mode_2_morning
+          selector:
+            select:
+              options:
+                - label: Однократно
+                  value: mode_1_morning
+                - label: Дважды с паузой
+                  value: mode_2_morning
+                - label: Трижды с паузой
+                  value: mode_3_morning
+              mode: dropdown
+        set_mode_pause_morning:
+          name: Величина паузы
+          description: Величина паузы между включениями при режимах работы с паузами 
+          default: 1
+          selector:
+            number:
+              min: 1
+              max: 240
+              step: 1
+              mode: box
+              unit_of_measurement: сек
 
     evening_section:
       name: Настройки системы для работы вечером
@@ -116,6 +166,56 @@ blueprint:
           default: "20:00:00"
           selector:
             time: {}
+        set_time_work_evening:
+          name: Включать на
+          description: Время, на которое включается система орошения 
+          default: 1
+          selector:
+            number:
+              min: 1
+              max: 240
+              step: 1
+              mode: box
+              unit_of_measurement: "секунд"
+        set_working_day_evening:
+          name: Режим включения вечером
+          default: every_day_evening
+          selector:
+            select:
+              options:
+                # - label: Выключено
+                #   value: off_evening
+                - label: Ежедневно
+                  value: every_day_evening
+                - label: Через день
+                  value: every_over_day_evening
+                # - label: Выбор
+                #   value: select_evening
+              mode: dropdown
+        set_mode_evening:
+          name: Режим работы системы вечером
+          default: mode_1_evening
+          selector:
+            select:
+              options:
+                - label: Однократно
+                  value: mode_1_evening
+                - label: Дважды с паузой
+                  value: mode_2_evening
+                - label: Трижды с паузой
+                  value: mode_3_evening
+              mode: dropdown
+        set_mode_pause_evening:
+          name: Величина паузы
+          description: Величина паузы между включениями при режимах работы с паузами 
+          default: 1
+          selector:
+            number:
+              min: 1
+              max: 240
+              step: 1
+              mode: box
+              unit_of_measurement: сек
       
     plant_section:
       name: Настройки управления по показания датчика почвы
@@ -152,7 +252,7 @@ blueprint:
               step: 1
               mode: slider
               unit_of_measurement: "%"
-    #     set_debounce_pause:
+     #     set_debounce_pause:
     #       name: Включить защиту от перелива
     #       default: false
     #       selector:
@@ -276,10 +376,10 @@ trigger_variables:
 
   automation_options: !input automation_options
 
-#   set_working_day_morning: !input set_working_day_morning
-#   set_working_day_evening: !input set_working_day_evening
-#   set_mode_morning: !input set_mode_morning
-#   set_mode_evening: !input set_mode_evening
+  set_working_day_morning: !input set_working_day_morning
+  set_working_day_evening: !input set_working_day_evening
+  set_mode_morning: !input set_mode_morning
+  set_mode_evening: !input set_mode_evening
 
 #   set_debounce_pause: !input set_debounce_pause
 #   set_debounce_time: !input set_debounce_time
@@ -306,8 +406,8 @@ variables:
 #   temperature_entities: "{{ (device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('search', 'temperature') | list) | join }}"
 #   humidity_entities: "{{ (device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('search', 'air_humidity') | list) | join }}"
 
-#   mode_repeat_morning: "{{ set_mode_morning.split('_')[1] | int - 1 }}"
-#   mode_repeat_evening: "{{ set_mode_evening.split('_')[1] | int - 1 }}"
+  mode_repeat_morning: "{{ set_mode_morning.split('_')[1] | int - 1 }}"
+  mode_repeat_evening: "{{ set_mode_evening.split('_')[1] | int - 1 }}"
 
 triggers:
   - platform: time
@@ -381,8 +481,7 @@ actions:
             metadata: {}            
             target: !input waterpump
           - delay:
-#              seconds: !input set_mode_work
-              seconds: 1
+              seconds: !input set_time_work_morning
           - service: homeassistant.turn_off
             metadata: {}            
             target: !input waterpump
@@ -406,11 +505,20 @@ actions:
 #                   target:
 #                     entity_id: >
 #                       {{ repeat.item if repeat is defined else '' }}
-#           - repeat:
-#               count: "{{ mode_repeat_morning }}"
-#               sequence:
-#                 - delay:
-#                     seconds: !input set_mode_pause
+          - repeat:
+              count: "{{ mode_repeat_morning }}"
+              sequence:
+                - delay:
+                    seconds: !input set_mode_pause_morning
+                - service: homeassistant.turn_on
+                  metadata: {}            
+                  target: !input waterpump
+                - delay:
+                    seconds: !input set_time_work_morning
+                - service: homeassistant.turn_off
+                  metadata: {}            
+                  target: !input waterpump
+
 #                 - repeat:
 #                     for_each: "{{ waterpump_entities }}"
 #                     # for_each: !input waterpump
@@ -456,11 +564,23 @@ actions:
             metadata: {}            
             target: !input waterpump
           - delay:
-#              seconds: !input set_mode_work
-              seconds: 1
+              seconds: !input set_time_work_evening
           - service: homeassistant.turn_off
             metadata: {}            
             target: !input waterpump
+          - repeat:
+              count: "{{ mode_repeat_evening }}"
+              sequence:
+                - delay:
+                    seconds: !input set_mode_pause_evening
+                - service: homeassistant.turn_on
+                  metadata: {}            
+                  target: !input waterpump
+                - delay:
+                    seconds: !input set_time_work_evening
+                - service: homeassistant.turn_off
+                  metadata: {}            
+                  target: !input waterpump
           # - repeat:
           #     for_each: "{{ waterpump_entities }}"
           #     # for_each: !input waterpump
