@@ -257,8 +257,6 @@ trigger_variables:
   plant: !input plant
 # #  rain: !input rain
 
-#  automation_options: !input automation_options
-
   set_working_day_morning: !input set_working_day_morning
   set_working_day_evening: !input set_working_day_evening
   set_mode_morning: !input set_mode_morning
@@ -272,17 +270,15 @@ trigger_variables:
 
   global_plant_protect: !input global_plant_protect
 
-#   soil_moisture_entities: "{{ (device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('search', 'soil_moisture') | list | join ) }}"
-
 variables:
+  mode_repeat_morning: "{{ set_mode_morning.split('_')[1] | int(1) - 1 }}"
+  mode_repeat_evening: "{{ set_mode_evening.split('_')[1] | int(1) - 1 }}"
+
 #  waterpump_entities: "{{ device_entities(waterpump.device_id) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'switch.') | list + waterpump.entity_id}}"
 
   # soil_moisture_entity: "{{ (device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('search', 'soil_moisture') | list | first ) }}"
 #   temperature_entities: "{{ (device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('search', 'temperature') | list) | join }}"
 #   humidity_entities: "{{ (device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('search', 'air_humidity') | list) | join }}"
-
-  mode_repeat_morning: "{{ set_mode_morning.split('_')[1] | int(1) - 1 }}"
-  mode_repeat_evening: "{{ set_mode_evening.split('_')[1] | int(1) - 1 }}"
 
   # debounce_delay: |
   #   {{ set_debounce_time.split(':')[0] | int(default=0) * 3600 +
@@ -303,15 +299,6 @@ triggers:
   - platform: numeric_state
     below: !input set_soil_moisture_min
     entity_id: !input plant
-#       {% set entity = (device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('search', 'soil_moisture') | list | first ) %}
-#       {{ entity }}      
-
-#   - platform: template
-#     value_template: >-
-#       {% set entity = (device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('search', 'soil_moisture') | list | first ) %}
-#       {{ states(entity) | int(0) <= set_soil_moisture_min | int(0) }} 
-# #      {% set debounce_time_ok =  %}
-#     #and debounce_time_ok }}
     id: plant_state_trigger
     enabled: !input plant_enabled
 
@@ -319,10 +306,10 @@ conditions:
   - condition: template
     value_template: "{{ true if not global_plant_protect else (states(plant) | int < set_soil_moisture_max) }}"
 
-  - condition: template
-    value_template: |
-      {% set delay = set_debounce_time.split(':')[0] | int(default=0) * 3600 + set_debounce_time.split(':')[1] | int(default=0) * 60 + set_debounce_time.split(':')[2] | int(default=0) %}
-      {{ true if (trigger.id != 'plant_state_trigger') else (not set_debounce_pause or this.attributes.last_triggered is none or (now() - this.attributes.last_triggered).total_seconds() > delay) }}
+  # - condition: template
+  #   value_template: |
+  #     {% set delay = set_debounce_time.split(':')[0] | int(default=0) * 3600 + set_debounce_time.split(':')[1] | int(default=0) * 60 + set_debounce_time.split(':')[2] | int(default=0) %}
+  #     {{ true if (trigger.id != 'plant_state_trigger') else (not set_debounce_pause or this.attributes.last_triggered is none or (now() - this.attributes.last_triggered).total_seconds() > delay) }}
 
 actions:
   - choose:
