@@ -326,19 +326,14 @@ actions:
           - service: homeassistant.turn_off
             metadata: {}            
             target: !input waterpump
-#           - if:
-#               - condition: template
-#                 value_template: "{{ set_debounce_pause }}"
-#             then:
-#               - delay: 
-#                   hours: "{{ set_debounce_time.split(':')[0] | int(default=0) }}"
-#                   minutes: "{{ set_debounce_time.split(':')[1] | int(default=0) }}"
-#                   seconds: "{{ set_debounce_time.split(':')[2] | int(default=0) }}"
 
       - conditions: # Время включения утром
           - condition: trigger
             id:
               - on_time_morning_trigger
+          - condition: template
+            value_template: |
+              {{ true if ('every_over_day_morning' not in set_working_day_morning) else ((now().timestamp() / 86400) | int % 2 == 0) }}
         sequence:
           - service: homeassistant.turn_on
             metadata: {}            
@@ -366,6 +361,9 @@ actions:
           - condition: trigger
             id:
               - on_time_evening_trigger
+          - condition: template
+            value_template: |
+              {{ true if ('every_over_day_evening' not in set_working_day_evening) else ((now().timestamp() / 86400) | int % 2 == 0) }}
         sequence:
           - service: homeassistant.turn_on
             metadata: {}            
