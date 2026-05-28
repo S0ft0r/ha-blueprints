@@ -433,7 +433,7 @@ actions:
               {{ true if ('every_over_day_evening' not in set_working_day_evening) else ((now().timestamp() / 86400) | int % 2 == 0) }}
           - condition: template
             value_template: |
-              {{ true if ('select_evening not in set_working_day_evening) else selected_days_evening }}
+              {{ true if ('select_evening' not in set_working_day_evening) else selected_days_evening }}
         sequence:
           - service: homeassistant.turn_on
             metadata: {}            
