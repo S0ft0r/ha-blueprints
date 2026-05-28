@@ -338,8 +338,19 @@ variables:
       set_debounce_time.split(':')[1] | int(default=0) * 60 +
       set_debounce_time.split(':')[2] | int(default=0) }}
 
-  # select_days_morning: []
-  # select_days_evening: []
+  selected_days_morning: |
+    {% set ns = namespace(items=[]) %}
+    {% for item in set_select_days_morning %}
+      {% set ns.items = ns.items + [item.split('_')[1]|int] %}
+    {% endfor %}
+    {{ now().weekday() in ns.items }}
+    
+  selected_days_evening: |
+    {% set ns = namespace(items=[]) %}
+    {% for item in set_select_days_evening %}
+      {% set ns.items = ns.items + [item.split('_')[1]|int] %}
+    {% endfor %}
+    {{ now().weekday() in ns.items }}
 
 triggers:
   - platform: time
@@ -390,9 +401,9 @@ actions:
           - condition: template
             value_template: |
               {{ true if ('every_over_day_morning' not in set_working_day_morning) else ((now().timestamp() / 86400) | int % 2 == 0) }}
-          # - condition: template
-          #   value_template: |
-          #     {{ true if ('select_evening' not in set_working_day_morning) else ((now().timestamp() / 86400) | int % 2 == 0) }}
+          - condition: template
+            value_template: |
+              {{ true if ('select_morning' not in set_working_day_morning) else selected_days_morning }}
         sequence:
           - service: homeassistant.turn_on
             metadata: {}            
@@ -423,6 +434,9 @@ actions:
           - condition: template
             value_template: |
               {{ true if ('every_over_day_evening' not in set_working_day_evening) else ((now().timestamp() / 86400) | int % 2 == 0) }}
+          - condition: template
+            value_template: |
+              {{ true if ('every_over_day_evening' not in set_working_day_evening) else selected_days_evening }}
         sequence:
           - service: homeassistant.turn_on
             metadata: {}            
