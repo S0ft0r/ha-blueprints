@@ -276,7 +276,6 @@ trigger_variables:
 variables:
   workday: "{{ now().weekday() < 5 }}"
   weekend: "{{ not workday }}"
-  nextday: "{{ (now().weekday() + 1) % 7 }}"
   
   on_time: "{{ set_on_time_workday if workday else set_on_time_weekend }}"
   off_time: "{{ set_off_time }}"
