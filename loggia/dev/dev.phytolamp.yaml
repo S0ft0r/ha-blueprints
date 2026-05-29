@@ -495,7 +495,7 @@ actions:
                     value_template: |
                       {{ states(illuminance_sensor) | int >= set_max_illuminance }}
                 sequence:
-                  - action: homeassistant.turn_on
+                  - action: homeassistant.turn_off
                     metadata: {}
                     target:
                       entity_id: !input phytolamp
@@ -505,7 +505,7 @@ actions:
                     value_template: |
                       {{ states(illuminance_sensor) | int <= set_min_illuminance }}
                 sequence:
-                  - action: homeassistant.turn_off
+                  - action: homeassistant.turn_on
                     metadata: {}
                     target:
                       entity_id: !input phytolamp
