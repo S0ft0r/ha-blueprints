@@ -281,8 +281,8 @@ variables:
   on_time: "{{ set_on_time_workday if workday else set_on_time_weekend }}"
   off_time: "{{ set_off_time }}"
 
-  sun_azimuth: "{{ set_sun_azimuth if set_sun_azimuth_sensor == [] else states(set_sun_azimuth_sensor) }}"
-  sun_elevation: "{{ set_sun_elevation if set_sun_elevation_sensor == [] else states(set_sun_elevation_sensor) }}"
+  sun_azimuth: "{{ set_sun_azimuth if set_sun_azimuth_sensor == [] else states(set_sun_azimuth_sensor) | float(default=45) }}"
+  sun_elevation: "{{ set_sun_elevation if set_sun_elevation_sensor == [] else states(set_sun_elevation_sensor) | float(default=359) }}"
 
 triggers:
   - trigger: time
@@ -423,7 +423,7 @@ actions:
             value_template: |
               {{ is_sun_position_enabled and
                 (state_attr(sun_sensor,'azimuth') | float(default=45) > sun_azimuth | int
-                and state_attr(sun_sensor,'elevation') | float(default=360) > sun_elevation | int) }}
+                and state_attr(sun_sensor,'elevation') | float(default=359) > sun_elevation | int) }}
           - condition: template
             value_template: |
               {{ now() >= today_at(on_time) and now() <= today_at(off_time) }}
@@ -448,7 +448,7 @@ actions:
             value_template: |
               {{ is_sun_position_enabled and
                 (state_attr(sun_sensor,'azimuth') | float(default=45) > sun_azimuth | int
-                and state_attr(sun_sensor,'elevation') | float(default=360) > sun_elevation | int) }}
+                and state_attr(sun_sensor,'elevation') | float(default=359) > sun_elevation | int) }}
           - condition: template
             value_template: |
               {{ now() >= today_at(on_time) and now() <= today_at(off_time) }}
@@ -481,7 +481,7 @@ actions:
             value_template: |
               {{ is_sun_position_enabled and
                 (state_attr(sun_sensor,'azimuth') | float(default=45) > sun_azimuth | int
-                and state_attr(sun_sensor,'elevation') | float(default=360) > sun_elevation | int) }}
+                and state_attr(sun_sensor,'elevation') | float(default=359) > sun_elevation | int) }}
           - condition: template
             value_template: |
               {{ now() >= today_at(on_time) and now() <= today_at(off_time) }}

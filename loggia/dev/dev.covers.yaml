@@ -839,7 +839,7 @@ actions:
             value_template: |
               {{ is_sun_protect_enabled and
                 (state_attr(sun_sensor,'azimuth') | float(default=45) > sun_azimuth | int
-                and state_attr(sun_sensor,'elevation') | float(default=360) > sun_elevation | int) }}
+                and state_attr(sun_sensor,'elevation') | float(default=389) > sun_elevation | int) }}
           - condition: template
             value_template: |
               {{ true if not is_open_until_enabled else now() >= today_at(up_time) }}
@@ -876,7 +876,7 @@ actions:
             value_template: |
               {{ is_sun_protect_enabled and
                 (state_attr(sun_sensor,'azimuth') | float(default=45) > sun_azimuth | int
-                and state_attr(sun_sensor,'elevation') | float(default=360) > sun_elevation | int) }}
+                and state_attr(sun_sensor,'elevation') | float(default=359) > sun_elevation | int) }}
           - condition: template
             value_template: |
               {{ true if not is_open_until_enabled else now() >= today_at(up_time) }}
@@ -918,7 +918,7 @@ actions:
             value_template: |
               {{ true if not is_sun_protect_enabled 
                 else (state_attr(sun_sensor,'azimuth') | float(default=45) > (sun_azimuth | int) 
-                and state_attr(sun_sensor,'elevation') | float(default=360) > (sun_elevation | int)) }}
+                and state_attr(sun_sensor,'elevation') | float(default=389) > (sun_elevation | int)) }}
           - condition: template
             value_template: |
               {{ true if not is_open_until_enabled else now() >= today_at(up_time) }}
