@@ -2,17 +2,18 @@ blueprint:
   name: Управление рулонными шторами
   description: |
     ### Управление шторами по положению солнца.
-    <small>Версия 2026.05.01 Сборка 3</small>
+    <small>Версия 2026.05.01 Сборка 4</small>
     <small><a href="https://4pda.to/forum/index.php?showtopic=871505&view=findpost&p=143572987">Специально для 4PDA</a></small>
     **Особенности:**
      + Отсрочка открытия штор до определенного времени 
      + Установка времени закрытия штор в определенное время до заката
      + Управление открытием/закрытием штор для защиты от попадания прямых лучей солнца
-     + Учитывается прогноз погоды
+     + Учитывается прогноз погоды и/или датчик освещенности 
      + Установка лимита открытия/закрытия штор
      + Защита от ошибок открытия/закрытия штор 
      + Управление работы штор с устройств со встроенным слайдером
      + Использование внешних сенсоров для некоторых параметров
+     + Добавлена установка паузы для защиты от часто срабатывающего датчика освещения (например, Xiaomi BLE)
     <small><a href="https://github.com/S0ft0r/ha-blueprints/blob/main/as-is.md">Отказ от ответственности</a></small>
   domain: automation
   source_url: https://github.com/S0ft0r/ha-blueprints/blob/main/loggia/covers.yaml
@@ -55,9 +56,9 @@ blueprint:
               options:
                 - label: Защита от прямых лучей солнца
                   value: extra_sun_protect
-                # - label: Учитывать прогноз погоды или освещенность
-                #   value: extra_forecast
-                - label: Учитывать прогноз погоды или освещенность
+                - label: Учитывать освещенность
+                  value: extra_illuminance
+                - label: Учитывать прогноз погоды
                   value: extra_forecast
                 - label: Управление по слайдеру
                   value: extra_slider
@@ -70,25 +71,22 @@ blueprint:
               custom_value: false
               mode: list
 
-        # illuminance_sensor:
-        #   name: Сенсор освещенности
-        #   description: |
-        #     Сенсор, определяющий уровень освещенности.
-        #      + <small>Параметр обязателен только при выборе параметра <em>"Учитывать прогноз погоды или освещенность"</em> и отсутствии сенсора погоды. Если ничего не выбрано, то дополнительный параметр учитываться не будет.</small>
-        #   default: []
-        #   selector:
-        #     entity:
-        #       filter:
-        #         - domain:
-        #             - sensor
-        #           device_class: 
-        #             - illuminance
+        illuminance_sensor:
+          name: Сенсор освещенности
+          description: |
+            Сенсор, определяющий уровень освещенности.
+             + <small>Параметр обязателен только при выборе параметра <em>"Учитывать освещенность"</em> и отсутствии сенсора погоды. Если ничего не выбрано, то дополнительный параметр учитываться не будет.</small>
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - sensor
+                  device_class: 
+                    - illuminance
 
         forecast_sensor:
           name: Прогнозный сенсор
-          # description: |
-          #   Сенсор, определяющий прогноз погоды.
-          #    + <small>Параметр обязателен только при выборе параметра <em>"Учитывать прогноз погоды или освещенность"</em> и отсутствии сенсора осещенности. Если ничего не выбрано, то дополнительный параметр учитываться не будет.</small>
           description: |
             Сенсор, определяющий прогноз погоды.
              + <small>Параметр обязателен только при выборе параметра <em>"Учитывать прогноз погоды"</em>. Если ничего не выбрано, то дополнительный параметр учитываться не будет.</small>
@@ -179,7 +177,7 @@ blueprint:
             entity:
               filter:
                 - domain: 
-                  - input_number
+                    - input_number
               multiple: false
 
         set_sun_elevation:
@@ -206,7 +204,7 @@ blueprint:
             entity:
               filter:
                 - domain: 
-                  - input_number
+                    - input_number
               multiple: false
 
     options_section:
@@ -237,7 +235,7 @@ blueprint:
             entity:
               filter:
                 - domain: 
-                  - input_number
+                    - input_number
               multiple: false
 
         set_down_limit:
@@ -264,7 +262,7 @@ blueprint:
             entity:
               filter:
                 - domain: 
-                  - input_number
+                    - input_number
               multiple: false
 
         forecasts:
@@ -290,33 +288,48 @@ blueprint:
               custom_value: false
               mode: list
 
-        # set_min_illuminance:
-        #   name: Нижний порог освещенности
-        #   description: |
-        #     Нижний порог освещенности 
-        #      + <small>Для открытия штор при включенной защите от попадания прямых лучей.</small>
-        #   default: 0
-        #   selector:
-        #     number:
-        #       min: 0
-        #       max: 10000
-        #       step: 1
-        #       mode: box
-        #       unit_of_measurement: "lux"
+        set_min_illuminance:
+          name: Нижний порог освещенности
+          description: |
+            Нижний порог освещенности 
+             + <small>Для открытия штор при включенной защите от попадания прямых лучей.</small>
+          default: 0
+          selector:
+            number:
+              min: 0
+              max: 100000
+              step: 100
+              mode: box
+              unit_of_measurement: "люкс"
 
-        # set_max_illuminance:
-        #   name: Верхний порог освещенности
-        #   description: |
-        #     Верхний порог освещенности 
-        #      + <small>Для закрытия штор при включенной защите от попадания прямых лучей.</small>
-        #   default: 0
-        #   selector:
-        #     number:
-        #       min: 0
-        #       max: 10000
-        #       step: 1
-        #       mode: box
-        #       unit_of_measurement: "lux"
+        set_max_illuminance:
+          name: Верхний порог освещенности
+          description: |
+            Верхний порог освещенности 
+             + <small>Для закрытия штор при включенной защите от попадания прямых лучей.</small>
+          default: 0
+          selector:
+            number:
+              min: 0
+              max: 100000
+              step: 100
+              mode: box
+              unit_of_measurement: "люкс"
+
+        set_illuminance_delay:
+          name: Задержка при скачках изменений освещенности
+          description: |
+            Величина задержки при скачках изменений освещенности 
+             + <small>Для того, чтобы отсечь очень частые пограничные изменения освещенности</small>
+          default: 60
+          selector:
+            number:
+              min: 0
+              max: 600
+              step: 10
+              mode: slider
+              unit_of_measurement: "секунд"
+
 
         repeat_for:
           name: Количество повторов
@@ -368,6 +381,22 @@ blueprint:
           selector:
             text:
 
+    helpers_section:
+      name: Настройки вспомогательных сенсоров
+      icon: mdi:settings-helper
+      input:
+        text_rising_setting_sensor:
+          name: Текстовый сенсор
+          description: Текстовый сенсор, используемый для отображения следующего времени открытия/закрытия штор
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain: 
+                    - input_text
+              multiple: false
+
+
 mode: queued
 max: 10
 max_exceeded: silent
@@ -381,7 +410,8 @@ trigger_variables:
   forecast_sensor: !input forecast_sensor
   sun_sensor: !input sun_sensor
   slider_device: !input slider_device
-  # illuminance_sensor: !input illuminance_sensor
+  illuminance_sensor: !input illuminance_sensor
+  text_rising_setting_sensor: !input text_rising_setting_sensor
 
   forecasts: !input forecasts
   set_sun_azimuth: !input set_sun_azimuth
@@ -396,25 +426,25 @@ trigger_variables:
   set_down_limit: !input set_down_limit
   set_down_limit_sensor: !input set_down_limit_sensor
   repeat_for: !input repeat_for
-  # set_min_illuminance: !input set_min_illuminance
-  # set_max_illuminance: !input set_max_illuminance
+  set_min_illuminance: !input set_min_illuminance
+  set_max_illuminance: !input set_max_illuminance
+  set_illuminance_delay: !input set_illuminance_delay
 
   is_forecast_enabled: "{{ forecast_sensor != [] and 'extra_forecast' in automation_extra }}"
-  # is_illuminance_enabled: "{{ illuminance_sensor != [] and (set_min_illuminance != 0 or set_max_illuminance != 0) and 'extra_forecast' in automation_extra }}"
+  is_illuminance_enabled: "{{ illuminance_sensor != [] and (set_min_illuminance != 0 or set_max_illuminance != 0) and 'extra_illuminance' in automation_extra }}"
   is_slider_enabled: "{{ 'extra_slider' in automation_extra }}"
   is_sun_protect_enabled: "{{ (sun_elevation != 0 or sun_azimuth != 0) and 'extra_sun_protect' in automation_extra }}"
   is_open_until_enabled: "{{ 'extra_opening_until' in automation_extra }}"
   is_close_until_enabled: "{{ 'extra_close_until' in automation_extra }}"
 
-  is_mqtt_device: "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'mqtt' }}"
-  is_zha_device:  "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'zha'  }}"
-
 variables:
   workday: "{{ now().weekday() < 5 }}"
   weekend: "{{ not workday }}"
+  nextday: "{{ (now().weekday() + 1) % 7 }}"
+  
   delay_for_repeat: 1
   is_mqtt_device: "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'mqtt' }}"
-  is_zha_device:  "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'zha' }}"
+  is_zha_device: "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'zha' }}"
 
   up_time: "{{ set_up_time_workday if workday else set_up_time_weekend }}"
   down_time: "{{ set_down_time }}"
@@ -425,18 +455,40 @@ variables:
   up_limit: "{{ set_up_limit if set_up_limit_sensor == [] else states(set_up_limit_sensor) }}"
   down_limit: "{{ set_down_limit if set_down_limit_sensor == [] else states(set_down_limit_sensor) }}"
 
-  # maxp: |
-  #   {% set ns = namespace(items=[]) %}
-  #   {% for item in blinds %}
-  #     {% set ns.items = ns.items + [state_attr(item,'current_position')] %}
-  #   {% endfor %}
-  #   {{ ns.items | max }}
-  # minp: |
-  #   {% set ns = namespace(items=[]) %}
-  #   {% for item in blinds %}
-  #     {% set ns.items = ns.items + [state_attr(item,'current_position')] %}
-  #   {% endfor %}
-  #   {{ ns.items | min }}
+  maxp: |
+    {% set ns = namespace(items=[]) %}
+    {% for item in blinds %}
+      {% set ns.items = ns.items + [state_attr(item,'current_position')] %}
+    {% endfor %}
+    {{ ns.items | max }}
+  minp: |
+    {% set ns = namespace(items=[]) %}
+    {% for item in blinds %}
+      {% set ns.items = ns.items + [state_attr(item,'current_position')] %}
+    {% endfor %}
+    {{ ns.items | min }}
+
+  maxpp: |
+    {% set ns = namespace(items=[]) %}
+    {% for item in blinds_for_protect %}
+      {% set ns.items = ns.items + [state_attr(item,'current_position')] %}
+    {% endfor %}
+    {{ ns.items | max }}
+  minpp: |
+    {% set ns = namespace(items=[]) %}
+    {% for item in blinds_for_protect %}
+      {% set ns.items = ns.items + [state_attr(item,'current_position')] %}
+    {% endfor %}
+    {{ ns.items | min }}
+
+  error: "{{ minp != maxp and minpp != maxpp }}"
+
+  text_helper: |
+    {% set rising = (state_attr(sun_sensor,'next_rising').strftime('%H:%M:%S') | as_datetime | as_local) if not is_open_until_enabled else up_time %}
+    {% set rising = rising.split(':')[0] ~ ":" ~ rising.split(':')[1]%}
+    {% set setting = (state_attr(sun_sensor,'next_setting') | as_datetime | as_local).strftime('%H:%M:%S') if not is_close_until_enabled else down_time %}
+    {% set setting = setting.split(':')[0] ~ ":" ~ setting.split(':')[1] %}
+    {{ 'Откроются в ' ~ rising if now() > today_at(down_time) else 'Закроются в ' ~ setting }}
 
 triggers:
   - trigger: time
@@ -466,6 +518,11 @@ triggers:
     entity_id: !input forecast_sensor
     id: forecast_trigger
     enabled: "{{ is_forecast_enabled }}"
+
+  - trigger: state
+    entity_id: !input illuminance_sensor
+    id: illuminance_trigger
+    enabled: "{{ is_illuminance_enabled }}"
 
   - trigger: template
     value_template: "{{ state_attr(sun_sensor,'azimuth') | float > (sun_azimuth | int) }}"
@@ -517,6 +574,14 @@ triggers:
     id: zha_slider_stop_trigger
 
 actions:
+  - action: input_text.set_value
+    metadata: {}
+    target:
+      entity_id: !input text_rising_setting_sensor
+    data:
+      value: "{{ text_helper }}"
+    continue_on_error: true
+
   - choose:
 
 #########################################################################################################
@@ -738,6 +803,9 @@ actions:
           - condition: template
             value_template: |
               {{ true if not is_forecast_enabled else (states(forecast_sensor) in forecasts) }}
+          - condition: template
+            value_template: |
+              {{ true if not is_illuminance_enabled else states(illuminance_sensor) | int >= set_max_illuminance }}
         sequence:
           - repeat:
               count: !input repeat_for
@@ -770,7 +838,7 @@ actions:
             value_template: |
               {{ is_sun_protect_enabled and
                 (state_attr(sun_sensor,'azimuth') | float(default=45) > sun_azimuth | int
-                and state_attr(sun_sensor,'elevation') | float(default=359) > sun_elevation | int) }}
+                and state_attr(sun_sensor,'elevation') | float(default=389) > sun_elevation | int) }}
           - condition: template
             value_template: |
               {{ true if not is_open_until_enabled else now() >= today_at(up_time) }}
@@ -831,3 +899,70 @@ actions:
                       {{ (up_limit | int - (repeat_for | int - repeat.index)) }}
                 - delay:
                     seconds: "{{ delay_for_repeat }}"
+
+#########################################################################################################
+#
+# УПРАВЛЕНИЕ ПО ОСВЕЩЕННОСТИ
+#
+#########################################################################################################
+
+      - conditions: # Управлять при изменении уровня освещенности при включенном режиме защиты от прямых лучей
+          - condition: trigger
+            id:
+              - illuminance_trigger
+          - condition: template
+            value_template: |
+              {{ this.attributes.last_triggered is none or (now() - this.attributes.last_triggered).total_seconds() > set_illuminance_delay | int }}             
+          - condition: template
+            value_template: |
+              {{ true if not is_sun_protect_enabled 
+                else (state_attr(sun_sensor,'azimuth') | float(default=45) > (sun_azimuth | int) 
+                and state_attr(sun_sensor,'elevation') | float(default=389) > (sun_elevation | int)) }}
+          - condition: template
+            value_template: |
+              {{ true if not is_open_until_enabled else now() >= today_at(up_time) }}
+          - condition: template
+            value_template: |
+              {{ true if not is_close_until_enabled else now() <= today_at(down_time) }}
+          - condition: template
+            value_template: |
+              {{ states(sun_sensor) == 'above_horizon' }}
+        sequence:
+          - choose:
+              - conditions: 
+                  - condition: template
+                    value_template: |
+                      {{ states(illuminance_sensor) | int >= set_max_illuminance }}
+                sequence:
+                  - repeat:
+                      count: !input repeat_for
+                      sequence:
+                        - action: cover.set_cover_position
+                          metadata: {}
+                          target:
+                            entity_id: >
+                              {{ (blinds if blinds_for_protect == [] else  blinds_for_protect) | list }}
+                          data:
+                            position: |
+                              {{ (down_limit | int + (repeat_for | int - repeat.index)) }}
+                        - delay:
+                            seconds: "{{ delay_for_repeat }}"
+
+              - conditions: 
+                  - condition: template
+                    value_template: |
+                      {{ states(illuminance_sensor) | int <= set_min_illuminance }}
+                sequence:
+                  - repeat:
+                      count: !input repeat_for
+                      sequence:
+                        - action: cover.set_cover_position
+                          metadata: {}
+                          target:
+                            entity_id: >
+                              {{ (blinds if blinds_for_protect == [] else  blinds_for_protect) | list }}
+                          data:
+                            position: |
+                              {{ (up_limit | int - (repeat_for | int - repeat.index)) }}
+                        - delay:
+                            seconds: "{{ delay_for_repeat }}"
