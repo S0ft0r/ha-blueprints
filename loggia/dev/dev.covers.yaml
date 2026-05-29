@@ -525,7 +525,7 @@ triggers:
     enabled: "{{ is_illuminance_enabled }}"
 
   - trigger: template
-    value_template: "{{ state_attr(sun_sensor,'azimuth') | float > (sun_azimut | int) }}"
+    value_template: "{{ state_attr(sun_sensor,'azimuth') | float > (sun_azimuth | int) }}"
     id: sun_azimut_trigger
     enabled: "{{ is_sun_protect_enabled }}"
 
