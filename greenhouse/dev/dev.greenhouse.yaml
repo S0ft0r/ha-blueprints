@@ -20,6 +20,16 @@ blueprint:
                 - switch
           reorder: false
           multiple: false
+    pump_off_auto:
+      name: Таймер автоматического отключения
+      description: 
+      selector:
+        entity:
+          filter:
+            - domain:
+                - timer
+          reorder: false
+          multiple: false
 
     morning_section:
       name: Настройки системы для работы утром
@@ -53,9 +63,35 @@ blueprint:
           default: "00:10:00"
           selector:
             time: {}
+        waterpump_switch:
+          name: Реле насоса
+          description: 
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - switch
+              reorder: false
+              multiple: false
+        pump_morning_enable:
+          name: Включение с утра
+          default: false
+          selector:
+            boolean: {}
+        pump_evening_enable:
+          name: Включение вечером
+          default: false
+          selector:
+            boolean: {}
+
 
 trigger_variables:
   watering_switch: !input watering_switch
+  waterpump_switch: !input watering_switch
+  pump_off_auto: !input pump_off_auto
+
+  pump_morning_enable: !input pump_morning_enable 
+  pump_evening_enable: !input pump_evening_enable 
 
   set_time_work_morning: !input set_time_work_morning
   set_time_work_evening: !input set_time_work_evening
@@ -68,13 +104,14 @@ triggers:
   - at: !input set_on_time_morning
     trigger: time
     id: on_morning_trigger
+    enabled: !input pump_morning_enable
 
   - at: !input set_on_time_evening
     trigger: time
     id: on_evening_trigger
+    enabled: !input pump_evening_enable
 
-  - entity_id:
-      - timer.pump_off_auto
+  - entity_id: !input pump_off_auto
     from: active
     to: idle
     trigger: state
@@ -85,6 +122,12 @@ triggers:
     to: "off"
     trigger: state
     id: watering_off_trigger
+
+  - entity_id: !input watering_switch
+    from: "off"
+    to: "on"
+    trigger: state
+    id: watering_on_trigger
 
 conditions:
   - condition: and
@@ -99,20 +142,16 @@ actions:
           - condition: trigger
             id:
               - on_morning_trigger
-          - condition: state
-            entity_id: input_boolean.pump_morning_enable
-            state: "on"
         sequence:
           - target:
-              entity_id:
-                - switch.0xa4c1381f3e5d1bda
+              entity_id: !input watering_switch
             data: {}
             action: switch.turn_on
           - metadata: {}
             data:
               duration: "{{ time_work_morning }}"
             target:
-              entity_id:
+              entity_id: 
                 - timer.pump_off
                 - timer.w_can_countdown
             action: timer.start
@@ -142,10 +181,10 @@ actions:
                   seconds: 0
                   milliseconds: 0
               - target:
-                  entity_id:
-                    - switch.0xa4c1381f3e5d1bda
+                  entity_id: !input watering_switch
                 data: {}
                 action: switch.turn_off
+
       - conditions:
           - condition: trigger
             id:
@@ -155,8 +194,7 @@ actions:
             state: "on"
         sequence:
           - target:
-              entity_id:
-                - switch.0xa4c1381f3e5d1bda
+              entity_id: !input watering_switch
             data: {}
             action: switch.turn_on
           - metadata: {}
@@ -193,10 +231,10 @@ actions:
                   seconds: 0
                   milliseconds: 0
               - target:
-                  entity_id:
-                    - switch.0xa4c1381f3e5d1bda
+                  entity_id: !input watering_switch
                 data: {}
                 action: switch.turn_off
+
       - conditions:
           - condition: trigger
             id:
@@ -218,8 +256,9 @@ actions:
             then:
               - action: switch.turn_off
                 target:
-                  entity_id: switch.0xa4c1381f3e5d1bda
+                  entity_id: !input watering_switch
                 data: {}
+
       - conditions:
           - condition: trigger
             id:
@@ -230,5 +269,16 @@ actions:
             data: {}
             target:
               entity_id: timer.w_can_countdown
+
+      - conditions:
+          - condition: trigger
+            id:
+              - watering_on_trigger
+        sequence:
+          - action: timer.start
+            metadata: {}
+            data: {}
+            target:
+              entity_id: !input pump_off_auto
 mode: queued
 max: 10
