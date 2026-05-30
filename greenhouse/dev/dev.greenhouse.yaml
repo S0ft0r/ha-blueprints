@@ -80,7 +80,6 @@ blueprint:
           selector:
             boolean: {}
 
-
 trigger_variables:
   watering_switch: !input watering_switch
   waterpump_switch: !input watering_switch
@@ -139,29 +138,33 @@ actions:
             id:
               - on_morning_trigger
         sequence:
+          - if:
+            - condition: state
+              entity_id: !input waterpump_switch
+              state: "off"
+            then:
+              - action: switch.turn_on
+                target:
+                  entity_id: !input waterpump_switch
+              - delay: 
+                minutes: 1
           - target:
               entity_id: !input watering_switch
             data: {}
             action: switch.turn_on
-          - metadata: {}
-            data:
-              duration: "{{ time_work_morning }}"
-            target:
-              entity_id: 
-                - timer.pump_off
-                - timer.w_can_countdown
-            action: timer.start
+          - delay: !input set_time_work_morning
+          # - metadata: {}
+          #   data:
+          #     duration: "{{ time_work_morning }}"
+          #   target:
+          #     entity_id: 
+          #       - timer.pump_off
+          #       - timer.w_can_countdown
+          #   action: timer.start
           - data: {}
             target:
               entity_id: !input watering_switch
-            action: switch.turn_on
-          - wait_for_trigger:
-              - entity_id:
-                  - timer.pump_off
-                from: active
-                to: idle
-                trigger: state
-            continue_on_timeout: false
+            action: switch.turn_off
           - data: {}
             target:
               entity_id: !input watering_switch
@@ -177,7 +180,7 @@ actions:
                   seconds: 0
                   milliseconds: 0
               - target:
-                  entity_id: !input watering_switch
+                  entity_id: !input waterpump_switch
                 data: {}
                 action: switch.turn_off
 
@@ -264,6 +267,11 @@ actions:
             metadata: {}
             data: {}
             target:
+              entity_id: !input pump_off_auto
+          - action: timer.finish
+            metadata: {}
+            data: {}
+            target:
               entity_id: timer.w_can_countdown
 
       - conditions:
@@ -276,5 +284,5 @@ actions:
             data: {}
             target:
               entity_id: !input pump_off_auto
-mode: queued
-max: 10
+
+mode: restart
