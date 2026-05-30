@@ -12,7 +12,7 @@ blueprint:
   input:
     watering_switch:
       name: Реле полива
-      description: 
+      description: ""
       selector:
         entity:
           filter:
@@ -22,7 +22,7 @@ blueprint:
           multiple: false
     pump_off_auto:
       name: Таймер автоматического отключения
-      description: 
+      description: ""
       selector:
         entity:
           filter:
@@ -61,7 +61,7 @@ blueprint:
             time: {}
         waterpump_switch:
           name: Реле насоса
-          description: 
+          description: ""
           selector:
             entity:
               filter:
