@@ -117,7 +117,7 @@ blueprint:
             time: {}
         set_time_work_morning:
           name: Включать на
-          description: Время, на которе включается система орошения 
+          description: Время, на которое включается система орошения 
           default: 1
           selector:
             number:

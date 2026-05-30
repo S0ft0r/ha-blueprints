@@ -1,0 +1,234 @@
+blueprint:
+  name: Управление поливом теплицы
+  description: |
+    ### Управление поливом теплицы.
+    <small>Версия 2026.05.01 Сборка 1</small> 
+
+    <small><a href="https://github.com/S0ft0r/ha-blueprints/blob/main/as-is.md">Отказ от ответственности</a></small>
+  domain: automation
+  source_url: https://github.com/S0ft0r/ha-blueprints/blob/main/greenhouse/dev/dev.greenhouse.yaml
+  author: Softor
+
+  input:
+    watering_switch:
+      name: Реле полива
+      description: 
+      selector:
+        entity:
+          filter:
+            - domain:
+                - switch
+          reorder: false
+          multiple: false
+
+    morning_section:
+      name: Настройки системы для работы утром
+      description: |
+        Устанавливается время включения, режим работы системы орошения.
+      icon: mdi:clock-time-four-outline
+        morning_enabled:
+          name: Включать систему орошения утром
+          default: false
+          selector:
+            boolean: {}
+        set_on_time_morning:
+          name: Включить утром в
+          default: "08:00:00"
+          selector:
+            time: {}
+        set_time_work_morning:
+          name: Включать на
+          description: Время, на которе включается система орошения 
+          default: "00:10:00"
+          selector:
+            time: {}
+        set_on_time_evening:
+          name: Включить утром в
+          default: "20:00:00"
+          selector:
+            time: {}
+        set_time_work_evening:
+          name: Включать на
+          description: Время, на которое включается система орошения 
+          default: "00:10:00"
+          selector:
+            time: {}
+
+trigger_variables:
+  watering_switch: !input watering_switch
+
+  set_time_work_morning: !input set_time_work_morning
+  set_time_work_evening: !input set_time_work_evening
+
+variables:
+  time_work_morning: "{{ set_time_work_morning }}"
+  time_work_evening: "{{ set_time_work_evening }}"
+
+triggers:
+  - at: !input set_on_time_morning
+    trigger: time
+    id: on_morning_trigger
+
+  - at: !input set_on_time_evening
+    trigger: time
+    id: on_evening_trigger
+
+  - entity_id:
+      - timer.pump_off_auto
+    from: active
+    to: idle
+    trigger: state
+    id: pump_off_auto_trigger
+
+  - entity_id: !input watering_switch
+    from: "on"
+    to: "off"
+    trigger: state
+    id: watering_off_trigger
+
+conditions:
+  - condition: and
+    conditions:
+      - condition: template
+        value_template: >
+          {{ states('input_boolean.summer_pump_mode')=='on' or trigger.id ==
+          'pump_off_auto_trigger' or trigger.id == 'watering_off_trigger' }}
+actions:
+  - choose:
+      - conditions:
+          - condition: trigger
+            id:
+              - on_morning_trigger
+          - condition: state
+            entity_id: input_boolean.pump_morning_enable
+            state: "on"
+        sequence:
+          - target:
+              entity_id:
+                - switch.0xa4c1381f3e5d1bda
+            data: {}
+            action: switch.turn_on
+          - metadata: {}
+            data:
+              duration: "{{ time_work_morning }}"
+            target:
+              entity_id:
+                - timer.pump_off
+                - timer.w_can_countdown
+            action: timer.start
+          - data: {}
+            target:
+              entity_id: !input watering_switch
+            action: switch.turn_on
+          - wait_for_trigger:
+              - entity_id:
+                  - timer.pump_off
+                from: active
+                to: idle
+                trigger: state
+            continue_on_timeout: false
+          - data: {}
+            target:
+              entity_id: !input watering_switch
+            action: switch.turn_off
+          - if:
+              - condition: numeric_state
+                entity_id: zone.home
+                below: 1
+            then:
+              - delay:
+                  hours: 0
+                  minutes: 1
+                  seconds: 0
+                  milliseconds: 0
+              - target:
+                  entity_id:
+                    - switch.0xa4c1381f3e5d1bda
+                data: {}
+                action: switch.turn_off
+      - conditions:
+          - condition: trigger
+            id:
+              - on_evening_trigger
+          - condition: state
+            entity_id: input_boolean.pump_evening_enable
+            state: "on"
+        sequence:
+          - target:
+              entity_id:
+                - switch.0xa4c1381f3e5d1bda
+            data: {}
+            action: switch.turn_on
+          - metadata: {}
+            data:
+              duration: "{{ time_work_evening }}"
+            target:
+              entity_id:
+                - timer.pump_off
+                - timer.w_can_countdown
+            action: timer.start
+          - data: {}
+            target:
+              entity_id: !input watering_switch
+            action: switch.turn_on
+          - wait_for_trigger:
+              - entity_id:
+                  - timer.pump_off
+                from: active
+                to: idle
+                trigger: state
+            continue_on_timeout: false
+          - data: {}
+            target:
+              entity_id: !input watering_switch
+            action: switch.turn_off
+          - if:
+              - condition: numeric_state
+                entity_id: zone.home
+                below: 1
+            then:
+              - delay:
+                  hours: 0
+                  minutes: 1
+                  seconds: 0
+                  milliseconds: 0
+              - target:
+                  entity_id:
+                    - switch.0xa4c1381f3e5d1bda
+                data: {}
+                action: switch.turn_off
+      - conditions:
+          - condition: trigger
+            id:
+              - pump_off_auto_trigger
+        sequence:
+          - action: switch.turn_off
+            target:
+              entity_id: !input watering_switch
+            data: {}
+          - delay:
+              hours: 0
+              minutes: 0
+              seconds: 25
+              milliseconds: 0
+          - if:
+              - condition: numeric_state
+                entity_id: zone.home
+                below: 1
+            then:
+              - action: switch.turn_off
+                target:
+                  entity_id: switch.0xa4c1381f3e5d1bda
+                data: {}
+      - conditions:
+          - condition: trigger
+            id:
+              - watering_off_trigger
+        sequence:
+          - action: timer.finish
+            metadata: {}
+            data: {}
+            target:
+              entity_id: timer.w_can_countdown
+mode: queued
+max: 10
