@@ -36,11 +36,6 @@ blueprint:
       description: |
         Устанавливается время включения, режим работы системы орошения.
       icon: mdi:clock-time-four-outline
-        morning_enabled:
-          name: Включать систему орошения утром
-          default: false
-          selector:
-            boolean: {}
         set_on_time_morning:
           name: Включить утром в
           default: "08:00:00"
