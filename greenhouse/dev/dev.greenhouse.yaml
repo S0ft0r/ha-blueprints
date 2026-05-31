@@ -66,6 +66,7 @@ blueprint:
               multiple: false
         auto_off_pump_time_sensor:
           name: Сенсор количество минут
+          default: []
           selector:
             entity:
               filter:
