@@ -74,6 +74,7 @@ blueprint:
           description: Время, на которое включается насос перед и после полива 
           default: "00:01:00"
           selector:
+            time: {}
         watervalve_switch:
           name: Клапан потока
           description: ""
