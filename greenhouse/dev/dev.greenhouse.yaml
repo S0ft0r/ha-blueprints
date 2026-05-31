@@ -442,5 +442,5 @@ actions:
             target:
               entity_id: !input pump_off_auto
 
-mode: single
-# max: 10
+mode: parallel
+max: 10
