@@ -313,4 +313,5 @@ actions:
             target:
               entity_id: !input pump_off_auto
 
-# mode: parallel
+mode: parallel
+max: 10
