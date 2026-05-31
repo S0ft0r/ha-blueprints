@@ -64,13 +64,13 @@ blueprint:
                     - switch
               reorder: false
               multiple: false
-      auto_off_pump_time_sensor:
-        name: Сенсор количество минут
-        selector:
-          entity:
-            filter:
-              - domain:
-                  - input_number
+        auto_off_pump_time_sensor:
+          name: Сенсор количество минут
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - input_number
         set_auto_off_pump_time:
           name: Количество минут
           default: 30
