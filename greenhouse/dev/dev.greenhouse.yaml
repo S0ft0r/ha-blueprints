@@ -30,6 +30,13 @@ blueprint:
                 - timer
           reorder: false
           multiple: false
+    auto_off_pump_time_sensor:
+      name: Сенсор количество минут
+      selector:
+        entity:
+          filter:
+            - domain:
+                - input_number
 
     extra_section:
       name: Дополнительные настройки системы
@@ -64,6 +71,16 @@ blueprint:
                     - switch
               reorder: false
               multiple: false
+        set_auto_off_pump_time:
+          name: Количество минут
+          default: 30
+          selector:
+            number:
+              min: 1
+              max: 60
+              step: 10
+              mode: slider
+              unit_of_measurement: "минут"
 
     morning_section:
       name: Настройки системы для работы утром
@@ -205,6 +222,9 @@ trigger_variables:
   set_select_days_morning: !input set_select_days_morning
   set_select_days_evening: !input set_select_days_evening
 
+  auto_off_pump_time_sensor: !input auto_off_pump_time_sensor
+  set_auto_off_pump_time: !input set_auto_off_pump_time
+
 variables:
   time_work_morning: "{{ set_time_work_morning }}"
   time_work_evening: "{{ set_time_work_evening }}"
@@ -222,6 +242,8 @@ variables:
       {% set ns.items = ns.items + [item.split('_')[1]|int] %}
     {% endfor %}
     {{ now().weekday() in ns.items }}
+
+  auto_off_pump_time: "{{ set_auto_off_pump_time if auto_off_pump_time_sensor == [] else states(auto_off_pump_time_sensor) }}"
 
 triggers:
   - at: !input set_on_time_morning
@@ -252,13 +274,14 @@ triggers:
     trigger: state
     id: watering_on_trigger
 
-conditions:
-  - condition: and
-    conditions:
-      - condition: template
-        value_template: >
-          {{ states('input_boolean.summer_pump_mode')=='on' or trigger.id ==
-          'pump_off_auto_trigger' or trigger.id == 'watering_off_trigger' }}
+# conditions:
+#   - condition: and
+#     conditions:
+#       - condition: template
+#         value_template: >
+#           {{ states('input_boolean.summer_pump_mode')=='on' or trigger.id ==
+#           'pump_off_auto_trigger' or trigger.id == 'watering_off_trigger' }}
+
 actions:
   - choose:
       - conditions:
@@ -414,9 +437,10 @@ actions:
         sequence:
           - action: timer.start
             metadata: {}
-            data: {}
+            data: 
+              duration: "{{ auto_off_pump_time }}"
             target:
               entity_id: !input pump_off_auto
 
-mode: parallel
-max: 10
+mode: single
+# max: 10
