@@ -30,13 +30,6 @@ blueprint:
                 - timer
           reorder: false
           multiple: false
-    auto_off_pump_time_sensor:
-      name: Сенсор количество минут
-      selector:
-        entity:
-          filter:
-            - domain:
-                - input_number
 
     extra_section:
       name: Дополнительные настройки системы
@@ -71,6 +64,13 @@ blueprint:
                     - switch
               reorder: false
               multiple: false
+      auto_off_pump_time_sensor:
+        name: Сенсор количество минут
+        selector:
+          entity:
+            filter:
+              - domain:
+                  - input_number
         set_auto_off_pump_time:
           name: Количество минут
           default: 30
