@@ -113,7 +113,7 @@ blueprint:
 
 trigger_variables:
   watering_switch: !input watering_switch
-  watervalve_switch: !input watering_switch
+  watervalve_switch: !input watervalve_switch
   waterpump_switch: !input watering_switch
   pump_off_auto: !input pump_off_auto
 
@@ -200,10 +200,6 @@ actions:
             target:
               entity_id: !input watering_switch
             action: switch.turn_off
-          - data: {}
-            target:
-              entity_id: !input watervalve_switch
-            action: switch.turn_off
           - if:
               - condition: numeric_state
                 entity_id: zone.home
@@ -224,7 +220,7 @@ actions:
               - condition: numeric_state
                 entity_id: zone.home
                 below: 1
-              - confition: state
+              - condition: state
                 entity_id: !input waterpump_switch
                 state: "off"
             then:
@@ -237,25 +233,10 @@ actions:
               entity_id: !input watering_switch
             data: {}
             action: switch.turn_on
-          # - metadata: {}
-          #   data:
-          #     duration: "{{ time_work_evening }}"
-          #   target:
-          #     entity_id:
-          #       - timer.pump_off
-          #       - timer.w_can_countdown
-          #   action: timer.start
           - data: {}
             target:
               entity_id: !input watering_switch
             action: switch.turn_on
-          # - wait_for_trigger:
-          #     - entity_id:
-          #         - timer.pump_off
-          #       from: active
-          #       to: idle
-          #       trigger: state
-          #   continue_on_timeout: false
           - delay: !input set_time_work_evening
           - if:
               - condition: template
