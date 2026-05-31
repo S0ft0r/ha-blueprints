@@ -244,7 +244,7 @@ variables:
     {% endfor %}
     {{ now().weekday() in ns.items }}
 
-  auto_off_pump_time: "{{ set_auto_off_pump_time if auto_off_pump_time_sensor == [] else states(auto_off_pump_time_sensor) }}"
+  auto_off_pump_time: "{{ (set_auto_off_pump_time | int * 60) if auto_off_pump_time_sensor == [] else (states(auto_off_pump_time_sensor)  | int * 60)}}"
 
 triggers:
   - at: !input set_on_time_morning
