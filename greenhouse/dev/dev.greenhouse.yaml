@@ -175,10 +175,13 @@ actions:
               - condition: template
                 value_template: "{{ watervalve_switch != [] and states(watervalve_switch) not in ['unknown', 'unavailable'] }}"
             then:
-              - action: switch.turn_on
+              - action: switch.toggle
                 target:
                   entity_id: !input watervalve_switch
-              - delay: !input set_time_work_morning
+              - delay: !input set_time_work_evening
+              - action: switch.toggle
+                target:
+                  entity_id: !input watervalve_switch
           - data: {}
             target:
               entity_id: !input watering_switch
@@ -202,9 +205,6 @@ actions:
           - condition: trigger
             id:
               - on_evening_trigger
-          - condition: state
-            entity_id: input_boolean.pump_evening_enable
-            state: "on"
         sequence:
           - if:
               - condition: numeric_state
@@ -247,10 +247,13 @@ actions:
               - condition: template
                 value_template: "{{ watervalve_switch != [] and states(watervalve_switch) not in ['unknown', 'unavailable'] }}"
             then:
-              - action: switch.turn_on
+              - action: switch.toggle
                 target:
                   entity_id: !input watervalve_switch
               - delay: !input set_time_work_evening
+              - action: switch.toggle
+                target:
+                  entity_id: !input watervalve_switch
           - data: {}
             target:
               entity_id: !input watering_switch
