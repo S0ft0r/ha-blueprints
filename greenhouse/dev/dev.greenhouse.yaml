@@ -158,9 +158,9 @@ actions:
               - on_morning_trigger
         sequence:
           - if:
-            - condition: state
-              entity_id: !input waterpump_switch
-              state: "off"
+              - condition: state
+                entity_id: !input waterpump_switch
+                state: "off"
             then:
               - action: switch.turn_on
                 target:
@@ -172,8 +172,8 @@ actions:
             action: switch.turn_on
           - delay: !input set_time_work_morning
           - if:
-            - condition: template
-              value_template: "{{ watervalve_switch != [] and states(watervalve_switch) not in ['unknown', 'unavailable'] }}"
+              - condition: template
+                value_template: "{{ watervalve_switch != [] and states(watervalve_switch) not in ['unknown', 'unavailable'] }}"
             then:
               - action: switch.turn_on
                 target:
@@ -244,8 +244,8 @@ actions:
           #   continue_on_timeout: false
           - delay: !input set_time_work_evening
           - if:
-            - condition: template
-              value_template: "{{ watervalve_switch != [] and states(watervalve_switch) not in ['unknown', 'unavailable'] }}"
+              - condition: template
+                value_template: "{{ watervalve_switch != [] and states(watervalve_switch) not in ['unknown', 'unavailable'] }}"
             then:
               - action: switch.turn_on
                 target:
