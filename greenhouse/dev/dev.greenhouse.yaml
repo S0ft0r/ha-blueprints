@@ -31,34 +31,12 @@ blueprint:
           reorder: false
           multiple: false
 
-    morning_section:
-      name: Настройки системы для работы утром
+    extra_section:
+      name: Дополнительные настройки системы
       description: |
-        Устанавливается время включения, режим работы системы орошения.
-      icon: mdi:clock-time-four-outline
+        Устанавливается дополнительные настройки.
+      icon: mdi:cog
       input:
-        set_on_time_morning:
-          name: Включить утром в
-          default: "08:00:00"
-          selector:
-            time: {}
-        set_time_work_morning:
-          name: Включать на
-          description: Время, на которе включается система орошения 
-          default: "00:10:00"
-          selector:
-            time: {}
-        set_on_time_evening:
-          name: Включить утром в
-          default: "20:00:00"
-          selector:
-            time: {}
-        set_time_work_evening:
-          name: Включать на
-          description: Время, на которое включается система орошения 
-          default: "00:10:00"
-          selector:
-            time: {}
         waterpump_switch:
           name: Реле насоса
           description: ""
@@ -76,7 +54,7 @@ blueprint:
           selector:
             time: {}
         watervalve_switch:
-          name: Клапан потока
+          name: Клапан направления
           description: ""
           default: []
           selector:
@@ -86,16 +64,52 @@ blueprint:
                     - switch
               reorder: false
               multiple: false
+
+    morning_section:
+      name: Настройки системы для работы утром
+      description: |
+        Устанавливается время включения, режим работы системы орошения.
+      icon: mdi:clock-time-four-outline
+      input:
         pump_morning_enable:
           name: Включение с утра
           default: false
           selector:
             boolean: {}
+        set_on_time_morning:
+          name: Включить утром в
+          default: "08:00:00"
+          selector:
+            time: {}
+        set_time_work_morning:
+          name: Включать на
+          description: Время, на которе включается система орошения 
+          default: "00:10:00"
+          selector:
+            time: {}
+
+    evening_section:
+      name: Настройки системы для работы вечером
+      description: |
+        Устанавливается время включения, режим работы системы орошения.
+      icon: mdi:clock-time-eight-outline
+      input:
         pump_evening_enable:
           name: Включение вечером
           default: false
           selector:
             boolean: {}
+        set_on_time_evening:
+          name: Включить утром в
+          default: "20:00:00"
+          selector:
+            time: {}
+        set_time_work_evening:
+          name: Включать на
+          description: Время, на которое включается система орошения 
+          default: "00:10:00"
+          selector:
+            time: {}
 
 trigger_variables:
   watering_switch: !input watering_switch
