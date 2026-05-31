@@ -87,6 +87,44 @@ blueprint:
           default: "00:10:00"
           selector:
             time: {}
+        set_working_day_morning:
+          name: Режим включения
+          default: every_day_morning
+          selector:
+            select:
+              options:
+                - label: Ежедневно
+                  value: every_day_morning
+                - label: Через день
+                  value: every_over_day_morning
+                - label: Выбор
+                  value: select_morning
+              mode: dropdown
+        set_select_days_morning:
+          name: Выбор дней 
+          description: Выбор дней
+          default: []
+          selector:
+            select:
+              options:
+                - label: Понедельник
+                  value: day_0_morning
+                - label: Вторник
+                  value: day_1_morning
+                - label: Среда
+                  value: day_2_morning
+                - label: Четверг
+                  value: day_3_morning
+                - label: Пятница
+                  value: day_4_morning
+                - label: Суббота
+                  value: day_5_morning
+                - label: Воскресенье
+                  value: day_6_morning
+              sort: false
+              multiple: true
+              custom_value: false
+              mode: list
 
     evening_section:
       name: Настройки системы для работы вечером
@@ -110,6 +148,44 @@ blueprint:
           default: "00:10:00"
           selector:
             time: {}
+        set_working_day_evening:
+          name: Режим включения вечером
+          default: every_day_evening
+          selector:
+            select:
+              options:
+                - label: Ежедневно
+                  value: every_day_evening
+                - label: Через день
+                  value: every_over_day_evening
+                - label: Выбор
+                  value: select_evening
+              mode: dropdown
+        set_select_days_evening:
+          name: Выбор дней 
+          description: Выбор дней
+          default: []
+          selector:
+            select:
+              options:
+                - label: Понедельник
+                  value: day_0_evening
+                - label: Вторник
+                  value: day_1_evening
+                - label: Среда
+                  value: day_2_evening
+                - label: Четверг
+                  value: day_3_evening
+                - label: Пятница
+                  value: day_4_evening
+                - label: Суббота
+                  value: day_5_evening
+                - label: Воскресенье
+                  value: day_6_evening
+              sort: false
+              multiple: true
+              custom_value: false
+              mode: list
 
 trigger_variables:
   watering_switch: !input watering_switch
@@ -124,9 +200,28 @@ trigger_variables:
   set_time_work_evening: !input set_time_work_evening
   set_time_waterpump_work: !input set_time_waterpump_work
 
+  set_working_day_morning: !input set_working_day_morning
+  set_working_day_evening: !input set_working_day_evening
+  set_select_days_morning: !input set_select_days_morning
+  set_select_days_evening: !input set_select_days_evening
+
 variables:
   time_work_morning: "{{ set_time_work_morning }}"
   time_work_evening: "{{ set_time_work_evening }}"
+
+  selected_days_morning: |
+    {% set ns = namespace(items=[]) %}
+    {% for item in set_select_days_morning %}
+      {% set ns.items = ns.items + [item.split('_')[1]|int] %}
+    {% endfor %}
+    {{ now().weekday() in ns.items }}
+
+  selected_days_evening: |
+    {% set ns = namespace(items=[]) %}
+    {% for item in set_select_days_evening %}
+      {% set ns.items = ns.items + [item.split('_')[1]|int] %}
+    {% endfor %}
+    {{ now().weekday() in ns.items }}
 
 triggers:
   - at: !input set_on_time_morning
@@ -170,6 +265,12 @@ actions:
           - condition: trigger
             id:
               - on_morning_trigger
+          - condition: template
+            value_template: |
+              {{ true if ('every_over_day_morning' not in set_working_day_morning) else ((now().timestamp() / 86400) | int % 2 == 0) }}
+          - condition: template
+            value_template: |
+              {{ true if ('select_morning' not in set_working_day_morning) else selected_days_morning }}
         sequence:
           - if:
               - condition: state
@@ -288,6 +389,12 @@ actions:
           - condition: trigger
             id:
               - watering_off_trigger
+          - condition: template
+            value_template: |
+              {{ true if ('every_over_day_evening' not in set_working_day_evening) else ((now().timestamp() / 86400) | int % 2 == 0) }}
+          - condition: template
+            value_template: |
+              {{ true if ('select_evening' not in set_working_day_evening) else selected_days_evening }}
         sequence:
           - action: timer.finish
             metadata: {}
