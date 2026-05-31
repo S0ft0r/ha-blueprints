@@ -69,6 +69,22 @@ blueprint:
                     - switch
               reorder: false
               multiple: false
+        set_time_waterpump_work:
+          name: Включать насос на
+          description: Время, на которое включается насос перед и после полива 
+          default: "00:01:00"
+          selector:
+        watervalve_switch:
+          name: Клапан потока
+          description: ""
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - switch
+              reorder: false
+              multiple: false
         pump_morning_enable:
           name: Включение с утра
           default: false
@@ -82,6 +98,7 @@ blueprint:
 
 trigger_variables:
   watering_switch: !input watering_switch
+  watervalve_switch: !input watering_switch
   waterpump_switch: !input watering_switch
   pump_off_auto: !input pump_off_auto
 
@@ -90,6 +107,7 @@ trigger_variables:
 
   set_time_work_morning: !input set_time_work_morning
   set_time_work_evening: !input set_time_work_evening
+  set_time_waterpump_work: !input set_time_waterpump_work
 
 variables:
   time_work_morning: "{{ set_time_work_morning }}"
@@ -146,39 +164,34 @@ actions:
               - action: switch.turn_on
                 target:
                   entity_id: !input waterpump_switch
-              - delay: 
-                minutes: 1
+              - delay: !input set_time_waterpump_work
           - target:
               entity_id: !input watering_switch
             data: {}
             action: switch.turn_on
           - delay: !input set_time_work_morning
-          # - metadata: {}
-          #   data:
-          #     duration: "{{ time_work_morning }}"
-          #   target:
-          #     entity_id: 
-          #       - timer.pump_off
-          #       - timer.w_can_countdown
-          #   action: timer.start
+          - if:
+            - condition: template
+              value_template: "{{ watervalve_switch != [] and states(watervalve_switch) not in ['unknown', 'unavailable'] }}"
+            then:
+              - action: switch.turn_on
+                target:
+                  entity_id: !input watervalve_switch
+              - delay: !input set_time_work_morning
           - data: {}
             target:
               entity_id: !input watering_switch
             action: switch.turn_off
           - data: {}
             target:
-              entity_id: !input watering_switch
+              entity_id: !input watervalve_switch
             action: switch.turn_off
           - if:
               - condition: numeric_state
                 entity_id: zone.home
                 below: 1
             then:
-              - delay:
-                  hours: 0
-                  minutes: 1
-                  seconds: 0
-                  milliseconds: 0
+              - delay: !input set_time_waterpump_work
               - target:
                   entity_id: !input waterpump_switch
                 data: {}
@@ -192,29 +205,51 @@ actions:
             entity_id: input_boolean.pump_evening_enable
             state: "on"
         sequence:
+          - if:
+              - condition: numeric_state
+                entity_id: zone.home
+                below: 1
+              - confition: state
+                entity_id: !input waterpump_switch
+                state: "off"
+            then:
+              - target:
+                  entity_id: !input waterpump_switch
+                data: {}
+                action: switch.turn_on
+              - delay: !input set_time_waterpump_work
           - target:
               entity_id: !input watering_switch
             data: {}
             action: switch.turn_on
-          - metadata: {}
-            data:
-              duration: "{{ time_work_evening }}"
-            target:
-              entity_id:
-                - timer.pump_off
-                - timer.w_can_countdown
-            action: timer.start
+          # - metadata: {}
+          #   data:
+          #     duration: "{{ time_work_evening }}"
+          #   target:
+          #     entity_id:
+          #       - timer.pump_off
+          #       - timer.w_can_countdown
+          #   action: timer.start
           - data: {}
             target:
               entity_id: !input watering_switch
             action: switch.turn_on
-          - wait_for_trigger:
-              - entity_id:
-                  - timer.pump_off
-                from: active
-                to: idle
-                trigger: state
-            continue_on_timeout: false
+          # - wait_for_trigger:
+          #     - entity_id:
+          #         - timer.pump_off
+          #       from: active
+          #       to: idle
+          #       trigger: state
+          #   continue_on_timeout: false
+          - delay: !input set_time_work_evening
+          - if:
+            - condition: template
+              value_template: "{{ watervalve_switch != [] and states(watervalve_switch) not in ['unknown', 'unavailable'] }}"
+            then:
+              - action: switch.turn_on
+                target:
+                  entity_id: !input watervalve_switch
+              - delay: !input set_time_work_evening
           - data: {}
             target:
               entity_id: !input watering_switch
@@ -224,13 +259,9 @@ actions:
                 entity_id: zone.home
                 below: 1
             then:
-              - delay:
-                  hours: 0
-                  minutes: 1
-                  seconds: 0
-                  milliseconds: 0
+              - delay: !input set_time_waterpump_work
               - target:
-                  entity_id: !input watering_switch
+                  entity_id: !input waterpump_switch
                 data: {}
                 action: switch.turn_off
 
@@ -243,16 +274,12 @@ actions:
             target:
               entity_id: !input watering_switch
             data: {}
-          - delay:
-              hours: 0
-              minutes: 0
-              seconds: 25
-              milliseconds: 0
           - if:
               - condition: numeric_state
                 entity_id: zone.home
                 below: 1
             then:
+              - delay: !input set_time_waterpump_work
               - action: switch.turn_off
                 target:
                   entity_id: !input watering_switch
@@ -268,11 +295,11 @@ actions:
             data: {}
             target:
               entity_id: !input pump_off_auto
-          - action: timer.finish
-            metadata: {}
-            data: {}
-            target:
-              entity_id: timer.w_can_countdown
+          # - action: timer.finish
+          #   metadata: {}
+          #   data: {}
+          #   target:
+          #     entity_id: timer.w_can_countdown
 
       - conditions:
           - condition: trigger
@@ -285,4 +312,4 @@ actions:
             target:
               entity_id: !input pump_off_auto
 
-mode: restart
+mode: parallel
