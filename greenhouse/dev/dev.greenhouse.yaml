@@ -278,12 +278,12 @@ triggers:
     trigger: state
     id: watering_on_trigger
 
-conditions:
-  - condition: and
-    conditions:
-      - condition: template
-        value_template: >
-          {{ states('input_boolean.summer_pump_mode')=='on' or trigger.id == 'pump_off_auto_trigger' or trigger.id == 'watering_off_trigger' }}
+# conditions:
+#   - condition: and
+#     conditions:
+#       - condition: template
+#         value_template: >
+#           {{ states('input_boolean.summer_pump_mode')=='on' or trigger.id == 'pump_off_auto_trigger' or trigger.id == 'watering_off_trigger' }}
 
 actions:
   - choose:
