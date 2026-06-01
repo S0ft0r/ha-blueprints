@@ -443,7 +443,7 @@ actions:
               - watering_toggle_trigger
           - condition: template
             value_template: |
-              {{ trigger.to_state.state == watering_state_on and trigger.from_state.state == watering_state_off }}
+              {{ trigger.from_state.state == watering_state_on and trigger.to_state.state == watering_state_off }}
         sequence:
           - action: timer.finish
             metadata: {}
@@ -462,7 +462,7 @@ actions:
               - watering_toggle_trigger
           - condition: template
             value_template: |
-              {{ trigger.to_state.state == watering_state_off and trigger.from_state.state == watering_state_on }}
+              {{ trigger.from_state.state == watering_state_off and trigger.to_state.state == watering_state_on }}
         sequence:
           - action: timer.start
             metadata: {}
