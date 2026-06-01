@@ -248,6 +248,10 @@ variables:
     {{ now().weekday() in ns.items }}
 
   auto_off_pump_time: "{{ (set_auto_off_pump_time | int * 60) if auto_off_pump_time_sensor == [] else (states(auto_off_pump_time_sensor)  | int * 60)}}"
+  
+  watervalve_switch_on: "{{ 'valve.open_valve' if watervalve_switch.split('.')[0] == 'valve' else 'switch.turn_on' }}"
+  watervalve_switch_off: "{{ 'valve.close_valve' if watervalve_switch.split('.')[0] == 'valve' else 'switch.turn_off' }}"
+  watervalve_switch_toggle: "{{ watervalve_switch.split('.')[0] ~ '.toggle' }}"
 
 triggers:
   - at: !input set_on_time_morning
@@ -298,15 +302,15 @@ actions:
             value_template: |
               {{ true if ('select_morning' not in set_working_day_morning) else selected_days_morning }}
         sequence:
-          - if:
-              - condition: state
-                entity_id: !input waterpump_switch
-                state: "off"
-            then:
-              - action: switch.turn_on
-                target:
-                  entity_id: !input waterpump_switch
-              - delay: !input set_time_waterpump_work
+          # - if:
+          #     - condition: state
+          #       entity_id: !input waterpump_switch
+          #       state: "off"
+          #   then:
+          - action: switch.turn_on
+            target:
+              entity_id: !input waterpump_switch
+          - delay: !input set_time_waterpump_work
           - target:
               entity_id: !input watering_switch
             data: {}
@@ -316,7 +320,8 @@ actions:
               - condition: template
                 value_template: "{{ watervalve_switch != [] and states(watervalve_switch) not in ['unknown', 'unavailable'] }}"
             then:
-              - action: switch.toggle
+              # - action: switch.toggle
+              - action: "{{ watervalve_switch_toggle }}"
                 target:
                   entity_id: !input watervalve_switch
               - delay: !input set_time_work_evening
@@ -342,20 +347,26 @@ actions:
           - condition: trigger
             id:
               - on_evening_trigger
+          - condition: template
+            value_template: |
+              {{ true if ('every_over_day_evening' not in set_working_day_evening) else ((now().timestamp() / 86400) | int % 2 == 0) }}
+          - condition: template
+            value_template: |
+              {{ true if ('select_evening' not in set_working_day_evening) else selected_days_evening }}
         sequence:
-          - if:
-              - condition: numeric_state
-                entity_id: zone.home
-                below: 1
-              - condition: state
-                entity_id: !input waterpump_switch
-                state: "off"
-            then:
-              - target:
-                  entity_id: !input waterpump_switch
-                data: {}
-                action: switch.turn_on
-              - delay: !input set_time_waterpump_work
+          # - if:
+          #     - condition: numeric_state
+          #       entity_id: zone.home
+          #       below: 1
+          #     - condition: state
+          #       entity_id: !input waterpump_switch
+          #       state: "off"
+          #   then:
+          - target:
+              entity_id: !input waterpump_switch
+            data: {}
+            action: switch.turn_on
+          - delay: !input set_time_waterpump_work
           - target:
               entity_id: !input watering_switch
             data: {}
@@ -415,12 +426,6 @@ actions:
           - condition: trigger
             id:
               - watering_off_trigger
-          - condition: template
-            value_template: |
-              {{ true if ('every_over_day_evening' not in set_working_day_evening) else ((now().timestamp() / 86400) | int % 2 == 0) }}
-          - condition: template
-            value_template: |
-              {{ true if ('select_evening' not in set_working_day_evening) else selected_days_evening }}
         sequence:
           - action: timer.finish
             metadata: {}
