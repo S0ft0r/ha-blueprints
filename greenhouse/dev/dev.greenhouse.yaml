@@ -45,6 +45,7 @@ blueprint:
               filter:
                 - domain:
                     - switch
+                    - valve
               reorder: false
               multiple: false
         set_time_waterpump_work:
@@ -62,6 +63,7 @@ blueprint:
               filter:
                 - domain:
                     - switch
+                    - valve
               reorder: false
               multiple: false
         auto_off_pump_time_sensor:
