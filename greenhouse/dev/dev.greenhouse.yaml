@@ -281,17 +281,21 @@ triggers:
     trigger: state
     id: pump_off_auto_trigger
 
-  - entity_id: !input watering_switch
-    from: "{{ watering_state_on }}"
-    to: "{{ watering_state_off }}"
-    trigger: state
-    id: watering_off_trigger
+  # - entity_id: !input watering_switch
+  #   from: "on"
+  #   to: "off"
+  #   trigger: state
+  #   id: watering_off_trigger
+
+  # - entity_id: !input watering_switch
+  #   from: "off"
+  #   to: "on"
+  #   trigger: state
+  #   id: watering_on_trigger
 
   - entity_id: !input watering_switch
-    from: "{{ watering_state_off }}"
-    to: "{{ watering_state_on }}"
     trigger: state
-    id: watering_on_trigger
+    id: watering_toggle_trigger
 
 # conditions:
 #   - condition: and
@@ -429,10 +433,17 @@ actions:
                   entity_id: !input waterpump_switch
                 data: {}
 
+      # - conditions:
+      #     - condition: trigger
+      #       id:
+      #         - watering_off_trigger
       - conditions:
           - condition: trigger
             id:
-              - watering_off_trigger
+              - watering_toggle_trigger
+          - condition: template
+            value_template: |
+              {{ trigger.to_state.state == watering_state_on and trigger.from_state.state == watering_state_off }}
         sequence:
           - action: timer.finish
             metadata: {}
@@ -448,7 +459,10 @@ actions:
       - conditions:
           - condition: trigger
             id:
-              - watering_on_trigger
+              - watering_toggle_trigger
+          - condition: template
+            value_template: |
+              {{ trigger.to_state.state == watering_state_off and trigger.from_state.state == watering_state_on }}
         sequence:
           - action: timer.start
             metadata: {}
