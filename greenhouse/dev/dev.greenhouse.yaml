@@ -289,7 +289,8 @@ triggers:
     id: watering_toggle_trigger
 
   - trigger: template
-    value_template: "{{ today_at(states('sensor.time')) == today_at(time_work_morning) - time_waterpump_work | as_timedelta }}"
+    value_template: "{{ states('sensor.time') == as_timestamp(today_at(time_work_morning) - time_waterpump_work | as_timedelta) | timestamp_custom('%H:%M') }}"
+    
     id: time_waterpump_work_trigger
 
 # conditions:
