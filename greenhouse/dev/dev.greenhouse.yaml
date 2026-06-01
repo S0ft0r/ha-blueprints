@@ -18,7 +18,7 @@ blueprint:
           filter:
             - domain:
                 - switch
-                - valve
+                # - valve
           reorder: false
           multiple: false
     pump_off_auto:
@@ -46,7 +46,7 @@ blueprint:
               filter:
                 - domain:
                     - switch
-                    - valve
+                    # - valve
               reorder: false
               multiple: false
         set_time_waterpump_work:
@@ -64,7 +64,7 @@ blueprint:
               filter:
                 - domain:
                     - switch
-                    - valve
+                    # - valve
               reorder: false
               multiple: false
         auto_off_pump_time_sensor:
@@ -327,16 +327,16 @@ actions:
             target:
               entity_id: !input watering_switch
             action: switch.turn_off
-          - if:
-              - condition: numeric_state
-                entity_id: zone.home
-                below: 1
-            then:
-              - delay: !input set_time_waterpump_work
-              - target:
-                  entity_id: !input waterpump_switch
-                data: {}
-                action: switch.turn_off
+          # - if:
+          #     - condition: numeric_state
+          #       entity_id: zone.home
+          #       below: 1
+          #   then:
+          #     - delay: !input set_time_waterpump_work
+          #     - target:
+          #         entity_id: !input waterpump_switch
+          #       data: {}
+          #       action: switch.turn_off
 
       - conditions:
           - condition: trigger
@@ -380,16 +380,16 @@ actions:
             target:
               entity_id: !input watering_switch
             action: switch.turn_off
-          - if:
-              - condition: numeric_state
-                entity_id: zone.home
-                below: 1
-            then:
-              - delay: !input set_time_waterpump_work
-              - target:
-                  entity_id: !input waterpump_switch
-                data: {}
-                action: switch.turn_off
+          # - if:
+          #     - condition: numeric_state
+          #       entity_id: zone.home
+          #       below: 1
+          #   then:
+          #     - delay: !input set_time_waterpump_work
+          #     - target:
+          #         entity_id: !input waterpump_switch
+          #       data: {}
+          #       action: switch.turn_off
 
       - conditions:
           - condition: trigger
