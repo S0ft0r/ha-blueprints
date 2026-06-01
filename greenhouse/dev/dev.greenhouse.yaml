@@ -11,14 +11,16 @@ blueprint:
 
   input:
     watering_switch:
-      name: Реле полива
-      description: ""
+      name: Реле/клапан включения полива
+      description: |
+        Реле/клапан включения полива
+        <small>* Поддерживается домены switch и valve</small>
       selector:
         entity:
           filter:
             - domain:
                 - switch
-                # - valve
+                - valve
           reorder: false
           multiple: false
     pump_off_auto:
@@ -46,13 +48,13 @@ blueprint:
               filter:
                 - domain:
                     - switch
-                    # - valve
+                    - valve
               reorder: false
               multiple: false
         set_time_waterpump_work:
           name: Включать насос на
           description: Время, на которое включается насос перед и после полива 
-          default: "00:01:00"
+          default: "00:00:30"
           selector:
             time: {}
         watervalve_switch:
@@ -64,7 +66,7 @@ blueprint:
               filter:
                 - domain:
                     - switch
-                    # - valve
+                    - valve
               reorder: false
               multiple: false
         auto_off_pump_time_sensor:
@@ -232,6 +234,7 @@ trigger_variables:
 variables:
   time_work_morning: "{{ set_time_work_morning }}"
   time_work_evening: "{{ set_time_work_evening }}"
+  time_waterpump_work: "{{ set_time_waterpump_work }}"
 
   selected_days_morning: |
     {% set ns = namespace(items=[]) %}
@@ -281,21 +284,13 @@ triggers:
     trigger: state
     id: pump_off_auto_trigger
 
-  # - entity_id: !input watering_switch
-  #   from: "on"
-  #   to: "off"
-  #   trigger: state
-  #   id: watering_off_trigger
-
-  # - entity_id: !input watering_switch
-  #   from: "off"
-  #   to: "on"
-  #   trigger: state
-  #   id: watering_on_trigger
-
   - entity_id: !input watering_switch
     trigger: state
     id: watering_toggle_trigger
+
+  - trigger: template
+    value_template: {{ today_at(states('sensor.time')) == today_at(time_work_morning) - time_waterpump_work | as_timedelta }}
+    id: time_waterpump_work_trigger
 
 # conditions:
 #   - condition: and
@@ -308,6 +303,15 @@ actions:
   - choose:
       - conditions:
           - condition: trigger
+            id: 
+              - time_waterpump_work_trigger
+        sequence:
+          - target:
+              entity_id: !input waterpump_switch
+            data: {}
+            action: "{{ waterpump_switch_off }}"
+
+          - condition: trigger
             id:
               - on_morning_trigger
           - condition: template
@@ -317,19 +321,20 @@ actions:
             value_template: |
               {{ true if ('select_morning' not in set_working_day_morning) else selected_days_morning }}
         sequence:
-          # - if:
-          #     - condition: state
-          #       entity_id: !input waterpump_switch
-          #       state: "off"
-          #   then:
-          - action: "{{ waterpump_switch_on }}" #           Насос включен
-            target:
-              entity_id: !input waterpump_switch
-          - delay: !input set_time_waterpump_work #         Задержка перед включением клапана
-          - target: #                                       Клапан на воду включен
+          - if:
+              - condition: state
+                entity_id: !input waterpump_switch
+                state: "off"
+            then:
+              - action: "{{ waterpump_switch_on }}" #           Насос включить
+                target:
+                  entity_id: !input waterpump_switch
+              - delay: !input set_time_waterpump_work #         Задержка перед включением клапана
+
+          - action: "{{ watering_switch_on }}" #            Клапан на воду включен
+            target: 
               entity_id: !input watering_switch
             data: {}
-            action: "{{ watering_switch_on }}"
           - delay: !input set_time_work_morning #           Задержка для работы
           - if: #                                           Проверка на доступность клапана потока
               - condition: template
@@ -347,16 +352,6 @@ actions:
             target:
               entity_id: !input watering_switch
             action: "{{ watering_switch_off }}"
-          # - if:
-          #     - condition: numeric_state
-          #       entity_id: zone.home
-          #       below: 1
-          #   then:
-          #     - delay: !input set_time_waterpump_work
-          #     - target:
-          #         entity_id: !input waterpump_switch
-          #       data: {}
-          #       action: switch.turn_off
 
       - conditions:
           - condition: trigger
@@ -369,19 +364,16 @@ actions:
             value_template: |
               {{ true if ('select_evening' not in set_working_day_evening) else selected_days_evening }}
         sequence:
-          # - if:
-          #     - condition: numeric_state
-          #       entity_id: zone.home
-          #       below: 1
-          #     - condition: state
-          #       entity_id: !input waterpump_switch
-          #       state: "off"
-          #   then:
-          - target:
-              entity_id: !input waterpump_switch
-            data: {}
-            action: "{{ waterpump_switch_on }}"
-          - delay: !input set_time_waterpump_work
+          - if:
+              - condition: state
+                entity_id: !input waterpump_switch
+                state: "off"
+            then:
+              - target:
+                  entity_id: !input waterpump_switch
+                data: {}
+                action: "{{ waterpump_switch_on }}"
+              - delay: !input set_time_waterpump_work
           - target:
               entity_id: !input watering_switch
             data: {}
@@ -402,16 +394,6 @@ actions:
             target:
               entity_id: !input watering_switch
             action: "{{ watering_switch_off }}"
-          # - if:
-          #     - condition: numeric_state
-          #       entity_id: zone.home
-          #       below: 1
-          #   then:
-          #     - delay: !input set_time_waterpump_work
-          #     - target:
-          #         entity_id: !input waterpump_switch
-          #       data: {}
-          #       action: switch.turn_off
 
       - conditions:
           - condition: trigger
@@ -433,10 +415,6 @@ actions:
                   entity_id: !input waterpump_switch
                 data: {}
 
-      # - conditions:
-      #     - condition: trigger
-      #       id:
-      #         - watering_off_trigger
       - conditions:
           - condition: trigger
             id:
@@ -450,11 +428,6 @@ actions:
             data: {}
             target:
               entity_id: !input pump_off_auto
-          # - action: timer.finish
-          #   metadata: {}
-          #   data: {}
-          #   target:
-          #     entity_id: timer.w_can_countdown
 
       - conditions:
           - condition: trigger
