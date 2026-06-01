@@ -312,6 +312,7 @@ actions:
             data: {}
             action: "{{ waterpump_switch_off }}"
 
+      - conditions:
           - condition: trigger
             id:
               - on_morning_trigger
