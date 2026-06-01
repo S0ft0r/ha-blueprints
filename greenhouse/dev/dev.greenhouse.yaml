@@ -293,10 +293,10 @@ triggers:
     trigger: state
     id: watering_toggle_trigger
 
-  - trigger: template
-    value_template: |
-      {{ states('sensor.time') == as_timestamp(today_at(set_on_time_evening) - set_time_waterpump_work | as_timedelta) | timestamp_custom('%H:%M') }}
-    id: time_waterpump_before_trigger
+  # - trigger: template
+  #   value_template: |
+  #     {{ states('sensor.time') == as_timestamp(today_at(set_on_time_evening) - set_time_waterpump_work | as_timedelta) | timestamp_custom('%H:%M') }}
+  #   id: time_waterpump_before_trigger
 
 # conditions:
 #   - condition: and
@@ -308,14 +308,14 @@ triggers:
 actions:
   - choose:
       - conditions:
-          - condition: trigger
-            id: 
-              - time_waterpump_before_trigger
-        sequence:
-          - target:
-              entity_id: !input waterpump_switch
-            data: {}
-            action: "{{ waterpump_switch_off }}"
+        #   - condition: trigger
+        #     id: 
+        #       - time_waterpump_before_trigger
+        # sequence:
+        #   - target:
+        #       entity_id: !input waterpump_switch
+        #     data: {}
+        #     action: "{{ waterpump_switch_off }}"
 
       - conditions:
           - condition: trigger
