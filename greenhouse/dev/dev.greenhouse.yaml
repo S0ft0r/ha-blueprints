@@ -18,6 +18,7 @@ blueprint:
           filter:
             - domain:
                 - switch
+                - valve
           reorder: false
           multiple: false
     pump_off_auto:
