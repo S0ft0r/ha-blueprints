@@ -295,7 +295,7 @@ triggers:
 
   - trigger: template
     value_template: |
-      "{{ states('sensor.time') == as_timestamp(today_at(on_time_evening) - time_waterpump_work | as_timedelta) | timestamp_custom('%H:%M') }}"
+      "{{ states('sensor.time') == as_timestamp(today_at(set_on_time_evening) - set_time_waterpump_work | as_timedelta) | timestamp_custom('%H:%M') }}"
     id: time_waterpump_before_trigger
 
 # conditions:
