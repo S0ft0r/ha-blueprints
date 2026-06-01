@@ -234,7 +234,7 @@ trigger_variables:
 variables:
   time_work_morning: "{{ set_time_work_morning }}"
   time_work_evening: "{{ set_time_work_evening }}"
-  time_waterpump_work: "{{ set_time_waterpump_work }}"
+#  time_waterpump_work: "{{ set_time_waterpump_work }}"
 
   selected_days_morning: |
     {% set ns = namespace(items=[]) %}
@@ -289,7 +289,7 @@ triggers:
     id: watering_toggle_trigger
 
   - trigger: template
-    value_template: "{{ states('sensor.time') == as_timestamp(today_at(time_work_morning) - time_waterpump_work | as_timedelta) | timestamp_custom('%H:%M') }}"
+    value_template: "{{ states('sensor.time') == as_timestamp(today_at(set_time_work_morning) - set_time_waterpump_work | as_timedelta) | timestamp_custom('%H:%M') }}"
     
     id: time_waterpump_work_trigger
 
