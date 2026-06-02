@@ -352,9 +352,9 @@ actions:
           - condition: template
             value_template: |
               {{ true if ('select_morning' not in set_working_day_morning) else selected_days_morning }}
-          - condition: template
-            value_template: |
-              {{ states(waterpump_switch) == ('open' if waterpump_switch.split('.')[0] == 'valve' else 'on') }}
+          # - condition: template
+          #   value_template: |
+          #     {{ states(waterpump_switch) == ('open' if waterpump_switch.split('.')[0] == 'valve' else 'on') }}
         sequence:
           # - if:
           #     - condition: state
