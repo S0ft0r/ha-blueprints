@@ -355,7 +355,7 @@ actions:
           - condition: template
             value_template: >-
               {% set pump = waterpump_switch %}
-              {{ states(switch) == ('open' if pump.split('.')[0] == 'valve' else 'on') }}
+              {{ states(pump) == ('open' if pump.split('.')[0] == 'valve' else 'on') }}
         sequence:
           # - if:
           #     - condition: state
@@ -401,7 +401,7 @@ actions:
           - condition: template
             value_template: |
               {% set pump = waterpump_switch %}
-              {{ states(switch) == ('open' if pump.split('.')[0] == 'valve' else 'on') }}
+              {{ states(pump) == ('open' if pump.split('.')[0] == 'valve' else 'on') }}
         sequence:
           - if:
               - condition: state
