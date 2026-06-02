@@ -234,6 +234,21 @@ trigger_variables:
   auto_off_pump_time_sensor: !input auto_off_pump_time_sensor
   set_auto_off_pump_time: !input set_auto_off_pump_time
 
+  open_states:
+    - 'on'
+    - 'open'
+  closed_states:
+    - 'off'
+    - 'closed'
+  invalid_states:
+    - ''                    
+    - 'unavailable'         
+    - 'unknown'             
+    - 'none'                
+    - 'None'                
+    - 'null'                
+    - []                    
+
 variables:
   # time_work_morning: "{{ set_time_work_morning }}"
   # time_work_evening: "{{ set_time_work_evening }}"
@@ -274,10 +289,10 @@ variables:
   watering_switch_off: "{{ 'valve.close_valve' if watering_switch.split('.')[0] == 'valve' else 'switch.turn_off' }}"
   watering_switch_toggle: "{{ watering_switch.split('.')[0] ~ '.toggle' }}"
 
-  watering_state_on: "{{ 'open' if watering_switch.split('.')[0] == 'valve' else 'on' }}"
-  watering_state_off: "{{ 'closed' if watering_switch.split('.')[0] == 'valve' else 'off' }}"
-  waterpump_state_on: "{{ 'open' if waterpump_switch.split('.')[0] == 'valve' else 'on' }}"
-  waterpump_state_off: "{{ 'closed' if waterpump_switch.split('.')[0] == 'valve' else 'off' }}"
+  # watering_state_on: "{{ 'open' if watering_switch.split('.')[0] == 'valve' else 'on' }}"
+  # watering_state_off: "{{ 'closed' if watering_switch.split('.')[0] == 'valve' else 'off' }}"
+  # waterpump_state_on: "{{ 'open' if waterpump_switch.split('.')[0] == 'valve' else 'on' }}"
+  # waterpump_state_off: "{{ 'closed' if waterpump_switch.split('.')[0] == 'valve' else 'off' }}"
 
 triggers:
   - at: !input set_on_time_morning
@@ -304,7 +319,7 @@ triggers:
     value_template: >-
       {% set on_time_morning = set_on_time_morning %}
       {% set time_waterpump_work = set_time_waterpump_work %}
-      {{ states('sensor.time') not in ['unknown', 'unavailable'] and 
+      {{ states('sensor.time') not in invalid_states and 
         states('sensor.time') == as_timestamp(today_at(on_time_morning) - time_waterpump_work | as_timedelta) | timestamp_custom('%H:%M') }}
     id: time_before_morning_trigger
     enabled: !input pump_morning_enable
@@ -313,7 +328,7 @@ triggers:
     value_template: >-
       {% set on_time_evening = set_on_time_evening %}
       {% set time_waterpump_work = set_time_waterpump_work %}
-      {{ states('sensor.time') not in ['unknown', 'unavailable'] and 
+      {{ states('sensor.time') not in invalid_states and 
         states('sensor.time') == as_timestamp(today_at(on_time_evening) - time_waterpump_work | as_timedelta) | timestamp_custom('%H:%M') }}
     id: time_before_evening_trigger
     enabled: !input pump_morning_enable
@@ -358,10 +373,8 @@ actions:
             value_template: |
               {{ true if ('select_morning' not in set_working_day_morning) else selected_days_morning }}
           - condition: template
-            value_template: >-
-              {% set pump = waterpump_switch %}
-              {% set state = ('open' if pump.split('.')[0] == 'valve' else 'on') %}
-              {{ states(pump) == state }}
+            value_template: |
+              {{ states(waterpump_switch) in open_states }}
         sequence:
           # - if:
           #     - condition: state
@@ -379,7 +392,7 @@ actions:
           - delay: !input set_time_work_morning #           Задержка для работы
           - if: #                                           Проверка на доступность клапана потока
               - condition: template
-                value_template: "{{ watervalve_switch != [] and states(watervalve_switch) not in ['unknown', 'unavailable'] }}"
+                value_template: "{{ watervalve_switch != [] and states(watervalve_switch) not in invalid_states }}"
             then:
               # - action: switch.toggle
               - action: "{{ watervalve_switch_toggle }}" #  Включение клапана потока
@@ -406,8 +419,7 @@ actions:
               {{ true if ('select_evening' not in set_working_day_evening) else selected_days_evening }}
           - condition: template
             value_template: |
-              {% set pump = waterpump_switch %}
-              {{ states(pump) == ('open' if pump.split('.')[0] == 'valve' else 'on') }}
+              {{ states(waterpump_switch) in open_states }}
         sequence:
           - if:
               - condition: state
@@ -426,7 +438,7 @@ actions:
           - delay: !input set_time_work_evening
           - if:
               - condition: template
-                value_template: "{{ watervalve_switch != [] and states(watervalve_switch) not in ['unknown', 'unavailable'] }}"
+                value_template: "{{ watervalve_switch != [] and states(watervalve_switch) not in invalid_states }}"
             then:
               - action: "{{ watervalve_switch_toggle }}"
                 target:
@@ -466,7 +478,7 @@ actions:
               - watering_toggle_trigger
           - condition: template
             value_template: |
-              {{ trigger.from_state.state == watering_state_on and trigger.to_state.state == watering_state_off }}
+              {{ trigger.from_state.state in open_states and trigger.to_state.state in closed_states }}
         sequence:
           - action: timer.finish
             metadata: {}
@@ -480,7 +492,7 @@ actions:
               - watering_toggle_trigger
           - condition: template
             value_template: |
-              {{ trigger.from_state.state == watering_state_off and trigger.to_state.state == watering_state_on }}
+              {{ trigger.from_state.state in closed_states and trigger.to_state.state in open_states }}
         sequence:
           - action: timer.start
             metadata: {}
