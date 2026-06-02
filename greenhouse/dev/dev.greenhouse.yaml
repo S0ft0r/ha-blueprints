@@ -241,6 +241,10 @@ variables:
   # on_time_evening: "{{ set_on_time_evening }}"
   # time_waterpump_work: "{{ set_time_waterpump_work }}"
 
+  watering_switch: !input watering_switch
+  watervalve_switch: !input watervalve_switch
+  waterpump_switch: !input watering_switch
+
   selected_days_morning: |
     {% set ns = namespace(items=[]) %}
     {% for item in set_select_days_morning %}
@@ -255,8 +259,9 @@ variables:
     {% endfor %}
     {{ now().weekday() in ns.items }}
 
-  auto_off_pump_time: "{{ (set_auto_off_pump_time | int * 60) if auto_off_pump_time_sensor == [] else (states(auto_off_pump_time_sensor)  | int * 60)}}"
-  
+  auto_off_pump_time: |  # На будущее - рассчитывать время отключения исходя из количества направлений!
+    {{ (set_auto_off_pump_time | int * 60) if auto_off_pump_time_sensor == [] else (states(auto_off_pump_time_sensor)  | int * 60) }}
+
   watervalve_switch_on: "{{ 'valve.open_valve' if watervalve_switch.split('.')[0] == 'valve' else 'switch.turn_on' }}"
   watervalve_switch_off: "{{ 'valve.close_valve' if watervalve_switch.split('.')[0] == 'valve' else 'switch.turn_off' }}"
   watervalve_switch_toggle: "{{ watervalve_switch.split('.')[0] ~ '.toggle' }}"
@@ -355,7 +360,8 @@ actions:
           - condition: template
             value_template: >-
               {% set pump = waterpump_switch %}
-              {{ states(pump) == ('open' if pump.split('.')[0] == 'valve' else 'on') }}
+              {% set state = ('open' if pump.split('.')[0] == 'valve' else 'on') %}
+              {{ states(pump) == state }}
         sequence:
           # - if:
           #     - condition: state
