@@ -295,12 +295,21 @@ triggers:
 
   - trigger: template
     value_template: >-
-      {% set on_time_evening = set_on_time_evening %}
       {% set on_time_morning = set_on_time_morning %}
       {% set time_waterpump_work = set_time_waterpump_work %}
       {{ states('sensor.time') not in ['unknown', 'unavailable'] and 
+        states('sensor.time') == as_timestamp(today_at(on_time_morning) - time_waterpump_work | as_timedelta) | timestamp_custom('%H:%M') }}
+    id: time_before_morning_trigger
+    enabled: !input pump_morning_enable
+
+  - trigger: template
+    value_template: >-
+      {% set on_time_evening = set_on_time_evening %}
+      {% set time_waterpump_work = set_time_waterpump_work %}
+      {{ states('sensor.time') not in ['unknown', 'unavailable'] and 
         states('sensor.time') == as_timestamp(today_at(on_time_evening) - time_waterpump_work | as_timedelta) | timestamp_custom('%H:%M') }}
-    id: time_waterpump_before_trigger
+    id: time_before_evening_trigger
+    enabled: !input pump_morning_enable
 
 # conditions:
 #   - condition: and
@@ -314,12 +323,22 @@ actions:
       - conditions:
           - condition: trigger
             id: 
-              - time_waterpump_before_trigger
+              - time_before_morning_trigger
         sequence:
           - target:
               entity_id: !input waterpump_switch
             data: {}
-            action: "{{ waterpump_switch_off }}"
+            action: "{{ waterpump_switch_on }}"
+
+      - conditions:
+          - condition: trigger
+            id: 
+              - time_before_evening_trigger
+        sequence:
+          - target:
+              entity_id: !input waterpump_switch
+            data: {}
+            action: "{{ waterpump_switch_on }}"
 
       - conditions:
           - condition: trigger
@@ -331,17 +350,19 @@ actions:
           - condition: template
             value_template: |
               {{ true if ('select_morning' not in set_working_day_morning) else selected_days_morning }}
+          - condition: state
+            entity_id: !input waterpump_switch
+            state: "{{ watering_state_on }}"
         sequence:
-          - if:
-              - condition: state
-                entity_id: !input waterpump_switch
-                state: "off"
-            then:
-              - action: "{{ waterpump_switch_on }}" #           Насос включить
-                target:
-                  entity_id: !input waterpump_switch
-              - delay: !input set_time_waterpump_work #         Задержка перед включением клапана
-
+          # - if:
+          #     - condition: state
+          #       entity_id: !input waterpump_switch
+          #       state: "off"
+          #   then:
+          #     - action: "{{ waterpump_switch_on }}" #           Насос включить
+          #       target:
+          #         entity_id: !input waterpump_switch
+          #     - delay: !input set_time_waterpump_work #         Задержка перед включением клапана
           - action: "{{ watering_switch_on }}" #            Клапан на воду включен
             target: 
               entity_id: !input watering_switch
@@ -374,6 +395,9 @@ actions:
           - condition: template
             value_template: |
               {{ true if ('select_evening' not in set_working_day_evening) else selected_days_evening }}
+          - condition: state
+            entity_id: !input waterpump_switch
+            state: "{{ watering_state_on }}"
         sequence:
           - if:
               - condition: state
