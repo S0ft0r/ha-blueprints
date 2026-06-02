@@ -51,10 +51,10 @@ blueprint:
                     - valve
               reorder: false
               multiple: false
-        set_time_waterpump_work:
+        set_time_waterpump_work: # Стоит переделать на number - минуты
           name: Включать насос на
           description: Время, на которое включается насос перед и после полива 
-          default: "00:00:30"
+          default: "00:01:00"
           selector:
             time: {}
         watervalve_switch:
@@ -333,12 +333,12 @@ triggers:
     id: time_before_evening_trigger
     enabled: !input pump_morning_enable
 
-# conditions:
-#   - condition: and
-#     conditions:
-#       - condition: template
-#         value_template: >
-#           {{ states('input_boolean.summer_pump_mode')=='on' or trigger.id == 'pump_off_auto_trigger' or trigger.id == 'watering_off_trigger' }}
+conditions:
+  - condition: and
+    conditions:
+      - condition: template
+        value_template: >
+          {{ states('input_boolean.summer_pump_mode')=='on' or trigger.id == 'pump_off_auto_trigger' or trigger.id == 'watering_off_trigger' }}
 
 actions:
   - choose:
@@ -346,6 +346,9 @@ actions:
           - condition: trigger
             id: 
               - time_before_morning_trigger
+          - condition: template
+            value_template: |
+              {{ waterpump_switch != [] and states(waterpump_switch) not in invalid_states }}
         sequence:
           - target:
               entity_id: !input waterpump_switch
@@ -356,6 +359,9 @@ actions:
           - condition: trigger
             id: 
               - time_before_evening_trigger
+          - condition: template
+            value_template: |
+              {{ waterpump_switch != [] and states(waterpump_switch) not in invalid_states }}
         sequence:
           - target:
               entity_id: !input waterpump_switch
@@ -398,7 +404,7 @@ actions:
               - action: "{{ watervalve_switch_toggle }}" #  Включение клапана потока
                 target:
                   entity_id: !input watervalve_switch
-              - delay: !input set_time_work_evening #       Задержка для работы
+              - delay: !input set_time_work_morning #       Задержка для работы
               - action: "{{ watervalve_switch_toggle }}" #  Выключение клапана потока
                 target:
                   entity_id: !input watervalve_switch
