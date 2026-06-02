@@ -87,6 +87,15 @@ blueprint:
               step: 10
               mode: slider
               unit_of_measurement: "минут"
+        set_input_text_helper:
+          name: Текстовый сенсор для вывода состояния
+          description: ""
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - input_text
 
     morning_section:
       name: Настройки системы для работы утром
