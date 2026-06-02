@@ -213,7 +213,7 @@ blueprint:
 trigger_variables:
   watering_switch: !input watering_switch
   watervalve_switch: !input watervalve_switch
-  waterpump_switch: !input watering_switch
+  waterpump_switch: !input waterpump_switch
   pump_off_auto: !input pump_off_auto
 
   pump_morning_enable: !input pump_morning_enable 
@@ -258,7 +258,7 @@ variables:
 
   watering_switch: !input watering_switch
   watervalve_switch: !input watervalve_switch
-  waterpump_switch: !input watering_switch
+  waterpump_switch: !input waterpump_switch
 
   selected_days_morning: |
     {% set ns = namespace(items=[]) %}
