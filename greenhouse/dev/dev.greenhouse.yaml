@@ -69,14 +69,14 @@ blueprint:
                     - valve
               reorder: false
               multiple: false
-        auto_off_pump_time_sensor:
-          name: Сенсор времени до автоотключения
-          default: []
-          selector:
-            entity:
-              filter:
-                - domain:
-                    - input_datetime
+        # auto_off_pump_time_sensor:
+        #   name: Сенсор времени до автоотключения
+        #   default: []
+        #   selector:
+        #     entity:
+        #       filter:
+        #         - domain:
+        #             - input_datetime
         set_auto_off_pump_time:
           name: Время работы до автоотключения 
           default: "00:30:00"
@@ -95,11 +95,11 @@ blueprint:
     morning_section:
       name: Настройки системы для работы утром
       description: |
-        Устанавливается время включения, режим работы системы орошения.
+        Устанавливается время включения, режим работы полива.
       icon: mdi:clock-time-four-outline
       input:
         pump_morning_enable:
-          name: Включение с утра
+          name: Включение полива утром
           default: false
           selector:
             boolean: {}
@@ -110,12 +110,12 @@ blueprint:
             time: {}
         set_time_work_morning:
           name: Включать на
-          description: Время, на которе включается система орошения 
+          description: Время, на которе включается полив 
           default: "00:10:00"
           selector:
             time: {}
         set_working_day_morning:
-          name: Режим включения
+          name: Режим работы полива
           default: every_day_morning
           selector:
             select:
@@ -124,12 +124,14 @@ blueprint:
                   value: every_day_morning
                 - label: Через день
                   value: every_over_day_morning
-                - label: Выбор
+                - label: Выбор дней
                   value: select_morning
               mode: dropdown
         set_select_days_morning:
           name: Выбор дней 
-          description: Выбор дней
+          description: |
+            Включение полива по дням
+            <small>* Работает при включенном режим работы <em>Выбор дней</em></small>
           default: []
           selector:
             select:
@@ -170,7 +172,7 @@ blueprint:
     evening_section:
       name: Настройки системы для работы вечером
       description: |
-        Устанавливается время включения, режим работы системы орошения.
+        Устанавливается время включения, режим работы системы полива.
       icon: mdi:clock-time-eight-outline
       input:
         pump_evening_enable:
@@ -191,6 +193,8 @@ blueprint:
             time: {}
         set_working_day_evening:
           name: Режим включения вечером
+          description: |
+            Выбор режима включения полива в вечернее время
           default: every_day_evening
           selector:
             select:
@@ -204,7 +208,9 @@ blueprint:
               mode: dropdown
         set_select_days_evening:
           name: Выбор дней 
-          description: Выбор дней
+          description: |
+            Включение полива по дням
+            <small>* Работает при включенном режим работы <em>Выбор дней</em></small>
           default: []
           selector:
             select:
@@ -263,7 +269,7 @@ trigger_variables:
   set_select_days_morning: !input set_select_days_morning
   set_select_days_evening: !input set_select_days_evening
 
-  auto_off_pump_time_sensor: !input auto_off_pump_time_sensor
+#  auto_off_pump_time_sensor: !input auto_off_pump_time_sensor
   set_auto_off_pump_time: !input set_auto_off_pump_time
 
   # set_input_text_helper: !input set_input_text_helper
@@ -293,7 +299,7 @@ variables:
   watering_switch: !input watering_switch
   watervalve_switch: !input watervalve_switch
   waterpump_switch: !input waterpump_switch
-  input_text_helper: !input set_input_text_helper
+#  input_text_helper: !input set_input_text_helper
 
   # selected_days_morning: |
   #   {% set ns = namespace(items=[]) %}
@@ -316,7 +322,7 @@ variables:
     {{ now().strftime('%a') | lower in set_select_days_evening }}
 
   auto_off_pump_time: |  # На будущее - рассчитывать время отключения исходя из количества направлений!
-    {{ set_auto_off_pump_time if auto_off_pump_time_sensor == [] else states(auto_off_pump_time_sensor) }}
+    {{ set_auto_off_pump_time }}
 
   watervalve_switch_on: "{{ 'valve.open_valve' if watervalve_switch.split('.')[0] == 'valve' else 'switch.turn_on' }}"
   watervalve_switch_off: "{{ 'valve.close_valve' if watervalve_switch.split('.')[0] == 'valve' else 'switch.turn_off' }}"
