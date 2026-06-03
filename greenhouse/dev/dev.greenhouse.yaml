@@ -303,6 +303,19 @@ variables:
   # waterpump_state_on: "{{ 'open' if waterpump_switch.split('.')[0] == 'valve' else 'on' }}"
   # waterpump_state_off: "{{ 'closed' if waterpump_switch.split('.')[0] == 'valve' else 'off' }}"
 
+  string: |
+    {% set pump_time = as_timestamp(states[waterpump_switch].last_changed | as_local ) | timestamp_custom("%H:%M") %}
+    {% set on_time = as_timestamp(states[watering_switch].last_changed | as_local ) | timestamp_custom("%H:%M") %}
+    {% set timer_time = as_timestamp(states[pump_off_auto].last_changed | as_local ) | timestamp_custom("%H:%M") %}
+    {% set auto_off = "00:30:00" %}
+    {% set valve_time = "00:01:00" %}
+    {% set pump_str = 'Насос ' ~ ('включен в ' ~ pump_time if states(waterpump_switch) == 'on' else 'выключен') %}
+    {% set watering_str = 'Клапан полива ' ~ ('открыт в ' ~ on_time if states(watering_switch) == 'on' else 'перекрыт') %}
+    {% set timer_str = 'Таймер автоотключения ' ~ ('запущен в ' ~ timer_time ~ ' на ' ~ auto_off if states(pump_off_auto) == 'active' else 'остановлен') %}
+    {% set valve_str = 'Включено направление ' ~ ('на парники' if states(watervalve_switch) == 'off' else 'на теплицу') %}
+    {% set str = pump_str ~ '\n' ~ watering_str ~ '\n' ~ valve_str ~ '\n' ~ timer_str %}
+    {{ str }}
+
 triggers:
   - at: !input set_on_time_morning
     trigger: time
