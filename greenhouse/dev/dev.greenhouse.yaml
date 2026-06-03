@@ -396,24 +396,24 @@ triggers:
 actions:
   - choose:
       - conditions:
-        - condition: trigger
-          id:
-              - time_before_morning_trigger
-              - time_before_evening_trigger
-              - on_morning_trigger
-              - on_evening_trigger
-              - watering_toggle_trigger
-        - condition: template
-          value_template: |
-            {{ input_text_helper != [] }}
-        sequence:
-          - delay:
-              seconds: 1
-          - action: input_text.set_value
-            data:
-              value: "{{ string }}"
-            target:
-              entity_id: "{{ input_text_helper }}"
+        # - condition: trigger
+        #   id:
+        #       - time_before_morning_trigger
+        #       - time_before_evening_trigger
+        #       - on_morning_trigger
+        #       - on_evening_trigger
+        #       - watering_toggle_trigger
+        # - condition: template
+        #   value_template: |
+        #     {{ input_text_helper != [] }}
+        # sequence:
+        #   - delay:
+        #       seconds: 1
+        #   - action: input_text.set_value
+        #     data:
+        #       value: "{{ string }}"
+        #     target:
+        #       entity_id: "{{ input_text_helper }}"
 
       - conditions:
           - condition: trigger
