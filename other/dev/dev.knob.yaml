@@ -124,5 +124,5 @@ actions:
                   target:
                     entity_id: !input light_device
                 - delay:
-                    milliseconds: 10
+                    milliseconds: 50
 
