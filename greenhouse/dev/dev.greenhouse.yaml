@@ -266,6 +266,8 @@ trigger_variables:
   auto_off_pump_time_sensor: !input auto_off_pump_time_sensor
   set_auto_off_pump_time: !input set_auto_off_pump_time
 
+  set_input_text_helper: !input set_input_text_helper
+
   open_states:
     - 'on'
     - 'open'
@@ -291,6 +293,7 @@ variables:
   watering_switch: !input watering_switch
   watervalve_switch: !input watervalve_switch
   waterpump_switch: !input waterpump_switch
+  input_text_helper: !input set_input_text_helper
 
   # selected_days_morning: |
   #   {% set ns = namespace(items=[]) %}
@@ -336,8 +339,7 @@ variables:
     {% set pump_time = as_timestamp(states[waterpump_switch].last_changed | as_local ) | timestamp_custom("%H:%M") %}
     {% set on_time = as_timestamp(states[watering_switch].last_changed | as_local ) | timestamp_custom("%H:%M") %}
     {% set timer_time = as_timestamp(states[pump_off_auto].last_changed | as_local ) | timestamp_custom("%H:%M") %}
-    {% set auto_off = "00:30:00" %}
-    {% set valve_time = "00:01:00" %}
+    {% set auto_off = as_timestamp(today_at(auto_off_pump_time)) | timestamp_custom("%H:%M")  %}
     {% set pump_str = 'Насос ' ~ ('включен в ' ~ pump_time if states(waterpump_switch) == 'on' else 'выключен') %}
     {% set watering_str = 'Клапан полива ' ~ ('открыт в ' ~ on_time if states(watering_switch) == 'on' else 'перекрыт') %}
     {% set timer_str = 'Таймер автоотключения ' ~ ('запущен в ' ~ timer_time ~ ' на ' ~ auto_off if states(pump_off_auto) == 'active' else 'остановлен') %}
@@ -393,6 +395,26 @@ triggers:
 
 actions:
   - choose:
+      - conditions:
+        - condition: trigger
+          id:
+              - time_before_morning_trigger
+              - time_before_evening_trigger
+              - on_morning_trigger
+              - on_evening_trigger
+              - watering_toggle_trigger
+        - condition: template
+          value_template: |
+            {{ input_text_helper != [] }}
+        sequence:
+          - delay:
+              seconds: 1
+          - action: input_text.set_value
+            data:
+              value: "{{ string }}"
+            target:
+              entity_id: "{{ input_text_helper }}"
+
       - conditions:
           - condition: trigger
             id: 
