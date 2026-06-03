@@ -160,9 +160,9 @@ actions:
             metadata: {}
             data:
               brightness_pct: |
-                {% set bc = state_attr(light_device, 'brightness') | int(0) %} 
-                {% set nc = bc - 10 %}
-                {{ 1 if nc < 10 else nc }}
+                {% set bc = state_attr(light_device, 'brightness') | float(0) %} 
+                {% set nc = bc - 25.5 %}
+                {{ 1 if nc < 25.5 else nc }}
             target:
               entity_id: !input light_device
 
@@ -178,8 +178,8 @@ actions:
             metadata: {}
             data:
               brightness_pct: |
-                {% set bc = state_attr(light_device, 'brightness') | int(100) %} 
-                {% set nc = bc + 10 %}
+                {% set bc = state_attr(light_device, 'brightness') | float(255) %} 
+                {% set nc = bc + 25.5 %}
             target:
               entity_id: !input light_device
 
