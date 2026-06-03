@@ -344,7 +344,7 @@ variables:
     {% set watering_str = 'Клапан полива ' ~ ('открыт в ' ~ on_time if states(watering_switch) == 'on' else 'перекрыт') %}
     {% set timer_str = 'Таймер автоотключения ' ~ ('запущен в ' ~ timer_time ~ ' на ' ~ auto_off if states(pump_off_auto) == 'active' else 'остановлен') %}
     {% set valve_str = 'Включено направление ' ~ ('на парники' if states(watervalve_switch) == 'off' else 'на теплицу') %}
-    {% set str = pump_str ~ '\n' ~ watering_str ~ '\n' ~ valve_str ~ '\n' ~ timer_str %}
+    {% set str = pump_str ~ '<br>' ~ watering_str ~ '<br>' ~ valve_str ~ '<br>' ~ timer_str %}
     {{ str }}
 
 triggers:
@@ -409,7 +409,17 @@ actions:
             action: "{{ waterpump_switch_on }}"
           - action: input_text.set_value
             data:
-              value: "{{ string }}"
+              value: |
+                {% set pump_time = as_timestamp(states[waterpump_switch].last_changed | as_local ) | timestamp_custom("%H:%M") %}
+                {% set on_time = as_timestamp(states[watering_switch].last_changed | as_local ) | timestamp_custom("%H:%M") %}
+                {% set timer_time = as_timestamp(states[pump_off_auto].last_changed | as_local ) | timestamp_custom("%H:%M") %}
+                {% set auto_off = as_timestamp(today_at(auto_off_pump_time)) | timestamp_custom("%H:%M")  %}
+                {% set pump_str = 'Насос ' ~ ('включен в ' ~ pump_time if states(waterpump_switch) == 'on' else 'выключен') %}
+                {% set watering_str = 'Клапан полива ' ~ ('открыт в ' ~ on_time if states(watering_switch) == 'on' else 'перекрыт') %}
+                {% set timer_str = 'Таймер автоотключения ' ~ ('запущен в ' ~ timer_time ~ ' на ' ~ auto_off if states(pump_off_auto) == 'active' else 'остановлен') %}
+                {% set valve_str = 'Включено направление ' ~ ('на парники' if states(watervalve_switch) == 'off' else 'на теплицу') %}
+                {% pump_str ~ '\n' ~ watering_str ~ '\n' ~ valve_str ~ '\n' ~ timer_str %}
+
             target:
               entity_id: "{{ input_text_helper }}"
 
@@ -427,7 +437,16 @@ actions:
             action: "{{ waterpump_switch_on }}"
           - action: input_text.set_value
             data:
-              value: "{{ string }}"
+              value: |
+                {% set pump_time = as_timestamp(states[waterpump_switch].last_changed | as_local ) | timestamp_custom("%H:%M") %}
+                {% set on_time = as_timestamp(states[watering_switch].last_changed | as_local ) | timestamp_custom("%H:%M") %}
+                {% set timer_time = as_timestamp(states[pump_off_auto].last_changed | as_local ) | timestamp_custom("%H:%M") %}
+                {% set auto_off = as_timestamp(today_at(auto_off_pump_time)) | timestamp_custom("%H:%M")  %}
+                {% set pump_str = 'Насос ' ~ ('включен в ' ~ pump_time if states(waterpump_switch) == 'on' else 'выключен') %}
+                {% set watering_str = 'Клапан полива ' ~ ('открыт в ' ~ on_time if states(watering_switch) == 'on' else 'перекрыт') %}
+                {% set timer_str = 'Таймер автоотключения ' ~ ('запущен в ' ~ timer_time ~ ' на ' ~ auto_off if states(pump_off_auto) == 'active' else 'остановлен') %}
+                {% set valve_str = 'Включено направление ' ~ ('на парники' if states(watervalve_switch) == 'off' else 'на теплицу') %}
+                {% pump_str ~ '\n' ~ watering_str ~ '\n' ~ valve_str ~ '\n' ~ timer_str %}
             target:
               entity_id: "{{ input_text_helper }}"
 
@@ -460,7 +479,16 @@ actions:
             data: {}
           - action: input_text.set_value
             data:
-              value: "{{ string }}"
+              value: |
+                {% set pump_time = as_timestamp(states[waterpump_switch].last_changed | as_local ) | timestamp_custom("%H:%M") %}
+                {% set on_time = as_timestamp(states[watering_switch].last_changed | as_local ) | timestamp_custom("%H:%M") %}
+                {% set timer_time = as_timestamp(states[pump_off_auto].last_changed | as_local ) | timestamp_custom("%H:%M") %}
+                {% set auto_off = as_timestamp(today_at(auto_off_pump_time)) | timestamp_custom("%H:%M")  %}
+                {% set pump_str = 'Насос ' ~ ('включен в ' ~ pump_time if states(waterpump_switch) == 'on' else 'выключен') %}
+                {% set watering_str = 'Клапан полива ' ~ ('открыт в ' ~ on_time if states(watering_switch) == 'on' else 'перекрыт') %}
+                {% set timer_str = 'Таймер автоотключения ' ~ ('запущен в ' ~ timer_time ~ ' на ' ~ auto_off if states(pump_off_auto) == 'active' else 'остановлен') %}
+                {% set valve_str = 'Включено направление ' ~ ('на парники' if states(watervalve_switch) == 'off' else 'на теплицу') %}
+                {% pump_str ~ '\n' ~ watering_str ~ '\n' ~ valve_str ~ '\n' ~ timer_str %}
             target:
               entity_id: "{{ input_text_helper }}"
           - delay: !input set_time_work_morning #           Задержка для работы
@@ -474,7 +502,16 @@ actions:
                   entity_id: !input watervalve_switch
               - action: input_text.set_value
                 data:
-                  value: "{{ string }}"
+                  value: |
+                    {% set pump_time = as_timestamp(states[waterpump_switch].last_changed | as_local ) | timestamp_custom("%H:%M") %}
+                    {% set on_time = as_timestamp(states[watering_switch].last_changed | as_local ) | timestamp_custom("%H:%M") %}
+                    {% set timer_time = as_timestamp(states[pump_off_auto].last_changed | as_local ) | timestamp_custom("%H:%M") %}
+                    {% set auto_off = as_timestamp(today_at(auto_off_pump_time)) | timestamp_custom("%H:%M")  %}
+                    {% set pump_str = 'Насос ' ~ ('включен в ' ~ pump_time if states(waterpump_switch) == 'on' else 'выключен') %}
+                    {% set watering_str = 'Клапан полива ' ~ ('открыт в ' ~ on_time if states(watering_switch) == 'on' else 'перекрыт') %}
+                    {% set timer_str = 'Таймер автоотключения ' ~ ('запущен в ' ~ timer_time ~ ' на ' ~ auto_off if states(pump_off_auto) == 'active' else 'остановлен') %}
+                    {% set valve_str = 'Включено направление ' ~ ('на парники' if states(watervalve_switch) == 'off' else 'на теплицу') %}
+                    {% pump_str ~ '\n' ~ watering_str ~ '\n' ~ valve_str ~ '\n' ~ timer_str %}
                 target:
                   entity_id: "{{ input_text_helper }}"
               - delay: !input set_time_work_morning #       Задержка для работы
@@ -487,7 +524,16 @@ actions:
             action: "{{ watering_switch_off }}"
           - action: input_text.set_value
             data:
-              value: "{{ string }}"
+              value: |
+                {% set pump_time = as_timestamp(states[waterpump_switch].last_changed | as_local ) | timestamp_custom("%H:%M") %}
+                {% set on_time = as_timestamp(states[watering_switch].last_changed | as_local ) | timestamp_custom("%H:%M") %}
+                {% set timer_time = as_timestamp(states[pump_off_auto].last_changed | as_local ) | timestamp_custom("%H:%M") %}
+                {% set auto_off = as_timestamp(today_at(auto_off_pump_time)) | timestamp_custom("%H:%M")  %}
+                {% set pump_str = 'Насос ' ~ ('включен в ' ~ pump_time if states(waterpump_switch) == 'on' else 'выключен') %}
+                {% set watering_str = 'Клапан полива ' ~ ('открыт в ' ~ on_time if states(watering_switch) == 'on' else 'перекрыт') %}
+                {% set timer_str = 'Таймер автоотключения ' ~ ('запущен в ' ~ timer_time ~ ' на ' ~ auto_off if states(pump_off_auto) == 'active' else 'остановлен') %}
+                {% set valve_str = 'Включено направление ' ~ ('на парники' if states(watervalve_switch) == 'off' else 'на теплицу') %}
+                {% pump_str ~ '\n' ~ watering_str ~ '\n' ~ valve_str ~ '\n' ~ timer_str %}
             target:
               entity_id: "{{ input_text_helper }}"
 
@@ -526,7 +572,16 @@ actions:
             action: "{{ watering_switch_on }}"
           - action: input_text.set_value
             data:
-              value: "{{ string }}"
+              value: |
+                {% set pump_time = as_timestamp(states[waterpump_switch].last_changed | as_local ) | timestamp_custom("%H:%M") %}
+                {% set on_time = as_timestamp(states[watering_switch].last_changed | as_local ) | timestamp_custom("%H:%M") %}
+                {% set timer_time = as_timestamp(states[pump_off_auto].last_changed | as_local ) | timestamp_custom("%H:%M") %}
+                {% set auto_off = as_timestamp(today_at(auto_off_pump_time)) | timestamp_custom("%H:%M")  %}
+                {% set pump_str = 'Насос ' ~ ('включен в ' ~ pump_time if states(waterpump_switch) == 'on' else 'выключен') %}
+                {% set watering_str = 'Клапан полива ' ~ ('открыт в ' ~ on_time if states(watering_switch) == 'on' else 'перекрыт') %}
+                {% set timer_str = 'Таймер автоотключения ' ~ ('запущен в ' ~ timer_time ~ ' на ' ~ auto_off if states(pump_off_auto) == 'active' else 'остановлен') %}
+                {% set valve_str = 'Включено направление ' ~ ('на парники' if states(watervalve_switch) == 'off' else 'на теплицу') %}
+                {% pump_str ~ '\n' ~ watering_str ~ '\n' ~ valve_str ~ '\n' ~ timer_str %}
             target:
               entity_id: "{{ input_text_helper }}"
           - delay: !input set_time_work_evening
@@ -539,7 +594,16 @@ actions:
                   entity_id: !input watervalve_switch
               - action: input_text.set_value
                 data:
-                  value: "{{ string }}"
+                  value: |
+                    {% set pump_time = as_timestamp(states[waterpump_switch].last_changed | as_local ) | timestamp_custom("%H:%M") %}
+                    {% set on_time = as_timestamp(states[watering_switch].last_changed | as_local ) | timestamp_custom("%H:%M") %}
+                    {% set timer_time = as_timestamp(states[pump_off_auto].last_changed | as_local ) | timestamp_custom("%H:%M") %}
+                    {% set auto_off = as_timestamp(today_at(auto_off_pump_time)) | timestamp_custom("%H:%M")  %}
+                    {% set pump_str = 'Насос ' ~ ('включен в ' ~ pump_time if states(waterpump_switch) == 'on' else 'выключен') %}
+                    {% set watering_str = 'Клапан полива ' ~ ('открыт в ' ~ on_time if states(watering_switch) == 'on' else 'перекрыт') %}
+                    {% set timer_str = 'Таймер автоотключения ' ~ ('запущен в ' ~ timer_time ~ ' на ' ~ auto_off if states(pump_off_auto) == 'active' else 'остановлен') %}
+                    {% set valve_str = 'Включено направление ' ~ ('на парники' if states(watervalve_switch) == 'off' else 'на теплицу') %}
+                    {% pump_str ~ '\n' ~ watering_str ~ '\n' ~ valve_str ~ '\n' ~ timer_str %}
                 target:
                   entity_id: "{{ input_text_helper }}"
               - delay: !input set_time_work_evening
@@ -552,7 +616,16 @@ actions:
             action: "{{ watering_switch_off }}"
           - action: input_text.set_value
             data:
-              value: "{{ string }}"
+              value: |
+                {% set pump_time = as_timestamp(states[waterpump_switch].last_changed | as_local ) | timestamp_custom("%H:%M") %}
+                {% set on_time = as_timestamp(states[watering_switch].last_changed | as_local ) | timestamp_custom("%H:%M") %}
+                {% set timer_time = as_timestamp(states[pump_off_auto].last_changed | as_local ) | timestamp_custom("%H:%M") %}
+                {% set auto_off = as_timestamp(today_at(auto_off_pump_time)) | timestamp_custom("%H:%M")  %}
+                {% set pump_str = 'Насос ' ~ ('включен в ' ~ pump_time if states(waterpump_switch) == 'on' else 'выключен') %}
+                {% set watering_str = 'Клапан полива ' ~ ('открыт в ' ~ on_time if states(watering_switch) == 'on' else 'перекрыт') %}
+                {% set timer_str = 'Таймер автоотключения ' ~ ('запущен в ' ~ timer_time ~ ' на ' ~ auto_off if states(pump_off_auto) == 'active' else 'остановлен') %}
+                {% set valve_str = 'Включено направление ' ~ ('на парники' if states(watervalve_switch) == 'off' else 'на теплицу') %}
+                {% pump_str ~ '\n' ~ watering_str ~ '\n' ~ valve_str ~ '\n' ~ timer_str %}
             target:
               entity_id: "{{ input_text_helper }}"
 
@@ -567,7 +640,16 @@ actions:
             data: {}
           - action: input_text.set_value
             data:
-              value: "{{ string }}"
+              value: |
+                {% set pump_time = as_timestamp(states[waterpump_switch].last_changed | as_local ) | timestamp_custom("%H:%M") %}
+                {% set on_time = as_timestamp(states[watering_switch].last_changed | as_local ) | timestamp_custom("%H:%M") %}
+                {% set timer_time = as_timestamp(states[pump_off_auto].last_changed | as_local ) | timestamp_custom("%H:%M") %}
+                {% set auto_off = as_timestamp(today_at(auto_off_pump_time)) | timestamp_custom("%H:%M")  %}
+                {% set pump_str = 'Насос ' ~ ('включен в ' ~ pump_time if states(waterpump_switch) == 'on' else 'выключен') %}
+                {% set watering_str = 'Клапан полива ' ~ ('открыт в ' ~ on_time if states(watering_switch) == 'on' else 'перекрыт') %}
+                {% set timer_str = 'Таймер автоотключения ' ~ ('запущен в ' ~ timer_time ~ ' на ' ~ auto_off if states(pump_off_auto) == 'active' else 'остановлен') %}
+                {% set valve_str = 'Включено направление ' ~ ('на парники' if states(watervalve_switch) == 'off' else 'на теплицу') %}
+                {% pump_str ~ '\n' ~ watering_str ~ '\n' ~ valve_str ~ '\n' ~ timer_str %}
             target:
               entity_id: "{{ input_text_helper }}"
           - if:
@@ -582,7 +664,16 @@ actions:
                 data: {}
               - action: input_text.set_value
                 data:
-                  value: "{{ string }}"
+                  value: |
+                    {% set pump_time = as_timestamp(states[waterpump_switch].last_changed | as_local ) | timestamp_custom("%H:%M") %}
+                    {% set on_time = as_timestamp(states[watering_switch].last_changed | as_local ) | timestamp_custom("%H:%M") %}
+                    {% set timer_time = as_timestamp(states[pump_off_auto].last_changed | as_local ) | timestamp_custom("%H:%M") %}
+                    {% set auto_off = as_timestamp(today_at(auto_off_pump_time)) | timestamp_custom("%H:%M")  %}
+                    {% set pump_str = 'Насос ' ~ ('включен в ' ~ pump_time if states(waterpump_switch) == 'on' else 'выключен') %}
+                    {% set watering_str = 'Клапан полива ' ~ ('открыт в ' ~ on_time if states(watering_switch) == 'on' else 'перекрыт') %}
+                    {% set timer_str = 'Таймер автоотключения ' ~ ('запущен в ' ~ timer_time ~ ' на ' ~ auto_off if states(pump_off_auto) == 'active' else 'остановлен') %}
+                    {% set valve_str = 'Включено направление ' ~ ('на парники' if states(watervalve_switch) == 'off' else 'на теплицу') %}
+                    {% pump_str ~ '\n' ~ watering_str ~ '\n' ~ valve_str ~ '\n' ~ timer_str %}
                 target:
                   entity_id: "{{ input_text_helper }}"
 
@@ -599,6 +690,20 @@ actions:
             data: {}
             target:
               entity_id: !input pump_off_auto
+          - action: input_text.set_value
+            data:
+              value: |
+                {% set pump_time = as_timestamp(states[waterpump_switch].last_changed | as_local ) | timestamp_custom("%H:%M") %}
+                {% set on_time = as_timestamp(states[watering_switch].last_changed | as_local ) | timestamp_custom("%H:%M") %}
+                {% set timer_time = as_timestamp(states[pump_off_auto].last_changed | as_local ) | timestamp_custom("%H:%M") %}
+                {% set auto_off = as_timestamp(today_at(auto_off_pump_time)) | timestamp_custom("%H:%M")  %}
+                {% set pump_str = 'Насос ' ~ ('включен в ' ~ pump_time if states(waterpump_switch) == 'on' else 'выключен') %}
+                {% set watering_str = 'Клапан полива ' ~ ('открыт в ' ~ on_time if states(watering_switch) == 'on' else 'перекрыт') %}
+                {% set timer_str = 'Таймер автоотключения ' ~ ('запущен в ' ~ timer_time ~ ' на ' ~ auto_off if states(pump_off_auto) == 'active' else 'остановлен') %}
+                {% set valve_str = 'Включено направление ' ~ ('на парники' if states(watervalve_switch) == 'off' else 'на теплицу') %}
+                {% pump_str ~ '\n' ~ watering_str ~ '\n' ~ valve_str ~ '\n' ~ timer_str %}
+            target:
+              entity_id: "{{ input_text_helper }}"
 
       - conditions:
           - condition: trigger
@@ -616,7 +721,16 @@ actions:
               entity_id: !input pump_off_auto
           - action: input_text.set_value
             data:
-              value: "{{ string }}"
+              value: |
+                {% set pump_time = as_timestamp(states[waterpump_switch].last_changed | as_local ) | timestamp_custom("%H:%M") %}
+                {% set on_time = as_timestamp(states[watering_switch].last_changed | as_local ) | timestamp_custom("%H:%M") %}
+                {% set timer_time = as_timestamp(states[pump_off_auto].last_changed | as_local ) | timestamp_custom("%H:%M") %}
+                {% set auto_off = as_timestamp(today_at(auto_off_pump_time)) | timestamp_custom("%H:%M")  %}
+                {% set pump_str = 'Насос ' ~ ('включен в ' ~ pump_time if states(waterpump_switch) == 'on' else 'выключен') %}
+                {% set watering_str = 'Клапан полива ' ~ ('открыт в ' ~ on_time if states(watering_switch) == 'on' else 'перекрыт') %}
+                {% set timer_str = 'Таймер автоотключения ' ~ ('запущен в ' ~ timer_time ~ ' на ' ~ auto_off if states(pump_off_auto) == 'active' else 'остановлен') %}
+                {% set valve_str = 'Включено направление ' ~ ('на парники' if states(watervalve_switch) == 'off' else 'на теплицу') %}
+                {% pump_str ~ '\n' ~ watering_str ~ '\n' ~ valve_str ~ '\n' ~ timer_str %}
             target:
               entity_id: "{{ input_text_helper }}"
 
