@@ -162,7 +162,7 @@ blueprint:
                   value: 5
                 - label: Воскресенье
                   value: 6
-              sort: false
+              sort: true
               multiple: true
               custom_value: false
               mode: list
@@ -237,7 +237,7 @@ blueprint:
                   value: 5
                 - label: Воскресенье
                   value: 6
-              sort: false
+              sort: true
               multiple: true
               custom_value: false
               mode: list
