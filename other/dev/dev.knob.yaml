@@ -114,15 +114,30 @@ actions:
             state: "off"
         sequence:
           - repeat:
-              count: 10
+              count: 5
               sequence:
                 - action: light.turn_on
                   metadata: {}
                   data:
                     brightness_pct: |
-                      {{ repeat.index * 10 }}
+                      {{ repeat.index * 20 }}
                   target:
                     entity_id: !input light_device
                 - delay:
                     milliseconds: 50
+      - conditions:
+          - condition: trigger
+            id: 
+              - mqtt_knob_toggle_trigger
+          - condition: state
+            entity_id: !input light_device
+            state: "on"
+        sequence:
+          - repeat:
+              count: 5
+              sequence:
+                - action: light.turn_off
+                  metadata: {}
+                  target:
+                    entity_id: !input light_device
 
