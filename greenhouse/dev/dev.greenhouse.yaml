@@ -407,6 +407,11 @@ actions:
               entity_id: !input waterpump_switch
             data: {}
             action: "{{ waterpump_switch_on }}"
+          - action: input_text.set_value
+            data:
+              value: "{{ string }}"
+            target:
+              entity_id: "{{ input_text_helper }}"
 
       - conditions:
           - condition: trigger
