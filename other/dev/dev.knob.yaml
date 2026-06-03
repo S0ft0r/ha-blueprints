@@ -32,7 +32,15 @@ blueprint:
             - domain:
               - light
           multiple: false
-
+      my_colors:
+        name: Select Colors
+        description: Choose multiple RGB colors to cycle or select from.
+        default:
+          - [255, 0, 0]
+          - [0, 255, 0]
+        selector:
+          color_rgb:
+            multiple: true
     mqtt_section:
       name: Настройки кнопки
       icon: mdi:dip-switch
