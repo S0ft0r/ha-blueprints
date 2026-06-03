@@ -614,6 +614,11 @@ actions:
               duration: "{{ auto_off_pump_time }}"
             target:
               entity_id: !input pump_off_auto
+          - action: input_text.set_value
+            data:
+              value: "{{ string }}"
+            target:
+              entity_id: "{{ input_text_helper }}"
 
 mode: parallel
 max: 10
