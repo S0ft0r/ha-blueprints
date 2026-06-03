@@ -1,0 +1,72 @@
+blueprint:
+  name: Управление кнопкой освещением
+  description: |
+    ### Управление кнопкой.
+    <small>Версия 2026.06.01 Сборка 1</small> 
+
+    <small><a href="https://github.com/S0ft0r/ha-blueprints/blob/main/as-is.md">Отказ от ответственности</a></small>
+  domain: automation
+  source_url: https://github.com/S0ft0r/ha-blueprints/blob/main/other/dev/dev.knob.yaml
+  author: Softor
+
+  input:
+    knob_device:
+      name: Кнопка
+      description: |
+        Кнопка
+      default: 
+      selector:
+        device:
+          entity:
+            - integration: mqtt
+#                - integration: zha
+          multiple: false
+    light_device:
+      name: Лампа
+      description: |
+        Лампа
+      default: 
+      selector:
+        entity:
+          filter:
+            - domain:
+              - light
+          multiple: false
+
+    mqtt_section:
+      name: Настройки кнопки
+      icon: mdi:dip-switch
+      input:
+        basic_topic:
+          name: Базовый топик
+          description: |
+            Базовый топик устройства, подключенного через MQTT. Обычно это <strong><em>zigbee2mqtt/+/action</em></strong>, где вместо знака + будет АВТОМАТИЧЕСКИ подставлено имя выключателя/слайдера.
+             + <small>При выборе устройства, подключенного через ZHA, не учитывается.
+          default: "zigbee2mqtt/+/action"
+          selector:
+            text:
+
+        payload_up:
+          name: Сообщение движениия вверх
+          description: |
+            Сообщение, публикуемое устройством для определения движения вверх.
+          default: "slider_up"
+          selector:
+            text:
+
+        payload_down:
+          name: Сообщение движения вниз
+          description: |
+            Сообщение, публикуемое устройством для определения движения вниз.
+          default: "slider_down"
+          selector:
+            text:
+
+        payload_stop:
+          name: Сообщение остановки
+          description: |
+            Сообщение, публикуемое устройством для определения остановки.
+          default: "single_wireless"
+          selector:
+            text:
+

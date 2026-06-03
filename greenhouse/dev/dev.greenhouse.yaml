@@ -70,23 +70,18 @@ blueprint:
               reorder: false
               multiple: false
         auto_off_pump_time_sensor:
-          name: Сенсор количество минут
+          name: Сенсор времени до автоотключения
           default: []
           selector:
             entity:
               filter:
                 - domain:
-                    - input_number
+                    - input_datetime
         set_auto_off_pump_time:
-          name: Количество минут
-          default: 30
+          name: Время работы до автоотключения 
+          default: "00:30:00"
           selector:
-            number:
-              min: 1
-              max: 60
-              step: 10
-              mode: slider
-              unit_of_measurement: "минут"
+            time: {}
         set_input_text_helper:
           name: Текстовый сенсор для вывода состояния
           description: ""
@@ -139,20 +134,34 @@ blueprint:
           selector:
             select:
               options:
+                # - label: Понедельник
+                #   value: day_0_morning
+                # - label: Вторник
+                #   value: day_1_morning
+                # - label: Среда
+                #   value: day_2_morning
+                # - label: Четверг
+                #   value: day_3_morning
+                # - label: Пятница
+                #   value: day_4_morning
+                # - label: Суббота
+                #   value: day_5_morning
+                # - label: Воскресенье
+                #   value: day_6_morning
                 - label: Понедельник
-                  value: day_0_morning
+                  value: 0
                 - label: Вторник
-                  value: day_1_morning
+                  value: 1
                 - label: Среда
-                  value: day_2_morning
+                  value: 2
                 - label: Четверг
-                  value: day_3_morning
+                  value: 3
                 - label: Пятница
-                  value: day_4_morning
+                  value: 4
                 - label: Суббота
-                  value: day_5_morning
+                  value: 5
                 - label: Воскресенье
-                  value: day_6_morning
+                  value: 6
               sort: false
               multiple: true
               custom_value: false
@@ -200,21 +209,35 @@ blueprint:
           selector:
             select:
               options:
+                # - label: Понедельник
+                #   value: day_0_evening
+                # - label: Вторник
+                #   value: day_1_evening
+                # - label: Среда
+                #   value: day_2_evening
+                # - label: Четверг
+                #   value: day_3_evening
+                # - label: Пятница
+                #   value: day_4_evening
+                # - label: Суббота
+                #   value: day_5_evening
+                # - label: Воскресенье
+                #   value: day_6_evening
                 - label: Понедельник
-                  value: day_0_evening
+                  value: 0
                 - label: Вторник
-                  value: day_1_evening
+                  value: 1
                 - label: Среда
-                  value: day_2_evening
+                  value: 2
                 - label: Четверг
-                  value: day_3_evening
+                  value: 3
                 - label: Пятница
-                  value: day_4_evening
+                  value: 4
                 - label: Суббота
-                  value: day_5_evening
+                  value: 5
                 - label: Воскресенье
-                  value: day_6_evening
-              sort: false
+                  value: 6
+               sort: false
               multiple: true
               custom_value: false
               mode: list
@@ -269,22 +292,28 @@ variables:
   watervalve_switch: !input watervalve_switch
   waterpump_switch: !input waterpump_switch
 
+  # selected_days_morning: |
+  #   {% set ns = namespace(items=[]) %}
+  #   {% for item in set_select_days_morning %}
+  #     {% set ns.items = ns.items + [item.split('_')[1]|int] %}
+  #   {% endfor %}
+  #   {{ now().weekday() in ns.items }}
+
+  # selected_days_evening: |
+  #   {% set ns = namespace(items=[]) %}
+  #   {% for item in set_select_days_evening %}
+  #     {% set ns.items = ns.items + [item.split('_')[1]|int] %}
+  #   {% endfor %}
+  #   {{ now().weekday() in ns.items }}
+
   selected_days_morning: |
-    {% set ns = namespace(items=[]) %}
-    {% for item in set_select_days_morning %}
-      {% set ns.items = ns.items + [item.split('_')[1]|int] %}
-    {% endfor %}
-    {{ now().weekday() in ns.items }}
+    {{ now().weekday() in set_select_days_morning }}
 
   selected_days_evening: |
-    {% set ns = namespace(items=[]) %}
-    {% for item in set_select_days_evening %}
-      {% set ns.items = ns.items + [item.split('_')[1]|int] %}
-    {% endfor %}
-    {{ now().weekday() in ns.items }}
+    {{ now().weekday() in set_select_days_evening }}
 
   auto_off_pump_time: |  # На будущее - рассчитывать время отключения исходя из количества направлений!
-    {{ (set_auto_off_pump_time | int * 60) if auto_off_pump_time_sensor == [] else (states(auto_off_pump_time_sensor)  | int * 60) }}
+    {{ set_auto_off_pump_time if auto_off_pump_time_sensor == [] else states(auto_off_pump_time_sensor) }}
 
   watervalve_switch_on: "{{ 'valve.open_valve' if watervalve_switch.split('.')[0] == 'valve' else 'switch.turn_on' }}"
   watervalve_switch_off: "{{ 'valve.close_valve' if watervalve_switch.split('.')[0] == 'valve' else 'switch.turn_off' }}"

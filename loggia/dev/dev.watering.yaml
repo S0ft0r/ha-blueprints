@@ -190,20 +190,34 @@ blueprint:
           selector:
             select:
               options:
+                # - label: Понедельник
+                #   value: day_0_morning
+                # - label: Вторник
+                #   value: day_1_morning
+                # - label: Среда
+                #   value: day_2_morning
+                # - label: Четверг
+                #   value: day_3_morning
+                # - label: Пятница
+                #   value: day_4_morning
+                # - label: Суббота
+                #   value: day_5_morning
+                # - label: Воскресенье
+                #   value: day_6_morning
                 - label: Понедельник
-                  value: day_0_morning
+                  value: 0
                 - label: Вторник
-                  value: day_1_morning
+                  value: 1
                 - label: Среда
-                  value: day_2_morning
+                  value: 2
                 - label: Четверг
-                  value: day_3_morning
+                  value: 3
                 - label: Пятница
-                  value: day_4_morning
+                  value: 4
                 - label: Суббота
-                  value: day_5_morning
+                  value: 5
                 - label: Воскресенье
-                  value: day_6_morning
+                  value: 6
               sort: false
               multiple: true
               custom_value: false
@@ -280,20 +294,34 @@ blueprint:
           selector:
             select:
               options:
+                # - label: Понедельник
+                #   value: day_0_evening
+                # - label: Вторник
+                #   value: day_1_evening
+                # - label: Среда
+                #   value: day_2_evening
+                # - label: Четверг
+                #   value: day_3_evening
+                # - label: Пятница
+                #   value: day_4_evening
+                # - label: Суббота
+                #   value: day_5_evening
+                # - label: Воскресенье
+                #   value: day_6_evening
                 - label: Понедельник
-                  value: day_0_evening
+                  value: 0
                 - label: Вторник
-                  value: day_1_evening
+                  value: 1
                 - label: Среда
-                  value: day_2_evening
+                  value: 2
                 - label: Четверг
-                  value: day_3_evening
+                  value: 3
                 - label: Пятница
-                  value: day_4_evening
+                  value: 4
                 - label: Суббота
-                  value: day_5_evening
+                  value: 5
                 - label: Воскресенье
-                  value: day_6_evening
+                  value: 6
               sort: false
               multiple: true
               custom_value: false
@@ -335,19 +363,25 @@ variables:
       set_debounce_time.split(':')[1] | int(default=0) * 60 +
       set_debounce_time.split(':')[2] | int(default=0) }}
 
+  # selected_days_morning: |
+  #   {% set ns = namespace(items=[]) %}
+  #   {% for item in set_select_days_morning %}
+  #     {% set ns.items = ns.items + [item.split('_')[1]|int] %}
+  #   {% endfor %}
+  #   {{ now().weekday() in ns.items }}
+
+  # selected_days_evening: |
+  #   {% set ns = namespace(items=[]) %}
+  #   {% for item in set_select_days_evening %}
+  #     {% set ns.items = ns.items + [item.split('_')[1]|int] %}
+  #   {% endfor %}
+  #   {{ now().weekday() in ns.items }}
+
   selected_days_morning: |
-    {% set ns = namespace(items=[]) %}
-    {% for item in set_select_days_morning %}
-      {% set ns.items = ns.items + [item.split('_')[1]|int] %}
-    {% endfor %}
-    {{ now().weekday() in ns.items }}
+    {{ now().weekday() in set_select_days_morning }}
 
   selected_days_evening: |
-    {% set ns = namespace(items=[]) %}
-    {% for item in set_select_days_evening %}
-      {% set ns.items = ns.items + [item.split('_')[1]|int] %}
-    {% endfor %}
-    {{ now().weekday() in ns.items }}
+    {{ now().weekday() in set_select_days_evening }}
 
 triggers:
   - platform: time
