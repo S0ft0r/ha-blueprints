@@ -103,6 +103,12 @@ triggers:
       payload: !input payload_down
     id: mqtt_knob_down_trigger
 
+  - trigger: mqtt
+    options:
+      topic: !input basic_topic
+      payload: !input payload_up
+    id: mqtt_knob_up_trigger
+
 actions:
   - choose:
       - conditions:
@@ -145,21 +151,35 @@ actions:
       - conditions:
           - condition: trigger
             id: 
-              - mqtt_knob_toggle_trigger
+              - mqtt_knob_down_trigger
           - condition: state
             entity_id: !input light_device
             state: "on"
         sequence:
-          - repeat:
-              count: 5
-              sequence:
-                - action: light.turn_on
-                  metadata: {}
-                  data:
-                    brightness_pct: |
-                      {% set bc = state_attr(light_device, 'brightness') | int(0) %} 
-                      {% set nc = bc - 10 %}
-                      {{ bc if  nc >= 10 else nc }}
-                  target:
-                    entity_id: !input light_device
+          - action: light.turn_on
+            metadata: {}
+            data:
+              brightness_pct: |
+                {% set bc = state_attr(light_device, 'brightness') | int(0) %} 
+                {% set nc = bc - 10 %}
+                {{ 1 if nc < 10 else nc }}
+            target:
+              entity_id: !input light_device
+
+      - conditions:
+          - condition: trigger
+            id: 
+              - mqtt_knob_up_trigger
+          - condition: state
+            entity_id: !input light_device
+            state: "on"
+        sequence:
+          - action: light.turn_on
+            metadata: {}
+            data:
+              brightness_pct: |
+                {% set bc = state_attr(light_device, 'brightness') | int(100) %} 
+                {% set nc = bc + 10 %}
+            target:
+              entity_id: !input light_device
 
