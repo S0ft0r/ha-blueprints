@@ -70,7 +70,7 @@ blueprint:
           selector:
             text:
 
-        payload_up:
+        payload_color_up:
           name: Сообщение поворота по часовой с нажатием
           description: |
             Сообщение, публикуемое устройством для определения поворота по часовой с нажатием.
@@ -78,7 +78,7 @@ blueprint:
           selector:
             text:
 
-        payload_down:
+        payload_color_down:
           name: Сообщение поворота против часовой с нажатием
           description: |
             Сообщение, публикуемое устройством для определения поворота против часовой с нажатием.
