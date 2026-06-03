@@ -149,19 +149,19 @@ blueprint:
                 # - label: Воскресенье
                 #   value: day_6_morning
                 - label: Понедельник
-                  value: 0
+                  value: '0'
                 - label: Вторник
-                  value: 1
+                  value: '1'
                 - label: Среда
-                  value: 2
+                  value: '2'
                 - label: Четверг
-                  value: 3
+                  value: '3'
                 - label: Пятница
-                  value: 4
+                  value: '4'
                 - label: Суббота
-                  value: 5
+                  value: '5'
                 - label: Воскресенье
-                  value: 6
+                  value: '6'
               sort: true
               multiple: true
               custom_value: false
@@ -224,19 +224,19 @@ blueprint:
                 # - label: Воскресенье
                 #   value: day_6_evening
                 - label: Понедельник
-                  value: 0
+                  value: '0'
                 - label: Вторник
-                  value: 1
+                  value: '1'
                 - label: Среда
-                  value: 2
+                  value: '2'
                 - label: Четверг
-                  value: 3
+                  value: '3'
                 - label: Пятница
-                  value: 4
+                  value: '4'
                 - label: Суббота
-                  value: 5
+                  value: '5'
                 - label: Воскресенье
-                  value: 6
+                  value: '6'
               sort: true
               multiple: true
               custom_value: false
@@ -307,10 +307,10 @@ variables:
   #   {{ now().weekday() in ns.items }}
 
   selected_days_morning: |
-    {{ now().weekday() in set_select_days_morning }}
+    {{ now().weekday() | int in set_select_days_morning | int }}
 
   selected_days_evening: |
-    {{ now().weekday() in set_select_days_evening }}
+    {{ now().weekday() | int in set_select_days_evening | int }}
 
   auto_off_pump_time: |  # На будущее - рассчитывать время отключения исходя из количества направлений!
     {{ set_auto_off_pump_time if auto_off_pump_time_sensor == [] else states(auto_off_pump_time_sensor) }}
