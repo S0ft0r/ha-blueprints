@@ -396,50 +396,35 @@ triggers:
 actions:
   - choose:
       - conditions:
-        - condition: trigger
-          id:
+          - condition: trigger
+            id: 
               - time_before_morning_trigger
-              - time_before_evening_trigger
-              - on_morning_trigger
-              - on_evening_trigger
-              - watering_toggle_trigger
-        - condition: template
-          value_template: |
-            {{ input_text_helper != [] }}
+          - condition: template
+            value_template: |
+              {{ waterpump_switch != [] and states(waterpump_switch) not in invalid_states }}
         sequence:
-          - delay:
-              seconds: 1
+          - target:
+              entity_id: !input waterpump_switch
+            data: {}
+            action: "{{ waterpump_switch_on }}"
+
+      - conditions:
+          - condition: trigger
+            id: 
+              - time_before_evening_trigger
+          - condition: template
+            value_template: |
+              {{ waterpump_switch != [] and states(waterpump_switch) not in invalid_states }}
+        sequence:
+          - target:
+              entity_id: !input waterpump_switch
+            data: {}
+            action: "{{ waterpump_switch_on }}"
           - action: input_text.set_value
             data:
               value: "{{ string }}"
             target:
               entity_id: "{{ input_text_helper }}"
-
-      - conditions:
-          - condition: trigger
-            id: 
-              - time_before_morning_trigger
-          - condition: template
-            value_template: |
-              {{ waterpump_switch != [] and states(waterpump_switch) not in invalid_states }}
-        sequence:
-          - target:
-              entity_id: !input waterpump_switch
-            data: {}
-            action: "{{ waterpump_switch_on }}"
-
-      - conditions:
-          - condition: trigger
-            id: 
-              - time_before_evening_trigger
-          - condition: template
-            value_template: |
-              {{ waterpump_switch != [] and states(waterpump_switch) not in invalid_states }}
-        sequence:
-          - target:
-              entity_id: !input waterpump_switch
-            data: {}
-            action: "{{ waterpump_switch_on }}"
 
       - conditions:
           - condition: trigger
@@ -468,6 +453,11 @@ actions:
             target: 
               entity_id: !input watering_switch
             data: {}
+          - action: input_text.set_value
+            data:
+              value: "{{ string }}"
+            target:
+              entity_id: "{{ input_text_helper }}"
           - delay: !input set_time_work_morning #           Задержка для работы
           - if: #                                           Проверка на доступность клапана потока
               - condition: template
@@ -477,6 +467,11 @@ actions:
               - action: "{{ watervalve_switch_toggle }}" #  Включение клапана потока
                 target:
                   entity_id: !input watervalve_switch
+              - action: input_text.set_value
+                data:
+                  value: "{{ string }}"
+                target:
+                  entity_id: "{{ input_text_helper }}"
               - delay: !input set_time_work_morning #       Задержка для работы
               - action: "{{ watervalve_switch_toggle }}" #  Выключение клапана потока
                 target:
@@ -485,6 +480,11 @@ actions:
             target:
               entity_id: !input watering_switch
             action: "{{ watering_switch_off }}"
+          - action: input_text.set_value
+            data:
+              value: "{{ string }}"
+            target:
+              entity_id: "{{ input_text_helper }}"
 
       - conditions:
           - condition: trigger
@@ -509,11 +509,21 @@ actions:
                   entity_id: !input waterpump_switch
                 data: {}
                 action: "{{ waterpump_switch_on }}"
+              - action: input_text.set_value
+                data:
+                  value: "{{ string }}"
+                target:
+                  entity_id: "{{ input_text_helper }}"
               - delay: !input set_time_waterpump_work
           - target:
               entity_id: !input watering_switch
             data: {}
             action: "{{ watering_switch_on }}"
+          - action: input_text.set_value
+            data:
+              value: "{{ string }}"
+            target:
+              entity_id: "{{ input_text_helper }}"
           - delay: !input set_time_work_evening
           - if:
               - condition: template
@@ -522,6 +532,11 @@ actions:
               - action: "{{ watervalve_switch_toggle }}"
                 target:
                   entity_id: !input watervalve_switch
+              - action: input_text.set_value
+                data:
+                  value: "{{ string }}"
+                target:
+                  entity_id: "{{ input_text_helper }}"
               - delay: !input set_time_work_evening
               - action: "{{ watervalve_switch_toggle }}"
                 target:
@@ -530,6 +545,11 @@ actions:
             target:
               entity_id: !input watering_switch
             action: "{{ watering_switch_off }}"
+          - action: input_text.set_value
+            data:
+              value: "{{ string }}"
+            target:
+              entity_id: "{{ input_text_helper }}"
 
       - conditions:
           - condition: trigger
@@ -540,6 +560,11 @@ actions:
             target:
               entity_id: !input watering_switch
             data: {}
+          - action: input_text.set_value
+            data:
+              value: "{{ string }}"
+            target:
+              entity_id: "{{ input_text_helper }}"
           - if:
               - condition: numeric_state
                 entity_id: zone.home
@@ -550,6 +575,11 @@ actions:
                 target:
                   entity_id: !input waterpump_switch
                 data: {}
+              - action: input_text.set_value
+                data:
+                  value: "{{ string }}"
+                target:
+                  entity_id: "{{ input_text_helper }}"
 
       - conditions:
           - condition: trigger
