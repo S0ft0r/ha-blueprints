@@ -110,7 +110,9 @@ blueprint:
             time: {}
         set_time_work_morning:
           name: Включать на
-          description: Время, на которе включается полив 
+          description: |
+            Время, на которое включается полив 
+            <small>* На каждое направление</small>
           default: "00:10:00"
           selector:
             time: {}
@@ -155,7 +157,7 @@ blueprint:
                 - label: Вторник
                   value: tue
                 - label: Среда
-                  value: wed'
+                  value: wed
                 - label: Четверг
                   value: thu
                 - label: Пятница
@@ -181,13 +183,15 @@ blueprint:
           selector:
             boolean: {}
         set_on_time_evening:
-          name: Включить утром в
+          name: Включить вечером в
           default: "20:00:00"
           selector:
             time: {}
         set_time_work_evening:
           name: Включать на
-          description: Время, на которое включается система орошения 
+          description: |
+            Время, на которое включается полив 
+            <small>* На каждое направление</small>
           default: "00:10:00"
           selector:
             time: {}
@@ -234,7 +238,7 @@ blueprint:
                 - label: Вторник
                   value: tue
                 - label: Среда
-                  value: wed'
+                  value: wed
                 - label: Четверг
                   value: thu
                 - label: Пятница
