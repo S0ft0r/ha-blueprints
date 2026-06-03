@@ -238,32 +238,34 @@ blueprint:
                     - input_number
               multiple: false
 
-        set_down_limit:
-          name: Нижний предел
-          description: |
-            Нижний предел при закрытии штор.
-             + <small>Если нет нужды закрывать шторы до конца.</small>
-          default: 0
-          selector:
-            number:
-              min: 0
-              max: 100
-              step: 1
-              unit_of_measurement: "%"
-              mode: slider
+        choose:
+          choices:
+            set_down_limit:
+              name: Нижний предел
+              description: |
+                Нижний предел при закрытии штор.
+                + <small>Если нет нужды закрывать шторы до конца.</small>
+              default: 0
+              selector:
+                number:
+                  min: 0
+                  max: 100
+                  step: 1
+                  unit_of_measurement: "%"
+                  mode: slider
 
-        set_down_limit_sensor:
-          name: Сенсор нижнего предела
-          description: |
-            Сенсор, определяющий верхний предел при закрытии штор.
-             + <small>При выборе сенсора, верхний предел, заданная в проекте, учитываться не будет.</small>
-          default: []
-          selector:
-            entity:
-              filter:
-                - domain: 
-                    - input_number
-              multiple: false
+            set_down_limit_sensor:
+              name: Сенсор нижнего предела
+              description: |
+                Сенсор, определяющий верхний предел при закрытии штор.
+                + <small>При выборе сенсора, верхний предел, заданная в проекте, учитываться не будет.</small>
+              default: []
+              selector:
+                entity:
+                  filter:
+                    - domain: 
+                        - input_number
+                  multiple: false
 
         forecasts:
           name: Прогноз погоды
@@ -329,7 +331,6 @@ blueprint:
               step: 10
               mode: slider
               unit_of_measurement: "секунд"
-
 
         repeat_for:
           name: Количество повторов
