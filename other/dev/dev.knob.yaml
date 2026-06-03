@@ -38,9 +38,9 @@ blueprint:
         default:
           - [255, 0, 0]
           - [0, 255, 0]
+          - [0, 0, 255]
         selector:
-          color_rgb:
-            multiple: true
+          object: {}
     mqtt_section:
       name: Настройки кнопки
       icon: mdi:dip-switch
