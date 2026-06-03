@@ -46,27 +46,83 @@ blueprint:
           selector:
             text:
 
-        payload_up:
-          name: Сообщение движениия вверх
+        payload_toggle:
+          name: Сообщение нажатия
           description: |
-            Сообщение, публикуемое устройством для определения движения вверх.
-          default: "slider_up"
+            Сообщение, публикуемое устройством для определения нажатия.
+          default: "toggle"
+          selector:
+            text:
+
+        payload_up:
+          name: Сообщение поворота по часовой
+          description: |
+            Сообщение, публикуемое устройством для определения поворота по часовой.
+          default: "brightness_step_up"
           selector:
             text:
 
         payload_down:
-          name: Сообщение движения вниз
+          name: Сообщение поворота против часовой
           description: |
-            Сообщение, публикуемое устройством для определения движения вниз.
-          default: "slider_down"
+            Сообщение, публикуемое устройством для определения поворота против часовой.
+          default: "brightness_step_down"
           selector:
             text:
 
-        payload_stop:
-          name: Сообщение остановки
+        payload_up:
+          name: Сообщение поворота по часовой с нажатием
           description: |
-            Сообщение, публикуемое устройством для определения остановки.
-          default: "single_wireless"
+            Сообщение, публикуемое устройством для определения поворота по часовой с нажатием.
+          default: "color_temperature_step_up"
           selector:
             text:
+
+        payload_down:
+          name: Сообщение поворота против часовой с нажатием
+          description: |
+            Сообщение, публикуемое устройством для определения поворота против часовой с нажатием.
+          default: "color_temperature_step_down"
+          selector:
+            text:
+
+trigger_variables:
+  knob_device: !input knob_device
+  light_device: !input light_device
+  
+triggers:
+  - trigger: mqtt
+    options:
+      topic: !input basic_topic
+      payload: !input payload_toggle
+    id: mqtt_knob_toggle_trigger
+
+  # - trigger: mqtt
+  #   options:
+  #     topic: !input basic_topic
+  #     payload: !input payload_toggle
+  #   id: mqtt_knob_toggle_trigger
+
+actions:
+  - choose:
+      - conditions:
+          - condition: trigger
+            id: 
+              - mqtt_knob_toggle_trigger
+          - condition: state
+            entity_id: !input light_device
+            state: "off"
+        sequence:
+          - repeat:
+              count: 10
+              sequence:
+                - action: light.turn_on
+                  metadata: {}
+                  data:
+                    brightness_pct: |
+                      {{ repeat.index * 10 }}
+                  target:
+                    entity_id: !input light_device
+                - delay:
+                    milliseconds: 100
 
