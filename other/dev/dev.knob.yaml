@@ -159,7 +159,7 @@ actions:
           - action: light.turn_on
             metadata: {}
             data:
-              brightness_pct: |
+              brightness: |
                 {% set bc = state_attr(light_device, 'brightness') | float(0) %} 
                 {% set nc = bc - 25.5 %}
                 {{ 1 if nc < 25.5 else nc }}
@@ -177,7 +177,7 @@ actions:
           - action: light.turn_on
             metadata: {}
             data:
-              brightness_pct: |
+              brightness: |
                 {% set bc = state_attr(light_device, 'brightness') | float(255) %} 
                 {% set nc = bc + 25.5 %}
                 {{ 255 if nc > 255 else nc }}
