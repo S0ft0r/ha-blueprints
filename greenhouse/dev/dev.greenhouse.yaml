@@ -408,7 +408,7 @@ actions:
             data: {}
             action: "{{ waterpump_switch_on }}"
           - delay:
-              secondes: 1
+              seconds: 1
           - action: input_text.set_value
             data:
               value: "{{ string }}"
@@ -428,7 +428,7 @@ actions:
             data: {}
             action: "{{ waterpump_switch_on }}"
           - delay:
-              secondes: 1
+              seconds: 1
           - action: input_text.set_value
             data:
               value: "{{ string }}"
@@ -463,7 +463,7 @@ actions:
               entity_id: !input watering_switch
             data: {}
           - delay:
-              secondes: 1
+              seconds: 1
           - action: input_text.set_value
             data:
               value: "{{ string }}"
@@ -492,7 +492,7 @@ actions:
               entity_id: !input watering_switch
             action: "{{ watering_switch_off }}"
           - delay:
-              secondes: 1
+              seconds: 1
           - action: input_text.set_value
             data:
               value: "{{ string }}"
@@ -533,7 +533,7 @@ actions:
             data: {}
             action: "{{ watering_switch_on }}"
           - delay:
-              secondes: 1
+              seconds: 1
           - action: input_text.set_value
             data:
               value: "{{ string }}"
@@ -548,7 +548,7 @@ actions:
                 target:
                   entity_id: !input watervalve_switch
               - delay:
-                  secondes: 1
+                  seconds: 1
               - action: input_text.set_value
                 data:
                   value: "{{ string }}"
@@ -563,7 +563,7 @@ actions:
               entity_id: !input watering_switch
             action: "{{ watering_switch_off }}"
           - delay:
-              secondes: 1
+              seconds: 1
           - action: input_text.set_value
             data:
               value: "{{ string }}"
@@ -580,7 +580,7 @@ actions:
               entity_id: !input watering_switch
             data: {}
           - delay:
-              secondes: 1
+              seconds: 1
           - action: input_text.set_value
             data:
               value: "{{ string }}"
@@ -597,7 +597,7 @@ actions:
                   entity_id: !input waterpump_switch
                 data: {}
               - delay:
-                  secondes: 1
+                  seconds: 1
               - action: input_text.set_value
                 data:
                   value: "{{ string }}"
@@ -618,7 +618,7 @@ actions:
             target:
               entity_id: !input pump_off_auto
           - delay:
-              secondes: 1
+              seconds: 1
           - action: input_text.set_value
             data:
               value: "{{ string }}"
@@ -640,7 +640,7 @@ actions:
             target:
               entity_id: !input pump_off_auto
           - delay:
-              secondes: 1
+              seconds: 1
           - action: input_text.set_value
             data:
               value: "{{ string }}"
