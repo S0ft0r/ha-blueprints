@@ -131,6 +131,8 @@ actions:
                     entity_id: !input light_device
                 - delay:
                     milliseconds: 50
+          - delay:
+              milliseconds: 500
 
       - conditions:
           - condition: trigger
@@ -140,13 +142,12 @@ actions:
             entity_id: !input light_device
             state: "on"
         sequence:
-          - repeat:
-              count: 5
-              sequence:
-                - action: light.turn_off
-                  metadata: {}
-                  target:
-                    entity_id: !input light_device
+          - action: light.turn_off
+            metadata: {}
+            target:
+              entity_id: !input light_device
+          - delay:
+              milliseconds: 500
 
       - conditions:
           - condition: trigger
@@ -165,6 +166,8 @@ actions:
                 {{ 1 if nc < 25.5 else nc }}
             target:
               entity_id: !input light_device
+          - delay:
+              milliseconds: 500
 
       - conditions:
           - condition: trigger
@@ -183,4 +186,7 @@ actions:
                 {{ 255 if nc > 255 else nc }}
             target:
               entity_id: !input light_device
+          - delay:
+              milliseconds: 500
 
+mode: single
