@@ -395,7 +395,7 @@ triggers:
 
 actions:
   - choose:
-      - conditions:
+      # - conditions:
         # - condition: trigger
         #   id:
         #       - time_before_morning_trigger
