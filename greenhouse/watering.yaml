@@ -1,0 +1,470 @@
+blueprint:
+  name: Управление поливом теплицы
+  description: |
+    ### Управление поливом теплицы.
+    <small>Версия 2026.05.01 Сборка 1</small> 
+
+    <small><a href="https://github.com/S0ft0r/ha-blueprints/blob/main/as-is.md">Отказ от ответственности</a></small>
+  domain: automation
+  source_url: https://github.com/S0ft0r/ha-blueprints/blob/main/greenhouse/watering.yaml
+  author: Softor
+
+  input:
+    watering_switch:
+      name: Реле/клапан включения полива
+      description: |
+        Реле/клапан включения полива
+        <small>* Поддерживается домены switch и valve</small>
+      selector:
+        entity:
+          filter:
+            - domain:
+                - switch
+                - valve
+          reorder: false
+          multiple: false
+    pump_off_auto:
+      name: Таймер автоматического отключения
+      description: ""
+      selector:
+        entity:
+          filter:
+            - domain:
+                - timer
+          reorder: false
+          multiple: false
+
+    extra_section:
+      name: Дополнительные настройки системы
+      description: |
+        Устанавливается дополнительные настройки.
+      icon: mdi:cog
+      input:
+        waterpump_switch:
+          name: Реле насоса
+          description: ""
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - switch
+                    - valve
+              reorder: false
+              multiple: false
+        set_time_waterpump_work: # Стоит переделать на number - минуты
+          name: Включать насос на
+          description: Время, на которое включается насос перед и после полива 
+          default: "00:01:00"
+          selector:
+            time: {}
+        watervalve_switch:
+          name: Клапан направления
+          description: ""
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - switch
+                    - valve
+              reorder: false
+              multiple: false
+        set_auto_off_pump_time:
+          name: Время работы до автоотключения 
+          default: "00:30:00"
+          selector:
+            time: {}
+
+    morning_section:
+      name: Настройки системы для работы утром
+      description: |
+        Устанавливается время включения, режим работы полива.
+      icon: mdi:clock-time-four-outline
+      input:
+        pump_morning_enable:
+          name: Включение полива утром
+          default: false
+          selector:
+            boolean: {}
+        set_on_time_morning:
+          name: Включить утром в
+          default: "08:00:00"
+          selector:
+            time: {}
+        set_time_work_morning:
+          name: Включать на
+          description: |
+            Время, на которое включается полив 
+            <small>* На каждое направление</small>
+          default: "00:10:00"
+          selector:
+            time: {}
+        set_working_day_morning:
+          name: Режим работы полива
+          default: every_day_morning
+          selector:
+            select:
+              options:
+                - label: Ежедневно
+                  value: every_day_morning
+                - label: Через день
+                  value: every_over_day_morning
+                - label: Выбор дней
+                  value: select_morning
+              mode: dropdown
+        set_select_days_morning:
+          name: Выбор дней 
+          description: |
+            Включение полива по дням
+            <small>* Работает при включенном режим работы <em>Выбор дней</em></small>
+          default: []
+          selector:
+            select:
+              options:
+                - label: Понедельник
+                  value: mon
+                - label: Вторник
+                  value: tue
+                - label: Среда
+                  value: wed
+                - label: Четверг
+                  value: thu
+                - label: Пятница
+                  value: fri
+                - label: Суббота
+                  value: sat
+                - label: Воскресенье
+                  value: sun
+              sort: false
+              multiple: true
+              custom_value: false
+              mode: list
+
+    evening_section:
+      name: Настройки системы для работы вечером
+      description: |
+        Устанавливается время включения, режим работы системы полива.
+      icon: mdi:clock-time-eight-outline
+      input:
+        pump_evening_enable:
+          name: Включение вечером
+          default: false
+          selector:
+            boolean: {}
+        set_on_time_evening:
+          name: Включить вечером в
+          default: "20:00:00"
+          selector:
+            time: {}
+        set_time_work_evening:
+          name: Включать на
+          description: |
+            Время, на которое включается полив 
+            <small>* На каждое направление</small>
+          default: "00:10:00"
+          selector:
+            time: {}
+        set_working_day_evening:
+          name: Режим включения вечером
+          description: |
+            Выбор режима включения полива в вечернее время
+          default: every_day_evening
+          selector:
+            select:
+              options:
+                - label: Ежедневно
+                  value: every_day_evening
+                - label: Через день
+                  value: every_over_day_evening
+                - label: Выбор
+                  value: select_evening
+              mode: dropdown
+        set_select_days_evening:
+          name: Выбор дней 
+          description: |
+            Включение полива по дням
+            <small>* Работает при включенном режим работы <em>Выбор дней</em></small>
+          default: []
+          selector:
+            select:
+              options:
+                - label: Понедельник
+                  value: mon
+                - label: Вторник
+                  value: tue
+                - label: Среда
+                  value: wed
+                - label: Четверг
+                  value: thu
+                - label: Пятница
+                  value: fri
+                - label: Суббота
+                  value: sat
+                - label: Воскресенье
+                  value: sun
+              sort: false
+              multiple: true
+              custom_value: false
+              mode: list
+
+trigger_variables:
+  watering_switch: !input watering_switch
+  watervalve_switch: !input watervalve_switch
+  waterpump_switch: !input waterpump_switch
+  pump_off_auto: !input pump_off_auto
+
+  pump_morning_enable: !input pump_morning_enable 
+  pump_evening_enable: !input pump_evening_enable 
+
+  set_on_time_morning: !input set_on_time_morning
+  set_on_time_evening: !input set_on_time_evening
+
+  set_time_work_morning: !input set_time_work_morning
+  set_time_work_evening: !input set_time_work_evening
+  set_time_waterpump_work: !input set_time_waterpump_work
+
+  set_working_day_morning: !input set_working_day_morning
+  set_working_day_evening: !input set_working_day_evening
+  set_select_days_morning: !input set_select_days_morning
+  set_select_days_evening: !input set_select_days_evening
+
+  set_auto_off_pump_time: !input set_auto_off_pump_time
+
+  open_states:
+    - 'on'
+    - 'open'
+  closed_states:
+    - 'off'
+    - 'closed'
+  invalid_states:
+    - ''                    
+    - 'unavailable'         
+    - 'unknown'             
+    - 'none'                
+    - 'None'                
+    - 'null'                
+    - []                    
+
+variables:
+  watering_switch: !input watering_switch
+  watervalve_switch: !input watervalve_switch
+  waterpump_switch: !input waterpump_switch
+
+  selected_days_morning: |
+    {{ now().strftime('%a') | lower in set_select_days_morning }}
+
+  selected_days_evening: |
+    {{ now().strftime('%a') | lower in set_select_days_evening }}
+
+  auto_off_pump_time: |  # На будущее - рассчитывать время отключения исходя из количества направлений!
+    {{ set_auto_off_pump_time }}
+
+  watervalve_switch_on: "{{ 'valve.open_valve' if watervalve_switch.split('.')[0] == 'valve' else 'switch.turn_on' }}"
+  watervalve_switch_off: "{{ 'valve.close_valve' if watervalve_switch.split('.')[0] == 'valve' else 'switch.turn_off' }}"
+  watervalve_switch_toggle: "{{ watervalve_switch.split('.')[0] ~ '.toggle' }}"
+
+  waterpump_switch_on: "{{ 'valve.open_valve' if waterpump_switch.split('.')[0] == 'valve' else 'switch.turn_on' }}"
+  waterpump_switch_off: "{{ 'valve.close_valve' if waterpump_switch.split('.')[0] == 'valve' else 'switch.turn_off' }}"
+  waterpump_switch_toggle: "{{ waterpump_switch.split('.')[0] ~ '.toggle' }}"
+
+  watering_switch_on: "{{ 'valve.open_valve' if watering_switch.split('.')[0] == 'valve' else 'switch.turn_on' }}"
+  watering_switch_off: "{{ 'valve.close_valve' if watering_switch.split('.')[0] == 'valve' else 'switch.turn_off' }}"
+  watering_switch_toggle: "{{ watering_switch.split('.')[0] ~ '.toggle' }}"
+
+triggers:
+  - at: !input set_on_time_morning
+    trigger: time
+    id: on_morning_trigger
+    enabled: !input pump_morning_enable
+
+  - at: !input set_on_time_evening
+    trigger: time
+    id: on_evening_trigger
+    enabled: !input pump_evening_enable
+
+  - entity_id: !input pump_off_auto
+    from: active
+    to: idle
+    trigger: state
+    id: pump_off_auto_trigger
+
+  - entity_id: !input watering_switch
+    trigger: state
+    id: watering_toggle_trigger
+
+  - trigger: template
+    value_template: >-
+      {% set on_time_morning = set_on_time_morning %}
+      {% set time_waterpump_work = set_time_waterpump_work %}
+      {{ states('sensor.time') not in invalid_states and 
+        states('sensor.time') == as_timestamp(today_at(on_time_morning) - time_waterpump_work | as_timedelta) | timestamp_custom('%H:%M') }}
+    id: time_before_morning_trigger
+    enabled: !input pump_morning_enable
+
+  - trigger: template
+    value_template: >-
+      {% set on_time_evening = set_on_time_evening %}
+      {% set time_waterpump_work = set_time_waterpump_work %}
+      {{ states('sensor.time') not in invalid_states and 
+        states('sensor.time') == as_timestamp(today_at(on_time_evening) - time_waterpump_work | as_timedelta) | timestamp_custom('%H:%M') }}
+    id: time_before_evening_trigger
+    enabled: !input pump_morning_enable
+
+actions:
+  - choose:
+      - conditions:
+          - condition: trigger
+            id: 
+              - time_before_morning_trigger
+          - condition: template
+            value_template: |
+              {{ waterpump_switch != [] and states(waterpump_switch) not in invalid_states }}
+        sequence:
+          - target:
+              entity_id: !input waterpump_switch
+            data: {}
+            action: "{{ waterpump_switch_on }}"
+
+      - conditions:
+          - condition: trigger
+            id: 
+              - time_before_evening_trigger
+          - condition: template
+            value_template: |
+              {{ waterpump_switch != [] and states(waterpump_switch) not in invalid_states }}
+        sequence:
+          - target:
+              entity_id: !input waterpump_switch
+            data: {}
+            action: "{{ waterpump_switch_on }}"
+
+      - conditions:
+          - condition: trigger
+            id:
+              - on_morning_trigger
+          - condition: template
+            value_template: |
+              {{ true if ('every_over_day_morning' not in set_working_day_morning) else ((now().timestamp() / 86400) | int % 2 == 0) }}
+          - condition: template
+            value_template: |
+              {{ true if ('select_morning' not in set_working_day_morning) else selected_days_morning }}
+          - condition: template
+            value_template: |
+              {{ states(waterpump_switch) in open_states }}
+        sequence:
+          - action: "{{ watering_switch_on }}" #            Клапан на воду включен
+            target: 
+              entity_id: !input watering_switch
+            data: {}
+          - if: #                                           Проверка на доступность клапана потока
+              - condition: template
+                value_template: "{{ watervalve_switch != [] and states(watervalve_switch) not in invalid_states }}"
+            then:
+              - action: "{{ watervalve_switch_toggle }}" #  Включение клапана потока
+                target:
+                  entity_id: !input watervalve_switch
+              - delay: !input set_time_work_morning #       Задержка для работы
+              - action: "{{ watervalve_switch_toggle }}" #  Выключение клапана потока
+                target:
+                  entity_id: !input watervalve_switch
+          - data: {} #                                      Клапан на воду выключен
+            target:
+              entity_id: !input watering_switch
+            action: "{{ watering_switch_off }}"
+
+      - conditions:
+          - condition: trigger
+            id:
+              - on_evening_trigger
+          - condition: template
+            value_template: |
+              {{ true if ('every_over_day_evening' not in set_working_day_evening) else ((now().timestamp() / 86400) | int % 2 == 0) }}
+          - condition: template
+            value_template: |
+              {{ true if ('select_evening' not in set_working_day_evening) else selected_days_evening }}
+          - condition: template
+            value_template: |
+              {{ states(waterpump_switch) in open_states }}
+        sequence:
+          - if:
+              - condition: state
+                entity_id: !input waterpump_switch
+                state: "off"
+            then:
+              - target:
+                  entity_id: !input waterpump_switch
+                data: {}
+                action: "{{ waterpump_switch_on }}"
+              - delay: !input set_time_waterpump_work
+          - target:
+              entity_id: !input watering_switch
+            data: {}
+            action: "{{ watering_switch_on }}"
+          - delay: !input set_time_work_evening
+          - if:
+              - condition: template
+                value_template: "{{ watervalve_switch != [] and states(watervalve_switch) not in invalid_states }}"
+            then:
+              - action: "{{ watervalve_switch_toggle }}"
+                target:
+                  entity_id: !input watervalve_switch
+              - delay: !input set_time_work_evening
+              - action: "{{ watervalve_switch_toggle }}"
+                target:
+                  entity_id: !input watervalve_switch
+          - data: {}
+            target:
+              entity_id: !input watering_switch
+            action: "{{ watering_switch_off }}"
+
+      - conditions:
+          - condition: trigger
+            id:
+              - pump_off_auto_trigger
+        sequence:
+          - action: "{{ watering_switch_off }}"
+            target:
+              entity_id: !input watering_switch
+            data: {}
+          - if:
+              - condition: numeric_state
+                entity_id: zone.home
+                below: 1
+            then:
+              - delay: !input set_time_waterpump_work
+              - action: "{{ waterpump_switch_off }}"
+                target:
+                  entity_id: !input waterpump_switch
+                data: {}
+
+      - conditions:
+          - condition: trigger
+            id:
+              - watering_toggle_trigger
+          - condition: template
+            value_template: |
+              {{ trigger.from_state.state in open_states and trigger.to_state.state in closed_states }}
+        sequence:
+          - action: timer.finish
+            metadata: {}
+            data: {}
+            target:
+              entity_id: !input pump_off_auto
+
+      - conditions:
+          - condition: trigger
+            id:
+              - watering_toggle_trigger
+          - condition: template
+            value_template: |
+              {{ trigger.from_state.state in closed_states and trigger.to_state.state in open_states }}
+        sequence:
+          - action: timer.start
+            metadata: {}
+            data: 
+              duration: "{{ auto_off_pump_time }}"
+            target:
+              entity_id: !input pump_off_auto
+
+mode: parallel
+max: 10
