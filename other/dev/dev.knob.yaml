@@ -216,6 +216,14 @@ actions:
           - condition: template
             value_template: "{{ device_attr(knob_device, 'name') == trigger.topic.split('/')[1] }}"
         sequence:
+          - action: mqtt.publish
+            metadata: {}
+            data:
+              topic: "{{ basic_topic | replace('+', device_attr(knob_device, 'name')) }}"
+              evaluate_payload: false
+              qos: 0
+              retain: false
+              payload: ""          
           - repeat:
               count: 10
               sequence:
@@ -244,6 +252,14 @@ actions:
           - condition: template
             value_template: "{{ device_attr(knob_device, 'name') == trigger.topic.split('/')[1] }}"
         sequence:
+          - action: mqtt.publish
+            metadata: {}
+            data:
+              topic: "{{ basic_topic | replace('+', device_attr(knob_device, 'name')) }}"
+              evaluate_payload: false
+              qos: 0
+              retain: false
+              payload: ""          
           - action: light.turn_off
             metadata: {}
             target:
@@ -264,6 +280,14 @@ actions:
           - condition: template
             value_template: "{{ device_attr(knob_device, 'name') == trigger.topic.split('/')[1] }}"
         sequence:
+          - action: mqtt.publish
+            metadata: {}
+            data:
+              topic: "{{ basic_topic | replace('+', device_attr(knob_device, 'name')) }}"
+              evaluate_payload: false
+              qos: 0
+              retain: false
+              payload: ""          
           - action: light.turn_on
             metadata: {}
             data:
@@ -290,6 +314,14 @@ actions:
           - condition: template
             value_template: "{{ device_attr(knob_device, 'name') == trigger.topic.split('/')[1] }}"
         sequence:
+          - action: mqtt.publish
+            metadata: {}
+            data:
+              topic: "{{ basic_topic | replace('+', device_attr(knob_device, 'name')) }}"
+              evaluate_payload: false
+              qos: 0
+              retain: false
+              payload: ""          
           - action: light.turn_on
             metadata: {}
             data:
@@ -316,6 +348,14 @@ actions:
           - condition: template
             value_template: "{{ device_attr(knob_device, 'name') == trigger.topic.split('/')[1] }}"
         sequence:
+          - action: mqtt.publish
+            metadata: {}
+            data:
+              topic: "{{ basic_topic | replace('+', device_attr(knob_device, 'name')) }}"
+              evaluate_payload: false
+              qos: 0
+              retain: false
+              payload: ""          
           - action: light.turn_on
             metadata: {}
             data:
@@ -340,6 +380,14 @@ actions:
           - condition: template
             value_template: "{{ device_attr(knob_device, 'name') == trigger.topic.split('/')[1] }}"
         sequence:
+          - action: mqtt.publish
+            metadata: {}
+            data:
+              topic: "{{ basic_topic | replace('+', device_attr(knob_device, 'name')) }}"
+              evaluate_payload: false
+              qos: 0
+              retain: false
+              payload: ""          
           - action: light.turn_on
             metadata: {}
             data:
