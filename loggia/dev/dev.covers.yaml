@@ -247,8 +247,7 @@ blueprint:
             choose:
               choices:
                 set_down_limit:
-                  name: Нижний предел
-                  default: 0
+                  name: Числовое значение
                   selector:
                     number:
                       min: 0
@@ -258,8 +257,7 @@ blueprint:
                       mode: slider
 
                 set_down_limit_sensor:
-                  name: Сенсор нижнего предела
-                  default: []
+                  name: Внешний сенсор
                   selector:
                     entity:
                       filter:
