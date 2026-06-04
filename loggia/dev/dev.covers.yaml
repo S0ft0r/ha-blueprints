@@ -246,7 +246,7 @@ blueprint:
           selector:
             choose:
               choices:
-                'число':
+                'процент':
                   selector:
                     number:
                       min: 0
@@ -492,9 +492,9 @@ variables:
   up_limit: "{{ set_up_limit if set_up_limit_sensor == [] else states(set_up_limit_sensor) }}"
 #  down_limit: "{{ set_down_limit if set_down_limit_sensor == [] else states(set_down_limit_sensor) }}"
   down_limit: |
-    {{ down_limit_config.percent 
-      if chosen_type_down_limit == 'percent' 
-      else (0 if down_limit_config.sensor == [] else states(down_limit_config.sensor)) }}
+    {{ down_limit_config.'процент' 
+      if chosen_type_down_limit == 'процент' 
+      else (0 if down_limit_config.'сенсор' == [] else states(down_limit_config.'сенсор')) }}
 
 
 triggers:
