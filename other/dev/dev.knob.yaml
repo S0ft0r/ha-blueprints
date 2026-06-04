@@ -19,7 +19,6 @@ blueprint:
         device:
           entity:
             - integration: mqtt
-#                - integration: zha
           multiple: false
     light_device:
       name: Лампа
@@ -32,6 +31,24 @@ blueprint:
             - domain:
               - light
           multiple: false
+
+    option_section:
+      input:
+        extra:
+          name: Режимы работы 
+          description: Режимы работы автоматизации
+          default: []
+          selector:
+            select:
+              options:
+                - label: Изменение яркости
+                  value: extra_brightness
+                - label: Изменение цвета
+                  value: extra_color
+              sort: false
+              multiple: true
+              custom_value: false
+              mode: list
 
     mqtt_section:
       name: Настройки кнопки
@@ -90,6 +107,11 @@ trigger_variables:
   knob_device: !input knob_device
   light_device: !input light_device
 
+  extra: !input extra
+
+  is_extra_brightness_enabled: "{{ 'extra_brightness' in extra }}" 
+  is_extra_color_enabled: "{{ 'extra_color' in extra }}" 
+
 variables:
   rgb_colors: |
     {{ [
@@ -118,9 +140,8 @@ variables:
     '[ 0.444,0.517 ]',
     '[ 0.527,0.447 ]'
     ] }}
-  count_colors: "{{ rgb_colors | count  }}"  
-  xy_color: "{{ rgb_colors[(index % count_colors)] }}"
-  index: 0
+  count_colors: "{{ rgb_colors | count }}"  
+  xy_color: "{{ rgb_colors[range(0, count_colors) | random] }}"
 
   
 triggers:
@@ -135,24 +156,28 @@ triggers:
       topic: !input basic_topic
       payload: !input payload_down
     id: mqtt_knob_down_trigger
+    enabled: "{{ is_extra_brightness_enabled }}"
 
   - trigger: mqtt
     options:
       topic: !input basic_topic
       payload: !input payload_up
     id: mqtt_knob_up_trigger
+    enabled: "{{ is_extra_brightness_enabled }}"
 
   - trigger: mqtt
     options:
       topic: !input basic_topic
       payload: !input payload_color_up
     id: mqtt_knob_up_color_trigger
+    enabled: "{{ is_extra_color_enabled }}"
 
   - trigger: mqtt
     options:
       topic: !input basic_topic
       payload: !input payload_color_down
     id: mqtt_knob_down_color_trigger
+    enabled: "{{ is_extra_color_enabled }}"
 
 actions:
   - choose:
@@ -251,7 +276,6 @@ actions:
             metadata: {}
             data:
               xy_color: |
-                {% index = index + 1 %}
                 {{ xy_color }}
               transition: 1
             target:
@@ -271,7 +295,6 @@ actions:
             metadata: {}
             data:
               xy_color: |
-                {% index = index - 1 %}
                 {{ xy_color }}
               transition: 1
             target:
