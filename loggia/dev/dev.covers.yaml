@@ -400,6 +400,7 @@ max_exceeded: silent
 
 trigger_variables:
   automation_extra: !input automation_extra
+  down_limit_config: !input down_limit_config
 
   blinds: !input blinds
   blinds_for_protect: !input blinds_for_protect
@@ -486,7 +487,6 @@ variables:
     {% set setting = setting.split(':')[0] ~ ":" ~ setting.split(':')[1] %}
     {{ 'Откроются в ' ~ rising if now() > today_at(down_time) else 'Закроются в ' ~ setting }}
 
-  down_limit_config: !input down_limit_config
   chosen_type_down_limit: "{{ down_limit_config.active_choice }}"
 
   up_limit: "{{ set_up_limit if set_up_limit_sensor == [] else states(set_up_limit_sensor) }}"
