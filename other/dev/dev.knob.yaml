@@ -212,6 +212,8 @@ actions:
           - condition: state
             entity_id: !input light_device
             state: "off"
+          - condition: template
+            value_template: "{{ device_attr(knob_device, 'name') == trigger.topic.split('/')[1] }}"
         sequence:
           - repeat:
               count: 5
@@ -238,6 +240,8 @@ actions:
           - condition: state
             entity_id: !input light_device
             state: "on"
+          - condition: template
+            value_template: "{{ device_attr(knob_device, 'name') == trigger.topic.split('/')[1] }}"
         sequence:
           - action: light.turn_off
             metadata: {}
@@ -256,6 +260,8 @@ actions:
           - condition: template
             value_template: |
               {{ is_brightness_enabled }}
+          - condition: template
+            value_template: "{{ device_attr(knob_device, 'name') == trigger.topic.split('/')[1] }}"
         sequence:
           - action: light.turn_on
             metadata: {}
@@ -280,6 +286,8 @@ actions:
           - condition: template
             value_template: |
               {{ is_brightness_enabled }}
+          - condition: template
+            value_template: "{{ device_attr(knob_device, 'name') == trigger.topic.split('/')[1] }}"
         sequence:
           - action: light.turn_on
             metadata: {}
@@ -304,6 +312,8 @@ actions:
           - condition: template
             value_template: |
               {{ is_color_enabled }}
+          - condition: template
+            value_template: "{{ device_attr(knob_device, 'name') == trigger.topic.split('/')[1] }}"
         sequence:
           - action: light.turn_on
             metadata: {}
@@ -326,6 +336,8 @@ actions:
           - condition: template
             value_template: |
               {{ is_color_enabled }}
+          - condition: template
+            value_template: "{{ device_attr(knob_device, 'name') == trigger.topic.split('/')[1] }}"
         sequence:
           - action: light.turn_on
             metadata: {}
