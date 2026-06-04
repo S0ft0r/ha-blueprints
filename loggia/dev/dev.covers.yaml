@@ -238,32 +238,33 @@ blueprint:
                     - input_number
               multiple: false
 
-        set_down_limit:
+        down_limit_config:
           name: Нижний предел
           description: |
             Нижний предел при закрытии штор.
             + <small>Если нет нужды закрывать шторы до конца.</small>
-          default: 0
-          selector:
-            number:
-              min: 0
-              max: 100
-              step: 1
-              unit_of_measurement: "%"
-              mode: slider
+          choose:
+            choice:
+              set_down_limit:
+                name: Нижний предел
+                default: 0
+                selector:
+                  number:
+                    min: 0
+                    max: 100
+                    step: 1
+                    unit_of_measurement: "%"
+                    mode: slider
 
-        set_down_limit_sensor:
-          name: Сенсор нижнего предела
-          description: |
-            Сенсор, определяющий верхний предел при закрытии штор.
-            + <small>При выборе сенсора, верхний предел, заданная в проекте, учитываться не будет.</small>
-          default: []
-          selector:
-            entity:
-              filter:
-                - domain: 
-                    - input_number
-              multiple: false
+              set_down_limit_sensor:
+                name: Сенсор нижнего предела
+                default: []
+                selector:
+                  entity:
+                    filter:
+                      - domain: 
+                          - input_number
+                    multiple: false
 
         forecasts:
           name: Прогноз погоды
@@ -346,6 +347,7 @@ blueprint:
     device_section:
       name: Настройки устройства управления шторами
       icon: mdi:dip-switch
+      collapsed: true
       input:
         basic_topic:
           name: Базовый топик
@@ -403,6 +405,7 @@ max_exceeded: silent
 trigger_variables:
   automation_extra: !input automation_extra
 
+
   blinds: !input blinds
   blinds_for_protect: !input blinds_for_protect
 
@@ -420,10 +423,11 @@ trigger_variables:
   set_up_time_workday: !input set_up_time_workday
   set_up_time_weekend: !input set_up_time_weekend
   set_down_time: !input set_down_time
+
   set_up_limit: !input set_up_limit
   set_up_limit_sensor: !input set_up_limit_sensor
-  set_down_limit: !input set_down_limit
-  set_down_limit_sensor: !input set_down_limit_sensor
+#  set_down_limit: !input set_down_limit
+#  set_down_limit_sensor: !input set_down_limit_sensor
   repeat_for: !input repeat_for
   set_min_illuminance: !input set_min_illuminance
   set_max_illuminance: !input set_max_illuminance
@@ -451,8 +455,6 @@ variables:
   sun_azimuth: "{{ set_sun_azimuth if set_sun_azimuth_sensor == [] else states(set_sun_azimuth_sensor) }}"
   sun_elevation: "{{ set_sun_elevation if set_sun_elevation_sensor == [] else states(set_sun_elevation_sensor) }}"
 
-  up_limit: "{{ set_up_limit if set_up_limit_sensor == [] else states(set_up_limit_sensor) }}"
-  down_limit: "{{ set_down_limit if set_down_limit_sensor == [] else states(set_down_limit_sensor) }}"
 
   maxp: |
     {% set ns = namespace(items=[]) %}
@@ -488,6 +490,18 @@ variables:
     {% set setting = (state_attr(sun_sensor,'next_setting') | as_datetime | as_local).strftime('%H:%M:%S') if not is_close_until_enabled else down_time %}
     {% set setting = setting.split(':')[0] ~ ":" ~ setting.split(':')[1] %}
     {{ 'Откроются в ' ~ rising if now() > today_at(down_time) else 'Закроются в ' ~ setting }}
+
+  down_limit_config: !input down_limit_config
+  chosen_type_down_limit: "{{ limit_config.active_choice }}"
+
+  up_limit: "{{ set_up_limit if set_up_limit_sensor == [] else states(set_up_limit_sensor) }}"
+#  down_limit: "{{ set_down_limit if set_down_limit_sensor == [] else states(set_down_limit_sensor) }}"
+  down_limit: |
+    {{ down_limit_config.set_down_limit 
+      if chosen_type_down_limit == 'set_down_limit' 
+      else (0 if down_limit_config.set_down_limit_sensor == [] else states(down_limit_config.set_down_limit_sensor)) }}
+
+
 
 triggers:
   - trigger: time

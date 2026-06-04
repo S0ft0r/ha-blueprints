@@ -347,6 +347,7 @@ blueprint:
     device_section:
       name: Настройки устройства управления шторами
       icon: mdi:dip-switch
+      collapsed: true
       input:
         basic_topic:
           name: Базовый топик
