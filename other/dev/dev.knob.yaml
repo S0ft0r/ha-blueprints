@@ -224,8 +224,6 @@ actions:
                     brightness_pct: |
                       {{ repeat.index * 20 }}
                     transition: 1
-                    xy_color: |
-                      {{ xy_color }}
                   target:
                     entity_id: !input light_device
                 - delay:
