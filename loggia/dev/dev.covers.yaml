@@ -244,8 +244,8 @@ blueprint:
             Нижний предел при закрытии штор.
             + <small>Если нет нужды закрывать шторы до конца.</small>
           choose:
-            choice:
-              set_down_limit:
+#            choice:
+            - set_down_limit:
                 name: Нижний предел
                 default: 0
                 selector:
@@ -256,7 +256,7 @@ blueprint:
                     unit_of_measurement: "%"
                     mode: slider
 
-              set_down_limit_sensor:
+            - set_down_limit_sensor:
                 name: Сенсор нижнего предела
                 default: []
                 selector:
