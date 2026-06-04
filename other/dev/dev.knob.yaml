@@ -162,8 +162,8 @@ variables:
     ] }}
   count_colors: "{{ rgb_colors | count }}"  
 
-  light_entities: "{{ expand(light_device) | map(attribute='entity_id') | list | first }}"
-  light_brightness: "{{ state_attr(light_entities, 'brightness') | int(0) }}"
+#  light_entities: "{{ expand(light_device) | map(attribute='entity_id') | list | first }}"
+  light_brightness: "{{ state_attr(light_device, 'brightness') | int(0) }}"
 
   chosen_options: "{{ options.active_choice }}"
   color_index: |
