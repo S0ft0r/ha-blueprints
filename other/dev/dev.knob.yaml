@@ -30,7 +30,7 @@ blueprint:
           filter:
             - domain:
               - light
-          multiple: false
+          multiple: true
 
     option_section:
       input:
@@ -126,24 +126,27 @@ variables:
     '[ 0.385,0.155 ]',
     '[ 0.301,0.116 ]',
     '[ 0.217,0.077 ]',
-    '[ 0.157,0.05 ]',
-    '[ 0.136,0.04 ]',
+    '[ 0.157,0.050 ]',
+    '[ 0.136,0.040 ]',
     '[ 0.137,0.065 ]',
     '[ 0.141,0.137 ]',
     '[ 0.146,0.238 ]',
     '[ 0.151,0.343 ]',
     '[ 0.157,0.457 ]',
     '[ 0.164,0.591 ]',
-    '[ 0.17,0.703 ]',
+    '[ 0.170,0.703 ]',
     '[ 0.172,0.747 ]',
     '[ 0.199,0.724 ]',
     '[ 0.269,0.665 ]',
-    '[ 0.36,0.588 ]',
+    '[ 0.360,0.588 ]',
     '[ 0.444,0.517 ]',
     '[ 0.527,0.447 ]'
     ] }}
   count_colors: "{{ rgb_colors | count }}"  
   xy_color: "{{ rgb_colors[range(0, count_colors) | random] }}"
+
+  light_entities: "{{ (expand(light_device) | map(attribute='entity_id') | list)[0] }}"
+  light_brightness: "{{ state_attr(light_entities, 'brightness') }}"
 
   
 triggers:
@@ -235,7 +238,7 @@ actions:
             metadata: {}
             data:
               brightness: |
-                {% set bc = state_attr(light_device, 'brightness') | float(0) %} 
+                {% set bc = light_brightness | float(0) %} 
                 {% set nc = bc - 25.5 %}
                 {{ 1 if nc < 25.5 else nc }}
               transition: 1
@@ -259,7 +262,7 @@ actions:
             metadata: {}
             data:
               brightness: |
-                {% set bc = state_attr(light_device, 'brightness') | float(255) %} 
+                {% set bc = light_brightness | float(255) %} 
                 {% set nc = bc + 25.5 %}
                 {{ 255 if nc > 255 else nc }}
               transition: 1
