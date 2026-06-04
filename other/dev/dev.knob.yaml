@@ -30,7 +30,7 @@ blueprint:
           filter:
             - domain:
               - light
-          multiple: true
+          multiple: false
 
     option_section:
       input:
