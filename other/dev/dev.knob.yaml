@@ -225,7 +225,7 @@ actions:
                     brightness_pct: |
                       {{ repeat.index * 20 }}
                     xy_color: |
-                      {{ rgb_colors[0] if not is_brightness_enabled else xy_color }}
+                      {{ rgb_colors[0] if not is_color_enabled else xy_color }}
                     transition: 1
                   target:
                     entity_id: !input light_device
