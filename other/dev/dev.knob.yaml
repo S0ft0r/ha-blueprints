@@ -50,6 +50,22 @@ blueprint:
               multiple: true
               custom_value: false
               mode: list
+        options:
+          name: Режим изменения цвета
+          description: Режим изменения цвета
+          selector:
+            choose:
+              choices:
+                'случайный':
+                  selector:
+                    boolean:
+                'последовательный':
+                  selector:
+                    entity:
+                      filter:
+                        - domain: 
+                            - input_number
+                      multiple: false
 
     mqtt_section:
       name: Настройки кнопки
@@ -110,9 +126,10 @@ trigger_variables:
   light_device: !input light_device
 
   extra: !input extra
+  options: !input options
 
   is_brightness_enabled: "{{ 'extra_brightness' in extra }}" 
-  is_color_enabled: "{{ 'extra_color' in extra }}" 
+  is_color_enabled: "{{ 'extra_color' in extra }}"
 
 variables:
   rgb_colors: |
@@ -143,11 +160,17 @@ variables:
     '[ 0.527,0.447 ]'
     ] }}
   count_colors: "{{ rgb_colors | count }}"  
-  xy_color: "{{ rgb_colors[range(0, count_colors) | random] }}"
 
   light_entities: "{{ expand(light_device) | map(attribute='entity_id') | list | first }}"
   light_brightness: "{{ state_attr(light_entities, 'brightness') | int(0) }}"
 
+  chosen_options: "{{ options.active_choice }}"
+  color_index: |
+    {{ (range(0, count_colors) | random)
+      if chosen_options == 'случайный' 
+      else (0 if options.последовательный == [] else states(options.последовательный)) }}
+
+  xy_color: "{{ rgb_colors[color_index] }}"
   
 triggers:
   - trigger: mqtt
