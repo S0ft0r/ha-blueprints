@@ -134,12 +134,13 @@ trigger_variables:
 variables:
   rgb_colors: |
     {{ [
+    '[ 0.452,0.373 ]',
     '[ 0.612,0.374 ]',
     '[ 0.677,0.319 ]',
     '[ 0.701,0.299 ]',
     '[ 0.667,0.284 ]',
     '[ 0.581,0.245 ]',
-    '[ 0.477,0.196 ]',
+    '[ 0.477,0.196 ]', 
     '[ 0.385,0.155 ]',
     '[ 0.301,0.116 ]',
     '[ 0.217,0.077 ]',
@@ -223,6 +224,8 @@ actions:
                   data:
                     brightness_pct: |
                       {{ repeat.index * 20 }}
+                    xy_color: |
+                      {{ rgb_colors[0] if not is_brightness_enabled else xy_color }}
                     transition: 1
                   target:
                     entity_id: !input light_device
