@@ -112,7 +112,7 @@ trigger_variables:
   extra: !input extra
 
   is_extra_brightness_enabled: "{{ true if 'extra_brightness' in extra else false }}" 
-  is_extra_color_enabled: "{{ true uf 'extra_color' in extra else false }}" 
+  is_extra_color_enabled: "{{ true if 'extra_color' in extra else false }}" 
 
 variables:
   rgb_colors: |
