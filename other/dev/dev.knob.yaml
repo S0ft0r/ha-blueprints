@@ -145,8 +145,8 @@ variables:
   count_colors: "{{ rgb_colors | count }}"  
   xy_color: "{{ rgb_colors[range(0, count_colors) | random] }}"
 
-  light_entities: "{{ (expand(light_device) | map(attribute='entity_id') | list)[0] }}"
-  light_brightness: "{{ state_attr(light_entities, 'brightness') }}"
+  light_entities: "{{ expand(light_device) | map(attribute='entity_id') | list | first }}"
+  light_brightness: "{{ state_attr(light_entities, 'brightness') | int(0) }}"
 
   
 triggers:
