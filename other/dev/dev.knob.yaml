@@ -31,7 +31,7 @@ blueprint:
           filter:
             - domain:
               - light
-          multiple: true
+          multiple: false
 
     mqtt_section:
       name: Настройки кнопки
@@ -118,7 +118,7 @@ variables:
     '[ 0.444,0.517 ]',
     '[ 0.527,0.447 ]'
     ] }}
-  count_colors = "{{ rgb_colors | count  }}"  
+  count_colors: "{{ rgb_colors | count  }}"  
   xy_color: "{{ rgb_colors[(index % count_colors)] }}"
   index: 0
 
