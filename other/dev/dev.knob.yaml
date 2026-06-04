@@ -111,8 +111,8 @@ trigger_variables:
 
   extra: !input extra
 
-  is_extra_brightness_enabled: "{{ true if 'extra_brightness' in extra else false }}" 
-  is_extra_color_enabled: "{{ true if 'extra_color' in extra else false }}" 
+  is_brightness_enabled: "{{ 'extra_brightness' in extra }}" 
+  is_color_enabled: "{{ 'extra_color' in extra }}" 
 
 variables:
   rgb_colors: |
@@ -158,28 +158,24 @@ triggers:
       topic: !input basic_topic
       payload: !input payload_down
     id: mqtt_knob_down_trigger
-    enabled: "{{ is_extra_brightness_enabled }}"
 
   - trigger: mqtt
     options:
       topic: !input basic_topic
       payload: !input payload_up
     id: mqtt_knob_up_trigger
-    enabled: "{{ is_extra_brightness_enabled }}"
 
   - trigger: mqtt
     options:
       topic: !input basic_topic
       payload: !input payload_color_up
     id: mqtt_knob_up_color_trigger
-    enabled: "{{ is_extra_color_enabled }}"
 
   - trigger: mqtt
     options:
       topic: !input basic_topic
       payload: !input payload_color_down
     id: mqtt_knob_down_color_trigger
-    enabled: "{{ is_extra_color_enabled }}"
 
 actions:
   - choose:
@@ -231,6 +227,9 @@ actions:
           - condition: state
             entity_id: !input light_device
             state: "on"
+          - condition: template
+            value_template: |
+              {{ is_brightness_enabled }}
         sequence:
           - action: light.turn_on
             metadata: {}
@@ -252,6 +251,9 @@ actions:
           - condition: state
             entity_id: !input light_device
             state: "on"
+          - condition: template
+            value_template: |
+              {{ is_brightness_enabled }}
         sequence:
           - action: light.turn_on
             metadata: {}
@@ -273,6 +275,9 @@ actions:
           - condition: state
             entity_id: !input light_device
             state: "on"
+          - condition: template
+            value_template: |
+              {{ is_color_enabled }}
         sequence:
           - action: light.turn_on
             metadata: {}
@@ -292,6 +297,9 @@ actions:
           - condition: state
             entity_id: !input light_device
             state: "on"
+          - condition: template
+            value_template: |
+              {{ is_color_enabled }}
         sequence:
           - action: light.turn_on
             metadata: {}
