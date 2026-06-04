@@ -236,11 +236,11 @@ actions:
                       {{ repeat.index * 10 }}
                     xy_color: |
                       {{ rgb_colors[0] if not is_color_enabled else xy_color }}
-                    # transition: 1
+                    transition: 1
                   target:
                     entity_id: !input light_device
-                - delay:
-                    milliseconds: 100
+                # - delay:
+                #     milliseconds: 100
           - delay:
               milliseconds: 500
 
@@ -297,7 +297,7 @@ actions:
                 {% set bc = light_brightness | float(0) %} 
                 {% set nc = bc - 25.5 %}
                 {{ 1 if nc < 25.5 else nc }}
-              # transition: 1
+              transition: 1
             target:
               entity_id: !input light_device
           - delay:
@@ -331,7 +331,7 @@ actions:
                 {% set bc = light_brightness | float(255) %} 
                 {% set nc = bc + 25.5 %}
                 {{ 255 if nc > 255 else nc }}
-              # transition: 1
+              transition: 1
             target:
               entity_id: !input light_device
           - delay:
@@ -363,7 +363,7 @@ actions:
             data:
               xy_color: |
                 {{ xy_color }}
-              # transition: 1
+              transition: 1
             target:
               entity_id: !input light_device
           - delay:
@@ -395,7 +395,7 @@ actions:
             data:
               xy_color: |
                 {{ xy_color }}
-              # transition: 1
+              transition: 1
             target:
               entity_id: !input light_device
           - delay:
