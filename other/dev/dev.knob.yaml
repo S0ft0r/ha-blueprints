@@ -31,7 +31,7 @@ blueprint:
           filter:
             - domain:
               - light
-          multiple: false
+          multiple: true
 
     mqtt_section:
       name: Настройки кнопки
@@ -89,6 +89,39 @@ blueprint:
 trigger_variables:
   knob_device: !input knob_device
   light_device: !input light_device
+
+variables:
+  rgb_colors: |
+    {{ [
+    '[ 0.612,0.374 ]',
+    '[ 0.677,0.319 ]',
+    '[ 0.701,0.299 ]',
+    '[ 0.667,0.284 ]',
+    '[ 0.581,0.245 ]',
+    '[ 0.477,0.196 ]',
+    '[ 0.385,0.155 ]',
+    '[ 0.301,0.116 ]',
+    '[ 0.217,0.077 ]',
+    '[ 0.157,0.05 ]',
+    '[ 0.136,0.04 ]',
+    '[ 0.137,0.065 ]',
+    '[ 0.141,0.137 ]',
+    '[ 0.146,0.238 ]',
+    '[ 0.151,0.343 ]',
+    '[ 0.157,0.457 ]',
+    '[ 0.164,0.591 ]',
+    '[ 0.17,0.703 ]',
+    '[ 0.172,0.747 ]',
+    '[ 0.199,0.724 ]',
+    '[ 0.269,0.665 ]',
+    '[ 0.36,0.588 ]',
+    '[ 0.444,0.517 ]',
+    '[ 0.527,0.447 ]'
+    ] }}
+   count_colors = "{{ rgb_colors | count  }}"  
+  xy_color: "{{ rgb_colors[(index % count_colors)] }}"
+  index: 0
+
   
 triggers:
   - trigger: mqtt
@@ -109,6 +142,18 @@ triggers:
       payload: !input payload_up
     id: mqtt_knob_up_trigger
 
+  - trigger: mqtt
+    options:
+      topic: !input basic_topic
+      payload: !input payload_color_up
+    id: mqtt_knob_up_color_trigger
+
+  - trigger: mqtt
+    options:
+      topic: !input basic_topic
+      payload: !input payload_color_down
+    id: mqtt_knob_down_color_trigger
+
 actions:
   - choose:
       - conditions:
@@ -127,6 +172,9 @@ actions:
                   data:
                     brightness_pct: |
                       {{ repeat.index * 20 }}
+                    transition: 1
+                    xy_color: |
+                      {{ xy_color }}
                   target:
                     entity_id: !input light_device
                 - delay:
@@ -164,6 +212,7 @@ actions:
                 {% set bc = state_attr(light_device, 'brightness') | float(0) %} 
                 {% set nc = bc - 25.5 %}
                 {{ 1 if nc < 25.5 else nc }}
+              transition: 1
             target:
               entity_id: !input light_device
           - delay:
@@ -184,6 +233,47 @@ actions:
                 {% set bc = state_attr(light_device, 'brightness') | float(255) %} 
                 {% set nc = bc + 25.5 %}
                 {{ 255 if nc > 255 else nc }}
+              transition: 1
+            target:
+              entity_id: !input light_device
+          - delay:
+              milliseconds: 500
+
+      - conditions:
+          - condition: trigger
+            id: 
+              - mqtt_knob_up_color_trigger
+          - condition: state
+            entity_id: !input light_device
+            state: "on"
+        sequence:
+          - action: light.turn_on
+            metadata: {}
+            data:
+              xy_color: |
+                {% index = index + 1 %}
+                {{ xy_color }}
+              transition: 1
+            target:
+              entity_id: !input light_device
+          - delay:
+              milliseconds: 500
+
+      - conditions:
+          - condition: trigger
+            id: 
+              - mqtt_knob_down_color_trigger
+          - condition: state
+            entity_id: !input light_device
+            state: "on"
+        sequence:
+          - action: light.turn_on
+            metadata: {}
+            data:
+              xy_color: |
+                {% index = index - 1 %}
+                {{ xy_color }}
+              transition: 1
             target:
               entity_id: !input light_device
           - delay:
