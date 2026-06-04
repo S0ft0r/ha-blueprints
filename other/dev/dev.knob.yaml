@@ -128,6 +128,8 @@ trigger_variables:
   extra: !input extra
   options: !input options
 
+  basic_topic: !input basic_topic
+
   is_brightness_enabled: "{{ 'extra_brightness' in extra }}" 
   is_color_enabled: "{{ 'extra_color' in extra }}"
 
