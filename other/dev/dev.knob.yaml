@@ -37,7 +37,8 @@ blueprint:
         extra:
           name: Режимы работы 
           description: Режимы работы автоматизации
-          default: []
+          default: 
+            - extra_brightness
           selector:
             select:
               options:
@@ -53,6 +54,7 @@ blueprint:
     mqtt_section:
       name: Настройки кнопки
       icon: mdi:dip-switch
+      collapsed: true
       input:
         basic_topic:
           name: Базовый топик
@@ -109,8 +111,8 @@ trigger_variables:
 
   extra: !input extra
 
-  is_extra_brightness_enabled: "{{ 'extra_brightness' in extra }}" 
-  is_extra_color_enabled: "{{ 'extra_color' in extra }}" 
+  is_extra_brightness_enabled: "{{ true if 'extra_brightness' in extra else false }}" 
+  is_extra_color_enabled: "{{ true uf 'extra_color' in extra else false }}" 
 
 variables:
   rgb_colors: |
