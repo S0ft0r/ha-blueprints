@@ -243,28 +243,29 @@ blueprint:
           description: |
             Нижний предел при закрытии штор.
             + <small>Если нет нужды закрывать шторы до конца.</small>
-          choose:
-           choices:
-              set_down_limit:
-                name: Нижний предел
-                default: 0
-                selector:
-                  number:
-                    min: 0
-                    max: 100
-                    step: 1
-                    unit_of_measurement: "%"
-                    mode: slider
+          selector:
+            choose:
+              choices:
+                set_down_limit:
+                  name: Нижний предел
+                  default: 0
+                  selector:
+                    number:
+                      min: 0
+                      max: 100
+                      step: 1
+                      unit_of_measurement: "%"
+                      mode: slider
 
-              set_down_limit_sensor:
-                name: Сенсор нижнего предела
-                default: []
-                selector:
-                  entity:
-                    filter:
-                      - domain: 
-                          - input_number
-                    multiple: false
+                set_down_limit_sensor:
+                  name: Сенсор нижнего предела
+                  default: []
+                  selector:
+                    entity:
+                      filter:
+                        - domain: 
+                            - input_number
+                      multiple: false
 
         forecasts:
           name: Прогноз погоды
