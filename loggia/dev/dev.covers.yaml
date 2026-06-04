@@ -490,10 +490,10 @@ trigger_variables:
   text_rising_setting_sensor: !input text_rising_setting_sensor
 
   forecasts: !input forecasts
-  set_sun_azimuth: !input set_sun_azimuth
-  set_sun_azimuth_sensor: !input set_sun_azimuth_sensor
-  set_sun_elevation: !input set_sun_elevation
-  set_sun_elevation_sensor: !input set_sun_elevation_sensor
+  # set_sun_azimuth: !input set_sun_azimuth
+  # set_sun_azimuth_sensor: !input set_sun_azimuth_sensor
+  # set_sun_elevation: !input set_sun_elevation
+  # set_sun_elevation_sensor: !input set_sun_elevation_sensor
   set_up_time_workday: !input set_up_time_workday
   set_up_time_weekend: !input set_up_time_weekend
   set_down_time: !input set_down_time
