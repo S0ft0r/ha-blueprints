@@ -217,20 +217,20 @@ actions:
             value_template: "{{ device_attr(knob_device, 'name') == trigger.topic.split('/')[1] }}"
         sequence:
           - repeat:
-              count: 5
+              count: 10
               sequence:
                 - action: light.turn_on
                   metadata: {}
                   data:
                     brightness_pct: |
-                      {{ repeat.index * 20 }}
+                      {{ repeat.index * 10 }}
                     xy_color: |
                       {{ rgb_colors[0] if not is_color_enabled else xy_color }}
                     transition: 1
                   target:
                     entity_id: !input light_device
                 - delay:
-                    milliseconds: 50
+                    milliseconds: 100
           - delay:
               milliseconds: 500
 
