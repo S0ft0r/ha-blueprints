@@ -570,6 +570,12 @@ actions:
             value_template: |
               {{ trigger.from_state.state in closed_states and trigger.to_state.state in open_states }}
         sequence:
+          - action: timer.start
+            metadata: {}
+            data: 
+              duration: "{{ auto_off_pump_time }}"
+            target:
+              entity_id: !input pump_off_auto
           - if:
               - condition: state
                 entity_id: !input waterpump_switch
@@ -579,13 +585,6 @@ actions:
                 target:
                   entity_id: !input waterpump_switch
                 data: {}
-              - delay: !input set_time_waterpump_work
-          - action: timer.start
-            metadata: {}
-            data: 
-              duration: "{{ auto_off_pump_time }}"
-            target:
-              entity_id: !input pump_off_auto
 
 mode: parallel
 max: 10
