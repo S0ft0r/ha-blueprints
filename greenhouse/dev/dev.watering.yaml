@@ -387,12 +387,14 @@ actions:
 #########################################################################
 
       - conditions:
-          - condition: trigger
-            id: 
-              - time_before_morning_trigger
-          - condition: trigger
-            id: 
-              - time_before_evening_trigger
+          - condition: or
+            conditions: 
+              - condition: trigger
+                id: 
+                  - time_before_morning_trigger
+              - condition: trigger
+                id: 
+                  - time_before_evening_trigger
           - condition: template
             value_template: |
               {{ waterpump_switch != [] and states(waterpump_switch) not in invalid_states }}
