@@ -272,9 +272,9 @@ variables:
   # on_time_evening: "{{ set_on_time_evening }}"
   # time_waterpump_work: "{{ set_time_waterpump_work }}"
 
-  watering_switch: !input watering_switch
-  watervalve_switch: !input watervalve_switch
-  waterpump_switch: !input waterpump_switch
+  # watering_switch: !input watering_switch
+  # watervalve_switch: !input watervalve_switch
+  # waterpump_switch: !input waterpump_switch
 #  input_text_helper: !input set_input_text_helper
 
   selected_days_morning: |
