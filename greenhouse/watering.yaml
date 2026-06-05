@@ -2,7 +2,7 @@ blueprint:
   name: Управление поливом теплицы
   description: |
     ### Управление поливом теплицы.
-    <small>Версия 2026.05.01 Сборка 1</small> 
+    <small>Версия 2026.05.01 Сборка 2</small> 
 
     <small><a href="https://github.com/S0ft0r/ha-blueprints/blob/main/as-is.md">Отказ от ответственности</a></small>
   domain: automation
@@ -271,6 +271,13 @@ variables:
   watering_switch_off: "{{ 'valve.close_valve' if watering_switch.split('.')[0] == 'valve' else 'switch.turn_off' }}"
   watering_switch_toggle: "{{ watering_switch.split('.')[0] ~ '.toggle' }}"
 
+  zonehome: |
+    {% set allpersons = state_attr('zone.home','persons') | count %}
+    {% set cottagepersons = state_attr('zone.home','persons') | select('search', 'cottage') | list | count %}
+    {% set apartmentpersons = state_attr('zone.home','persons') | select('search', 'apartment') | list | count %}
+    {{ allpersons - cottagepersons - apartmentpersons }}
+
+
 triggers:
   - at: !input set_on_time_morning
     trigger: time
@@ -427,9 +434,9 @@ actions:
               entity_id: !input watering_switch
             data: {}
           - if:
-              - condition: numeric_state
-                entity_id: zone.home
-                below: 1
+              - condition: template
+                value_template: |
+                  "{{ zonehome == 0 }}"
             then:
               - delay: !input set_time_waterpump_work
               - action: "{{ waterpump_switch_off }}"
@@ -465,6 +472,15 @@ actions:
               duration: "{{ auto_off_pump_time }}"
             target:
               entity_id: !input pump_off_auto
+          - if:
+              - condition: state
+                entity_id: !input waterpump_switch
+                state: "off"
+            then:
+              - action: "{{ waterpump_switch_on }}"
+                target:
+                  entity_id: !input waterpump_switch
+                data: {}
 
 mode: parallel
 max: 10
