@@ -406,7 +406,7 @@ actions:
               sequence:
                 - action: "{{ 'valve.close_valve' if (repeat.item).split('.')[0] == 'valve' else 'switch.turn_off' }}" #  Выключение клапана потока
                   target:
-                    entity_id: repeat.item
+                    entity_id: "{{ repeat.item }}"
 
 #########################################################################
 #
@@ -426,6 +426,12 @@ actions:
       #         entity_id: !input waterpump_switch
       #       data: {}
       #       action: "{{ waterpump_switch_on }}"
+      #     - repeat:
+      #         for_each: "{{ watervalve_entities | list }}"
+      #         sequence:
+      #           - action: "{{ 'valve.close_valve' if (repeat.item).split('.')[0] == 'valve' else 'switch.turn_off' }}" #  Выключение клапана потока
+      #             target:
+      #               entity_id: "{{ repeat.item }}"
 
 #########################################################################
 #
