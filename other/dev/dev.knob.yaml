@@ -29,7 +29,7 @@ blueprint:
         entity:
           filter:
             - domain:
-              - light
+                - light
           multiple: false
 
     option_section:
