@@ -286,9 +286,9 @@ variables:
   auto_off_pump_time: |  # На будущее - рассчитывать время отключения исходя из количества направлений!
     {{ set_auto_off_pump_time }}
 
-  watervalve_switch_on: "{{ 'valve.open_valve' if watervalve_switch.split('.')[0] == 'valve' else 'switch.turn_on' }}"
-  watervalve_switch_off: "{{ 'valve.close_valve' if watervalve_switch.split('.')[0] == 'valve' else 'switch.turn_off' }}"
-  watervalve_switch_toggle: "{{ watervalve_switch.split('.')[0] ~ '.toggle' }}"
+  # watervalve_switch_on: "{{ 'valve.open_valve' if watervalve_switch.split('.')[0] == 'valve' else 'switch.turn_on' }}"
+  # watervalve_switch_off: "{{ 'valve.close_valve' if watervalve_switch.split('.')[0] == 'valve' else 'switch.turn_off' }}"
+  # watervalve_switch_toggle: "{{ watervalve_switch.split('.')[0] ~ '.toggle' }}"
 
   waterpump_switch_on: "{{ 'valve.open_valve' if waterpump_switch.split('.')[0] == 'valve' else 'switch.turn_on' }}"
   waterpump_switch_off: "{{ 'valve.close_valve' if waterpump_switch.split('.')[0] == 'valve' else 'switch.turn_off' }}"
