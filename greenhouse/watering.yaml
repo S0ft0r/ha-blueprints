@@ -446,7 +446,11 @@ actions:
           - if:
               - condition: template
                 value_template: |
-                  "{{ true if zonehome == [] else (states(zonehome) | int == 0) }}"
+                  {% set allpersons = state_attr('zone.home','persons') | count %}
+                  {% set cottagepersons = state_attr('zone.home','persons') | select('search', 'cottage') | list | count %}
+                  {% set apartmentpersons = state_attr('zone.home','persons') | select('search', 'apartment') | list | count %}
+                  {% set zonehome = allpersons - cottagepersons - apartmentpersons %}
+                  {{ zonehome | int == 0 }}
             then:
               - delay: !input set_time_waterpump_work
               - action: "{{ waterpump_switch_off }}"
