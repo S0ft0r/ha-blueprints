@@ -1,0 +1,248 @@
+blueprint:
+  name: Управление вентиляцией в санузле
+  description: |
+    ### Управление вентиляцией в санузле.
+    <small>Версия 2026.06.01 Сборка 1</small> 
+
+    <small><a href="https://github.com/S0ft0r/ha-blueprints/blob/main/as-is.md">Отказ от ответственности</a></small>
+  domain: automation
+  source_url: https://github.com/S0ft0r/ha-blueprints/blob/main/other/dev/dev.ventwc.yaml
+  author: Softor
+
+  input:
+    light_switch:
+      name: Освещение в санузле
+      description: |
+        Лампа
+      default: 
+      selector:
+        entity:
+          filter:
+            - domain:
+                - switch
+          multiple: false
+
+    fan_switch:
+      name: Вентилятор в санузле
+      description: |
+        Вентилятор
+      default: 
+      selector:
+        entity:
+          filter:
+            - domain:
+                - switch
+          multiple: false
+
+    fan_wc:
+      name: Отчет времени до запуска вентиляции
+      description: ""
+      selector:
+        entity:
+          filter:
+            - domain:
+                - timer
+          reorder: false
+          multiple: false
+
+    fan_wc_on:
+      name: Отчет времени до отключения вентиляции
+      description: ""
+      selector:
+        entity:
+          filter:
+            - domain:
+                - timer
+          reorder: false
+          multiple: false
+
+    set_fan_wc_delay:
+      name: Время до включения вентилятора
+      description: Время до включения вентилятора
+      selector:
+        choose:
+          choices:
+            'время':
+              selector:
+                time: {}
+            'сенсор':
+              selector:
+                entity:
+                  filter:
+                    - domain: 
+                        - input_number
+                  multiple: false
+
+    set_fan_wc_on_duration:
+      name: Время работы вентилятора
+      description: Время работы вентилятора
+      selector:
+        choose:
+          choices:
+            'время':
+              selector:
+                time: {}
+            'сенсор':
+              selector:
+                entity:
+                  filter:
+                    - domain: 
+                        - input_number
+                  multiple: false
+
+    set_pet_mode:
+      name: Режим "Животное дома"
+      description: Включение вентилятора каждый час
+      selector:
+        choose:
+          choices:
+            'выбор':
+              selector:
+                boolean:
+            'сенсор':
+              selector:
+                entity:
+                  filter:
+                    - domain: 
+                        - input_boolean
+                  multiple: false
+
+trigger_variables:
+  light_switch: !input light_switch
+  fan_switch: !input fan_switch
+  fan_wc: !input fan_wc
+  fan_wc_on: !input fan_wc_on
+  set_pet_mode: !input set_pet_mode
+  set_fan_wc_on_duration: !input set_fan_wc_on_duration
+  set_fan_wc_delay: !input set_fan_wc_delay
+
+variables:
+
+  chosen_pet_mode: "{{ set_pet_mode.active_choice }}"
+  chosen_fan_wc_on_duration: "{{ set_fan_wc_on_duration.active_choice }}"
+  chosen_fan_wc_delay: "{{ set_fan_wc_delay.active_choice }}"
+
+  pet_mode: |
+    {{ set_pet_mode.выбор if chosen_pet_mode == 'выбор' else states(set_pet_mode.сенсор) }}
+
+  fan_wc_on_duration: |
+    {{ set_fan_wc_on_duration.время if chosen_pet_mode == 'время' else ((states(set_fan_wc_on_duration.сенсор) | float * 60) | timestamp_custom('%H:%M:%S',0)) }}
+
+  fan_wc_delay: |
+    {{ set_fan_wc_delay.время if chosen_pet_mode == 'время' else ((states(set_fan_wc_delay.сенсор) | float * 60) | timestamp_custom('%H:%M:%S',0)) }}
+
+triggers:
+  - trigger: state
+    entity_id: !input light_switch
+    from:
+      - "off"
+    to:
+      - "on"
+    id: on_light_trigger
+
+  - trigger: state
+    entity_id: !input light_switch
+    from:
+      - "on"
+    id: off_light_trigger
+    to:
+      - "off"
+
+  - trigger: state
+    entity_id: !input fan_wc
+    from:
+      - active
+    to:
+      - idle
+    id: off_fan_wc_trigger
+
+  - trigger: state
+    entity_id: !input fan_wc_on
+    from:
+      - active
+    to:
+      - idle
+    id: off_fan_wc_on_trigger
+
+  - trigger: time_pattern
+    hours: /1
+    id: time_pattern_trigger
+
+actions:
+  - choose:
+      - conditions:
+          - condition: trigger
+            id:
+              - on_light_trigger
+        sequence:
+          - action: timer.start
+            metadata: {}
+            target:
+              entity_id: !input fan_wc
+            data:
+              duration: "{{ fan_wc_on_duration }}"
+
+      - conditions:
+          - condition: trigger
+            id:
+              - off_light_trigger
+        sequence:
+          - action: timer.finish
+            metadata: {}
+            target:
+              entity_id: !input fan_wc
+            data: {}
+
+      - conditions:
+          - condition: trigger
+            id:
+              - off_fan_wc_trigger
+        sequence:
+          - wait_template: >-
+              {{ is_state(light_switch, 'off') }}
+            continue_on_timeout: true
+          - action: switch.turn_on
+            metadata: {}
+            target:
+              entity_id: !input fan_switch
+            data: {}
+          - action: timer.start
+            metadata: {}
+            target:
+              entity_id: !input fan_wc_on
+            data:
+              duration: "{{ fan_wc_delay }}"
+
+      - conditions:
+          - condition: trigger
+            id:
+              - off_fan_wc_on_trigger
+        sequence:
+          - action: switch.turn_off
+            metadata: {}
+            target:
+              entity_id: !input fan_switch
+            data: {}
+
+      - conditions:
+          - condition: trigger
+            id:
+              - time_pattern_trigger
+          - condition: template
+            value_template: "{{ pet_mode }}"
+        sequence:
+          - wait_template: >-
+              {{ is_state(light_switch, 'off') }}
+          - action: switch.turn_on
+            metadata: {}
+            target:
+              entity_id: !input fan_switch
+            data: {}
+          - action: timer.start
+            metadata: {}
+            target:
+              entity_id: !input fan_wc_on
+            data:
+              duration: "{{ fan_wc_delay }}"
+
+mode: single
