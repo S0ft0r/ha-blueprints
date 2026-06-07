@@ -19,6 +19,7 @@ blueprint:
           filter:
             - domain:
                 - switch
+                - light
           multiple: false
 
     fan_switch:
