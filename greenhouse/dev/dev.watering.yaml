@@ -68,9 +68,11 @@ blueprint:
                     - switch
                     - valve
               reorder: false
-              multiple: false
+              multiple: true
         set_auto_off_pump_time:
-          name: Время работы до автоотключения 
+          name: Время работы до автоотключения
+          description: |
+            * Минимальное время. Если сумма времени работы каждого направление больше, то будет произведен персчет.  
           default: "00:30:00"
           selector:
             time: {}
@@ -245,18 +247,26 @@ trigger_variables:
     - 'null'                                   
 
 variables:
-  watering_switch: !input watering_switch
-  watervalve_switch: !input watervalve_switch
-  waterpump_switch: !input waterpump_switch
-
   selected_days_morning: |
     {{ now().strftime('%a') | lower in set_select_days_morning }}
 
   selected_days_evening: |
     {{ now().strftime('%a') | lower in set_select_days_evening }}
 
+  watervalve_count: "{{ expand(watervalve_switch) | map(attribute='entity_id') | list | count }}"
+
+  on_time_morning_in_seconds: |
+    {{ set_time_work_morning.split(':')[0]|int*3600 + set_time_work_morning.split(':')[1]|int*60 + set_time_work_morning.split(':')[2]|int %} }}
+
+  on_time_evening_in_seconds: |
+    {{ set_time_work_evening.split(':')[0]|int*3600 + set_time_work_evening.split(':')[1]|int*60 + set_time_work_evening.split(':')[2]|int %} }}
+
   auto_off_pump_time: |  # На будущее - рассчитывать время отключения исходя из количества направлений!
-    {{ set_auto_off_pump_time }}
+    {{ set valve_const = set_auto_off_pump_time }}
+    {% set valve_sec = tt.split(':')[0]|int*3600+tt.split(':')[1]|int*60+tt.split(':')[2]|int %}
+    {% set of = today_at("00:00:00") + timedelta(seconds=(sec*cnt)+1) %}
+    {{ as_timestamp(of) | timestamp_custom("%H:%M:%S") }}
+
 
   watervalve_switch_on: "{{ 'valve.open_valve' if watervalve_switch.split('.')[0] == 'valve' else 'switch.turn_on' }}"
   watervalve_switch_off: "{{ 'valve.close_valve' if watervalve_switch.split('.')[0] == 'valve' else 'switch.turn_off' }}"
