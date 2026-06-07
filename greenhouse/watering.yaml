@@ -242,8 +242,7 @@ trigger_variables:
     - 'unknown'             
     - 'none'                
     - 'None'                
-    - 'null'                
-    - []                    
+    - 'null'                                   
 
 variables:
   watering_switch: !input watering_switch
@@ -270,13 +269,6 @@ variables:
   watering_switch_on: "{{ 'valve.open_valve' if watering_switch.split('.')[0] == 'valve' else 'switch.turn_on' }}"
   watering_switch_off: "{{ 'valve.close_valve' if watering_switch.split('.')[0] == 'valve' else 'switch.turn_off' }}"
   watering_switch_toggle: "{{ watering_switch.split('.')[0] ~ '.toggle' }}"
-
-  # zonehome: |
-  #   {% set allpersons = state_attr('zone.home','persons') | count %}
-  #   {% set cottagepersons = state_attr('zone.home','persons') | select('search', 'cottage') | list | count %}
-  #   {% set apartmentpersons = state_attr('zone.home','persons') | select('search', 'apartment') | list | count %}
-  #   {{ allpersons - cottagepersons - apartmentpersons }}
-
 
 triggers:
   - at: !input set_on_time_morning
@@ -439,8 +431,7 @@ actions:
                   {% set allpersons = state_attr('zone.home','persons') | count %}
                   {% set cottagepersons = state_attr('zone.home','persons') | select('search', 'cottage') | list | count %}
                   {% set apartmentpersons = state_attr('zone.home','persons') | select('search', 'apartment') | list | count %}
-                  {% set zonehome = allpersons - cottagepersons - apartmentpersons %}
-                  {{ zonehome | int == 0 }}
+                  {{ (allpersons - cottagepersons - apartmentpersons) | int == 0 }}
             then:
               - delay: !input set_time_waterpump_work
               - action: "{{ waterpump_switch_off }}"
