@@ -74,15 +74,6 @@ blueprint:
           default: "00:30:00"
           selector:
             time: {}
-        zonehome:
-          name: Датчик наличия людей в доме
-          default: []
-          selector:
-            entity:
-              filter:
-                - domain:
-                    - sensor
-              multiple: false
 
     morning_section:
       name: Настройки системы для работы утром
@@ -221,7 +212,6 @@ trigger_variables:
   watervalve_switch: !input watervalve_switch
   waterpump_switch: !input waterpump_switch
   pump_off_auto: !input pump_off_auto
-  zonehome: !input zonehome
 
   pump_morning_enable: !input pump_morning_enable 
   pump_evening_enable: !input pump_evening_enable 
