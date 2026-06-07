@@ -2,11 +2,11 @@ blueprint:
   name: Управление поливом теплицы
   description: |
     ### Управление поливом теплицы.
-    <small>Версия 2026.05.01 Сборка 2</small> 
+    <small>Версия 2026.05.01 Сборка 1</small> 
 
     <small><a href="https://github.com/S0ft0r/ha-blueprints/blob/main/as-is.md">Отказ от ответственности</a></small>
   domain: automation
-  source_url: https://raw.githubusercontent.com/S0ft0r/ha-blueprints/main/greenhouse/dev/dev.watering.yaml
+  source_url: https://github.com/S0ft0r/ha-blueprints/blob/main/greenhouse/dev/dev.watering.yaml
   author: Softor
 
   input:
@@ -51,7 +51,7 @@ blueprint:
                     - valve
               reorder: false
               multiple: false
-        set_time_waterpump_work: # Стоит переделать на number - минуты
+        set_time_waterpump_work: # Стоит ли переделать на number - минуты????
           name: Включать насос на
           description: Время, на которое включается насос перед и после полива 
           default: "00:01:00"
@@ -68,12 +68,29 @@ blueprint:
                     - switch
                     - valve
               reorder: false
-              multiple: false
+              multiple: true
+        # auto_off_pump_time_sensor:
+        #   name: Сенсор времени до автоотключения
+        #   default: []
+        #   selector:
+        #     entity:
+        #       filter:
+        #         - domain:
+        #             - input_datetime
         set_auto_off_pump_time:
           name: Время работы до автоотключения 
           default: "00:30:00"
           selector:
             time: {}
+        # set_input_text_helper:
+        #   name: Текстовый сенсор для вывода состояния
+        #   description: ""
+        #   default: []
+        #   selector:
+        #     entity:
+        #       filter:
+        #         - domain:
+        #             - input_text
 
     morning_section:
       name: Настройки системы для работы утром
@@ -228,7 +245,10 @@ trigger_variables:
   set_select_days_morning: !input set_select_days_morning
   set_select_days_evening: !input set_select_days_evening
 
+#  auto_off_pump_time_sensor: !input auto_off_pump_time_sensor
   set_auto_off_pump_time: !input set_auto_off_pump_time
+
+  # set_input_text_helper: !input set_input_text_helper
 
   open_states:
     - 'on'
@@ -242,12 +262,20 @@ trigger_variables:
     - 'unknown'             
     - 'none'                
     - 'None'                
-    - 'null'                                   
+    - 'null'                
+    - []                    
 
 variables:
-  watering_switch: !input watering_switch
-  watervalve_switch: !input watervalve_switch
-  waterpump_switch: !input waterpump_switch
+  # time_work_morning: "{{ set_time_work_morning }}"
+  # time_work_evening: "{{ set_time_work_evening }}"
+  # on_time_morning: "{{ set_on_time_morning }}"
+  # on_time_evening: "{{ set_on_time_evening }}"
+  # time_waterpump_work: "{{ set_time_waterpump_work }}"
+
+  # watering_switch: !input watering_switch
+  # watervalve_switch: !input watervalve_switch
+  # waterpump_switch: !input waterpump_switch
+#  input_text_helper: !input set_input_text_helper
 
   selected_days_morning: |
     {{ now().strftime('%a') | lower in set_select_days_morning }}
@@ -258,9 +286,9 @@ variables:
   auto_off_pump_time: |  # На будущее - рассчитывать время отключения исходя из количества направлений!
     {{ set_auto_off_pump_time }}
 
-  watervalve_switch_on: "{{ 'valve.open_valve' if watervalve_switch.split('.')[0] == 'valve' else 'switch.turn_on' }}"
-  watervalve_switch_off: "{{ 'valve.close_valve' if watervalve_switch.split('.')[0] == 'valve' else 'switch.turn_off' }}"
-  watervalve_switch_toggle: "{{ watervalve_switch.split('.')[0] ~ '.toggle' }}"
+  # watervalve_switch_on: "{{ 'valve.open_valve' if watervalve_switch.split('.')[0] == 'valve' else 'switch.turn_on' }}"
+  # watervalve_switch_off: "{{ 'valve.close_valve' if watervalve_switch.split('.')[0] == 'valve' else 'switch.turn_off' }}"
+  # watervalve_switch_toggle: "{{ watervalve_switch.split('.')[0] ~ '.toggle' }}"
 
   waterpump_switch_on: "{{ 'valve.open_valve' if waterpump_switch.split('.')[0] == 'valve' else 'switch.turn_on' }}"
   waterpump_switch_off: "{{ 'valve.close_valve' if waterpump_switch.split('.')[0] == 'valve' else 'switch.turn_off' }}"
@@ -270,30 +298,39 @@ variables:
   watering_switch_off: "{{ 'valve.close_valve' if watering_switch.split('.')[0] == 'valve' else 'switch.turn_off' }}"
   watering_switch_toggle: "{{ watering_switch.split('.')[0] ~ '.toggle' }}"
 
+  zonehome: |
+    {% set allpersons = state_attr('zone.home','persons') | count %}
+    {% set cottagepersons = state_attr('zone.home','persons') | select('search', 'cottage') | list | count %}
+    {% set apartmentpersons = state_attr('zone.home','persons') | select('search', 'apartment') | list | count %}
+    {{ allpersons - cottagepersons - apartmentpersons }}
+
+  watervalve_entities: "{{ expand(watervalve_switch) | map(attribute='entity_id') | list }}" 
+
+  # watering_state_on: "{{ 'open' if watering_switch.split('.')[0] == 'valve' else 'on' }}"
+  # watering_state_off: "{{ 'closed' if watering_switch.split('.')[0] == 'valve' else 'off' }}"
+  # waterpump_state_on: "{{ 'open' if waterpump_switch.split('.')[0] == 'valve' else 'on' }}"
+  # waterpump_state_off: "{{ 'closed' if waterpump_switch.split('.')[0] == 'valve' else 'off' }}"
+
+  # string: |
+  #   {% set pump_time = as_timestamp(states[waterpump_switch].last_changed | as_local ) | timestamp_custom("%H:%M") %}
+  #   {% set on_time = as_timestamp(states[watering_switch].last_changed | as_local ) | timestamp_custom("%H:%M") %}
+  #   {% set timer_time = as_timestamp(states[pump_off_auto].last_changed | as_local ) | timestamp_custom("%H:%M") %}
+  #   {% set auto_off = as_timestamp(today_at(auto_off_pump_time)) | timestamp_custom("%H:%M")  %}
+  #   {% set pump_str = 'Насос ' ~ ('включен в ' ~ pump_time if states(waterpump_switch) == 'on' else 'выключен') %}
+  #   {% set watering_str = 'Клапан полива ' ~ ('открыт в ' ~ on_time if states(watering_switch) == 'on' else 'перекрыт') %}
+  #   {% set timer_str = 'Таймер автоотключения ' ~ ('запущен в ' ~ timer_time ~ ' на ' ~ auto_off if states(pump_off_auto) == 'active' else 'остановлен') %}
+  #   {% set valve_str = 'Включено направление ' ~ ('на парники' if states(watervalve_switch) == 'off' else 'на теплицу') %}
+  #   {% set str = pump_str ~ '<br>' ~ watering_str ~ '<br>' ~ valve_str ~ '<br>' ~ timer_str %}
+  #   {{ str }}
+
 triggers:
-  # - at: !input set_on_time_morning
-  #   trigger: time
-  #   id: on_morning_trigger
-  #   enabled: !input pump_morning_enable
-
-  # - at: !input set_on_time_evening
-  #   trigger: time
-  #   id: on_evening_trigger
-  #   enabled: !input pump_evening_enable
-
-  - trigger: template
-    value_template: >-
-      {% set on_time_morning = set_on_time_morning %}
-      {{ states('sensor.time') not in invalid_states and 
-        states('sensor.time') == as_timestamp(today_at(on_time_morning)) | timestamp_custom('%H:%M') }}
+  - at: !input set_on_time_morning
+    trigger: time
     id: on_morning_trigger
     enabled: !input pump_morning_enable
 
-  - trigger: template
-    value_template: >-
-      {% set on_time_evening = set_on_time_evening %}
-      {{ states('sensor.time') not in invalid_states and 
-        states('sensor.time') == as_timestamp(today_at(on_time_evening)) | timestamp_custom('%H:%M') }}
+  - at: !input set_on_time_evening
+    trigger: time
     id: on_evening_trigger
     enabled: !input pump_evening_enable
 
@@ -325,25 +362,39 @@ triggers:
     id: time_before_evening_trigger
     enabled: !input pump_morning_enable
 
+# conditions:
+#   - condition: and
+#     conditions:
+#       - condition: template
+#         value_template: >
+#           {{ states('input_boolean.summer_pump_mode')=='on' or trigger.id == 'pump_off_auto_trigger' or trigger.id == 'watering_off_trigger' }}
+
+          # - delay:
+          #     seconds: 1
+          # - action: input_text.set_value
+          #   data:
+          #     value: "{{ string }}"
+          #   target:
+          #     entity_id: "{{ input_text_helper }}"
+
 actions:
   - choose:
-      - conditions:
-          - condition: trigger
-            id: 
-              - time_before_morning_trigger
-          - condition: template
-            value_template: |
-              {{ waterpump_switch != [] and states(waterpump_switch) not in invalid_states }}
-        sequence:
-          - target:
-              entity_id: !input waterpump_switch
-            data: {}
-            action: "{{ waterpump_switch_on }}"
+
+#########################################################################
+#
+# ВКЛЮЧЕНИЕ НАСОСА ПЕРЕД НАЧАЛОМ ПОЛИВА И ЗАКРЫТИЯ ВСЕХ НАПРАВЛЕНИЙ
+#
+#########################################################################
 
       - conditions:
-          - condition: trigger
-            id: 
-              - time_before_evening_trigger
+          - condition: or
+            conditions: 
+              - condition: trigger
+                id: 
+                  - time_before_morning_trigger
+              - condition: trigger
+                id: 
+                  - time_before_evening_trigger
           - condition: template
             value_template: |
               {{ waterpump_switch != [] and states(waterpump_switch) not in invalid_states }}
@@ -352,6 +403,43 @@ actions:
               entity_id: !input waterpump_switch
             data: {}
             action: "{{ waterpump_switch_on }}"
+          - repeat:
+              for_each: "{{ watervalve_entities }}"
+              sequence:
+                - action: "{{ 'valve.close_valve' if (repeat.item).split('.')[0] == 'valve' else 'switch.turn_off' }}" #  Выключение клапана потока
+                  target:
+                    entity_id: "{{ repeat.item }}"
+
+#########################################################################
+#
+# ВКЛЮЧЕНИЕ НАСОСА ПЕРЕД НАЧАЛОМ ПОЛИВА ВЕЧЕРОМ
+#
+#########################################################################
+
+      # - conditions:
+      #     - condition: trigger
+      #       id: 
+      #         - time_before_evening_trigger
+      #     - condition: template
+      #       value_template: |
+      #         {{ waterpump_switch != [] and states(waterpump_switch) not in invalid_states }}
+      #   sequence:
+      #     - target:
+      #         entity_id: !input waterpump_switch
+      #       data: {}
+      #       action: "{{ waterpump_switch_on }}"
+      #     - repeat:
+      #         for_each: "{{ watervalve_entities | list }}"
+      #         sequence:
+      #           - action: "{{ 'valve.close_valve' if (repeat.item).split('.')[0] == 'valve' else 'switch.turn_off' }}" #  Выключение клапана потока
+      #             target:
+      #               entity_id: "{{ repeat.item }}"
+
+#########################################################################
+#
+# ВКЛЮЧЕНИЕ ПОЛИВА УТРОМ
+#
+#########################################################################
 
       - conditions:
           - condition: trigger
@@ -367,25 +455,49 @@ actions:
             value_template: |
               {{ states(waterpump_switch) in open_states }}
         sequence:
+          # - repeat:
+          #     for_each: "{{ watervalve_entities | list }}"
+          #     sequence:
+          #       - action: "{{ 'valve.close_valve' if (repeat.item).split('.')[0] == 'valve' else 'switch.turn_off' }}" #  Выключение клапана потока
+          #         target:
+          #           entity_id: repeat.item
           - action: "{{ watering_switch_on }}" #            Клапан на воду включен
             target: 
               entity_id: !input watering_switch
             data: {}
-          - if: #                                           Проверка на доступность клапана потока
-              - condition: template
-                value_template: "{{ watervalve_switch != [] and states(watervalve_switch) not in invalid_states }}"
-            then:
-              - action: "{{ watervalve_switch_toggle }}" #  Включение клапана потока
-                target:
-                  entity_id: !input watervalve_switch
-              - delay: !input set_time_work_morning #       Задержка для работы
-              - action: "{{ watervalve_switch_toggle }}" #  Выключение клапана потока
-                target:
-                  entity_id: !input watervalve_switch
+          - repeat:
+              for_each: "{{ watervalve_entities }}"
+              sequence:
+                - action: "{{ 'valve.open_valve' if (repeat.item).split('.')[0] == 'valve' else 'switch.turn_on' }}" #  Включение клапана потока
+                  target:
+                    entity_id: "{{ repeat.item }}"
+                - delay: !input set_time_work_morning #       Задержка для работы
+                - action: "{{ 'valve.close_valve' if (repeat.item).split('.')[0] == 'valve' else 'switch.turn_off' }}" #  Выключение клапана потока
+                  target:
+                    entity_id: "{{ repeat.item }}"
           - data: {} #                                      Клапан на воду выключен
             target:
               entity_id: !input watering_switch
             action: "{{ watering_switch_off }}"
+
+              #   - if: #                                           Проверка на доступность клапана потока
+              #       - condition: template
+              #         value_template: "{{ watervalve_switch != [] and states(repeat.item) not in invalid_states }}"
+              #     then:
+              #       - action: "{{ 'valve.open_valve' if (repeat.item).split('.')[0] == 'valve' else 'switch.turn_on' }}" #  Включение клапана потока
+              #         target:
+              #           entity_id: !input watervalve_switch
+              #       - delay: !input set_time_work_morning #       Задержка для работы
+              #       - action: "{{ watervalve_switch_toggle }}" #  Выключение клапана потока
+              #         target:
+              #           entity_id: !input watervalve_switch
+
+
+#########################################################################
+#
+# ВКЛЮЧЕНИЕ ПОЛИВА ВЕЧЕРОМ
+#
+#########################################################################
 
       - conditions:
           - condition: trigger
@@ -401,36 +513,60 @@ actions:
             value_template: |
               {{ states(waterpump_switch) in open_states }}
         sequence:
-          - if:
-              - condition: state
-                entity_id: !input waterpump_switch
-                state: "off"
-            then:
-              - target:
-                  entity_id: !input waterpump_switch
-                data: {}
-                action: "{{ waterpump_switch_on }}"
-              - delay: !input set_time_waterpump_work
-          - target:
+          - action: "{{ watering_switch_on }}" #            Клапан на воду включен
+            target: 
               entity_id: !input watering_switch
             data: {}
-            action: "{{ watering_switch_on }}"
-          - delay: !input set_time_work_evening
-          - if:
-              - condition: template
-                value_template: "{{ watervalve_switch != [] and states(watervalve_switch) not in invalid_states }}"
-            then:
-              - action: "{{ watervalve_switch_toggle }}"
-                target:
-                  entity_id: !input watervalve_switch
-              - delay: !input set_time_work_evening
-              - action: "{{ watervalve_switch_toggle }}"
-                target:
-                  entity_id: !input watervalve_switch
-          - data: {}
+          - repeat:
+              for_each: "{{ watervalve_entities }}"
+              sequence:
+                - action: "{{ 'valve.open_valve' if (repeat.item).split('.')[0] == 'valve' else 'switch.turn_on' }}" #  Включение клапана потока
+                  target:
+                    entity_id: "{{ repeat.item }}"
+                - delay: !input set_time_work_evening #       Задержка для работы
+                - action: "{{ 'valve.close_valve' if (repeat.item).split('.')[0] == 'valve' else 'switch.turn_off' }}" #  Выключение клапана потока
+                  target:
+                    entity_id: "{{ repeat.item }}"
+          - data: {} #                                      Клапан на воду выключен
             target:
               entity_id: !input watering_switch
             action: "{{ watering_switch_off }}"
+          # - if:
+          #     - condition: state
+          #       entity_id: !input waterpump_switch
+          #       state: "off"
+          #   then:
+          #     - target:
+          #         entity_id: !input waterpump_switch
+          #       data: {}
+          #       action: "{{ waterpump_switch_on }}"
+          #     - delay: !input set_time_waterpump_work
+          # - target:
+          #     entity_id: !input watering_switch
+          #   data: {}
+          #   action: "{{ watering_switch_on }}"
+          # - delay: !input set_time_work_evening
+          # - if:
+          #     - condition: template
+          #       value_template: "{{ watervalve_switch != [] and states(watervalve_switch) not in invalid_states }}"
+          #   then:
+          #     - action: "{{ watervalve_switch_toggle }}"
+          #       target:
+          #         entity_id: !input watervalve_switch
+          #     - delay: !input set_time_work_evening
+          #     - action: "{{ watervalve_switch_toggle }}"
+          #       target:
+          #         entity_id: !input watervalve_switch
+          # - data: {}
+          #   target:
+          #     entity_id: !input watering_switch
+          #   action: "{{ watering_switch_off }}"
+
+#########################################################################
+#
+# ВЫКЛЮЧЕНИЕ СИСТЕМЫ ПРИ ОСТАНОВКИ ТАЙМЕРА АВТООТКЛЮЧЕНИЯ
+#
+#########################################################################
 
       - conditions:
           - condition: trigger
@@ -455,6 +591,12 @@ actions:
                   entity_id: !input waterpump_switch
                 data: {}
 
+#########################################################################
+#
+# ОСТАНОВКА ТАЙМЕРА АВТООТКЛЮЧЕНИЯ
+#
+#########################################################################
+
       - conditions:
           - condition: trigger
             id:
@@ -468,6 +610,12 @@ actions:
             data: {}
             target:
               entity_id: !input pump_off_auto
+
+#########################################################################
+#
+# ЗАПУСК ТАЙМЕРА АВТООТКЛЮЧЕНИЯ
+#
+#########################################################################
 
       - conditions:
           - condition: trigger
