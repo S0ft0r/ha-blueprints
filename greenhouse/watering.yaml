@@ -446,7 +446,7 @@ actions:
           - if:
               - condition: template
                 value_template: |
-                  "{{ true if zonehome != [] else (zonehome | int == 0) }}"
+                  "{{ true if zonehome == [] else (states(zonehome) | int == 0) }}"
             then:
               - delay: !input set_time_waterpump_work
               - action: "{{ waterpump_switch_off }}"
