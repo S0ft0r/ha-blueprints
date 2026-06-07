@@ -116,19 +116,13 @@ trigger_variables:
   set_fan_wc_delay: !input set_fan_wc_delay
 
 variables:
-
   chosen_pet_mode: "{{ set_pet_mode.active_choice }}"
   chosen_fan_wc_on_duration: "{{ set_fan_wc_on_duration.active_choice }}"
   chosen_fan_wc_delay: "{{ set_fan_wc_delay.active_choice }}"
 
-  pet_mode: |
-    {{ set_pet_mode.выбор if chosen_pet_mode == 'выбор' else states(set_pet_mode.сенсор) }}
-
-  fan_wc_on_duration: |
-    {{ set_fan_wc_on_duration.время if chosen_pet_mode == 'время' else ((states(set_fan_wc_on_duration.сенсор) | float * 60) | timestamp_custom('%H:%M:%S',0)) }}
-
-  fan_wc_delay: |
-    {{ set_fan_wc_delay.время if chosen_pet_mode == 'время' else ((states(set_fan_wc_delay.сенсор) | float * 60) | timestamp_custom('%H:%M:%S',0)) }}
+  pet_mode: "{{ set_pet_mode.выбор if chosen_pet_mode == 'выбор' else states(set_pet_mode.сенсор) }}"
+  fan_wc_on_duration: "{{ set_fan_wc_on_duration.время if chosen_pet_mode == 'время' else ((states(set_fan_wc_on_duration.сенсор) | float * 60) | timestamp_custom('%H:%M:%S',0)) }}"
+  fan_wc_delay: "{{ set_fan_wc_delay.время if chosen_pet_mode == 'время' else ((states(set_fan_wc_delay.сенсор) | float * 60) | timestamp_custom('%H:%M:%S',0)) }}"
 
 triggers:
   - trigger: state
@@ -138,14 +132,6 @@ triggers:
     to:
       - "on"
     id: on_light_trigger
-
-  - trigger: state
-    entity_id: !input light_switch
-    from:
-      - "on"
-    id: off_light_trigger
-    to:
-      - "off"
 
   - trigger: state
     entity_id: !input fan_wc
@@ -169,44 +155,31 @@ triggers:
 
 actions:
   - choose:
-      - conditions:
+      - conditions: # Свет включен
           - condition: trigger
             id:
               - on_light_trigger
         sequence:
-          - action: timer.start
-            metadata: {}
+          - action: timer.start 
             target:
-              entity_id: !input fan_wc
+              entity_id: !input fan_wc # Запустить таймер на отстрочку запуска
             data:
               duration: "{{ fan_wc_on_duration }}"
 
       - conditions:
           - condition: trigger
             id:
-              - off_light_trigger
-        sequence:
-          - action: timer.finish
-            metadata: {}
-            target:
-              entity_id: !input fan_wc
-            data: {}
-
-      - conditions:
-          - condition: trigger
-            id:
               - off_fan_wc_trigger
+          - condition: state
+            entity_id: !input light_switch
+            state: "on"
         sequence:
-          - wait_template: >-
-              {{ is_state(light_switch, 'off') }}
+          - wait_template: "{{ is_state(light_switch, 'off') }}"
             continue_on_timeout: true
           - action: switch.turn_on
-            metadata: {}
             target:
               entity_id: !input fan_switch
-            data: {}
           - action: timer.start
-            metadata: {}
             target:
               entity_id: !input fan_wc_on
             data:
@@ -218,10 +191,8 @@ actions:
               - off_fan_wc_on_trigger
         sequence:
           - action: switch.turn_off
-            metadata: {}
             target:
               entity_id: !input fan_switch
-            data: {}
 
       - conditions:
           - condition: trigger
@@ -230,18 +201,14 @@ actions:
           - condition: template
             value_template: "{{ pet_mode }}"
         sequence:
-          - wait_template: >-
-              {{ is_state(light_switch, 'off') }}
+          - wait_template: "{{ is_state(light_switch, 'off') }}"
           - action: switch.turn_on
-            metadata: {}
             target:
               entity_id: !input fan_switch
-            data: {}
           - action: timer.start
-            metadata: {}
             target:
               entity_id: !input fan_wc_on
             data:
-              duration: "{{ fan_wc_delay }}"
+              duration: "{{ fan_wc_duration }}"
 
-mode: single
+mode: restart
