@@ -1,0 +1,521 @@
+blueprint:
+  name: Управление ночником и чайником по будильнику
+  description: |
+    ### Управление ночником и чайником по будильнику.
+    <small>Версия 2026.06.01 Сборка 1</small> 
+
+    <small><a href="https://github.com/S0ft0r/ha-blueprints/blob/main/as-is.md">Отказ от ответственности</a></small>
+  domain: automation
+  source_url: https://github.com/S0ft0r/ha-blueprints/blob/main/other/dev/dev.alarm.yaml
+  author: Softor
+
+  input:
+    kettle_switch:
+      name: Чайник
+      description: |
+        Чайник
+      selector:
+        entity:
+          filter:
+            - domain:
+                - water_heater
+          multiple: false
+
+    light_switch:
+      name: Ночник
+      description: ""
+      selector:
+        entity:
+          filter:
+            - domain:
+                - light
+          multiple: true
+
+    person_sensor:
+      name: Персон
+      selector:
+        entity:
+          filter:
+            - domain:
+                - person
+          multiple: false
+
+
+    options_workday:
+      name: Будни
+      input:
+        set_alarm_workday_enabled:
+          name: Включение будильника в будни
+          selector:
+            choose:
+              choices:
+                'выбор':
+                  selector:
+                    boolean:
+                'сенсор':
+                  selector:
+                    entity:
+                      filter:
+                        - domain: 
+                            - input_boolean
+                      multiple: false
+
+        set_alarm_workday:
+          name: Время включения будильника в будни
+          description: Время включения будильника в будни
+          selector:
+            choose:
+              choices:
+                'время':
+                  selector:
+                    time: {}
+                'сенсор':
+                  selector:
+                    entity:
+                      filter:
+                        - domain: 
+                            - input_datetime
+                      multiple: false
+
+        set_kettle_on_workday:
+          name: Включать чайник
+          selector:
+            boolean:
+        set_light_on_workday:
+          name: Включать ночник
+          selector:
+            boolean:
+
+    options_saturday:
+      name: Будни
+      input:
+        set_alarm_saturday_enabled:
+          name: Включение будильника в будни
+          selector:
+            choose:
+              choices:
+                'выбор':
+                  selector:
+                    boolean:
+                'сенсор':
+                  selector:
+                    entity:
+                      filter:
+                        - domain: 
+                            - input_boolean
+                      multiple: false
+
+        set_alarm_saturday:
+          name: Время включения будильника в будни
+          description: Время включения будильника в будни
+          selector:
+            choose:
+              choices:
+                'время':
+                  selector:
+                    time: {}
+                'сенсор':
+                  selector:
+                    entity:
+                      filter:
+                        - domain: 
+                            - input_datetime
+                      multiple: false
+
+        set_kettle_on_saturday:
+          name: Включать чайник
+          selector:
+            boolean:
+        set_light_on_saturday:
+          name: Включать ночник
+          selector:
+            boolean:
+
+    options_sunday:
+      name: Будни
+      input:
+        set_alarm_sunday_enabled:
+          name: Включение будильника в будни
+          selector:
+            choose:
+              choices:
+                'выбор':
+                  selector:
+                    boolean:
+                'сенсор':
+                  selector:
+                    entity:
+                      filter:
+                        - domain: 
+                            - input_boolean
+                      multiple: false
+
+        set_alarm_sunday:
+          name: Время включения будильника в будни
+          description: Время включения будильника в будни
+          selector:
+            choose:
+              choices:
+                'время':
+                  selector:
+                    time: {}
+                'сенсор':
+                  selector:
+                    entity:
+                      filter:
+                        - domain: 
+                            - input_datetime
+                      multiple: false
+
+        set_kettle_on_sunday:
+          name: Включать чайник
+          selector:
+            boolean:
+        set_light_on_sunday:
+          name: Включать ночник
+          selector:
+            boolean:
+
+    options_once:
+      name: Будни
+      input:
+        set_alarm_once_enabled:
+          name: Включение будильника в будни
+          selector:
+            choose:
+              choices:
+                'выбор':
+                  selector:
+                    boolean:
+                'сенсор':
+                  selector:
+                    entity:
+                      filter:
+                        - domain: 
+                            - input_boolean
+                      multiple: false
+
+        set_alarm_once:
+          name: Время включения будильника в будни
+          description: Время включения будильника в будни
+          selector:
+            choose:
+              choices:
+                'время':
+                  selector:
+                    time: {}
+                'сенсор':
+                  selector:
+                    entity:
+                      filter:
+                        - domain: 
+                            - input_datetime
+                      multiple: false
+
+        set_kettle_on_once:
+          name: Включать чайник
+          selector:
+            boolean:
+        set_light_on_once:
+          name: Включать ночник
+          selector:
+            boolean:
+
+    options_extra:
+      name: Будни
+      input:
+        set_kettle_before_alarm:
+          name: Время включения будильника в будни
+          description: Время включения будильника в будни
+          selector:
+            choose:
+              choices:
+                'время':
+                  selector:
+                    time: {}
+                'сенсор':
+                  selector:
+                    entity:
+                      filter:
+                        - domain: 
+                            - input_datetime
+                      multiple: false
+
+        set_light_before_alarm:
+          name: Время включения будильника в будни
+          description: Время включения будильника в будни
+          selector:
+            choose:
+              choices:
+                'время':
+                  selector:
+                    time: {}
+                'сенсор':
+                  selector:
+                    entity:
+                      filter:
+                        - domain: 
+                            - input_datetime
+                      multiple: false
+
+trigger_variables:
+  kettle_switch: !input kettle_switch
+  light_switch: !input light_switch
+  person_sensor: !input person_sensor
+
+  options_workday: !input options_workday
+  options_saturday: !input options_saturday
+  options_sun: !input options_sun
+  options_once: !input options_once
+  options_extra: !input options_extra
+
+  set_alarm_workday_enabled: !input set_alarm_workday_enabled
+  set_alarm_saturday_enabled: !input set_alarm_saturday_enabled
+  set_alarm_sunday_enabled: !input set_alarm_sunday_enabled
+  set_alarm_once_enabled: !input set_alarm_once_enabled
+
+  set_alarm_workday: !input set_alarm_workday
+  set_alarm_saturday: !input set_alarm_saturday
+  set_alarm_sunday: !input set_alarm_sunday
+  set_alarm_once: !input set_alarm_once
+
+  set_kettle_before_alarm: !input set_kettle_before_alarm
+  set_light_before_alarm: !input set_light_before_alarm
+
+variables:
+  invalid_states:
+    - ''                    
+    - 'unavailable'         
+    - 'unknown'             
+    - 'none'                
+    - 'None'                
+    - 'null'         
+
+  chosen_alarm_workday_enabled: "{{ set_alarm_workday_enabled.active_choice }}"
+
+
+  chosen_alarm_workday: "{{ set_alarm_workday.active_choice }}"
+  chosen_alarm_saturday: "{{ set_alarm_saturday.active_choice }}"
+  chosen_alarm_sunday: "{{ set_alarm_sunday.active_choice }}"
+  chosen_alarm_once: "{{ set_alarm_once.active_choice }}"
+
+  chosen_kettle_before_alarm: "{{ set_kettle_before_alarm.active_choice }}"
+  chosen_light_before_alarm: "{{ set_light_before_alarm.active_choice }}"
+
+  alarm_workday: "{{ set_alarm_workday.время if chosen_alarm_workday == 'время' else states(set_alarm_workday.сенсор) }}"
+  alarm_saturday: "{{ set_alarm_saturday.время if chosen_alarm_saturday == 'время' else states(set_alarm_saturday.сенсор) }}"
+  alarm_sunday: "{{ set_alarm_sunday.время if chosen_alarm_sunday == 'время' else states(set_alarm_sunday.сенсор) }}"
+  alarm_once: "{{ set_alarm_once.время if chosen_alarm_once == 'время' else states(set_alarm_once.сенсор) }}"
+
+  kettle_before_alarm: "{{ set_kettle_before_alarm.время if chosen_kettle_before_alarm == 'время' else states(set_kettle_before_alarm.сенсор) }}"
+  light_before_alarm: "{{ set_light_before_alarm.время if chosen_light_before_alarm == 'время' else states(set_light_before_alarm.сенсор) }}"
+
+triggers:
+  - trigger: template
+    value_template: >-
+      {% set awd = states('input_boolean.alarm_1_workday') %} 
+      {% set aonce = states('input_boolean.alarm_1_once') %} 
+      {% set asa = states('input_boolean.alarm_1_saturday') %} 
+      {% set asu = states('input_boolean.alarm_1_sunday') %} 
+      {% set ktwd = (((state_attr('input_datetime.alarm_clock_1_workday', 'timestamp')) -
+        (states('input_number.kettle_until_alarm') | int*60)) | timestamp_custom('%H:%M', false)) %} 
+      {% set ktonce = (((state_attr('input_datetime.alarm_clock_1_once', 'timestamp')) - 
+        (states('input_number.kettle_until_alarm') | int*60)) | timestamp_custom('%H:%M', false)) %} 
+      {% set ktsa = (((state_attr('input_datetime.alarm_clock_1_saturday', 'timestamp')) -
+        (states('input_number.kettle_until_alarm') | int*60)) | timestamp_custom('%H:%M', false)) %} 
+      {% set ktsu = (((state_attr('input_datetime.alarm_clock_1_sunday', 'timestamp')) -
+        (states('input_number.kettle_until_alarm') | int*60)) | timestamp_custom('%H:%M', false)) %}
+      {% set sa = (now().weekday() == 5) %} 
+      {% set su = (now().weekday() == 6) %} 
+      {% set ke = states('input_boolean.kettle_on_1') %} 
+      {% set wd = states('binary_sensor.workday_sensor') %}
+
+      {{ (awd == 'on' and states('sensor.time') == ktwd and ke == 'on' and wd =='on')  
+        or (asa == 'on' and states('sensor.time') == ktsa and ke == 'on' and sa == true)
+        or (asu == 'on' and states('sensor.time') == ktsu and ke == 'on' and su == true)  
+        or (aonce == 'on' and states('sensor.time') ==  ktonce and ke == 'on') }}
+    id: kettle
+
+  - trigger: template
+    value_template: >-
+      {% set awd = states('input_boolean.alarm_1_workday') %} 
+      {% set aonce = states('input_boolean.alarm_1_once') %} 
+      {% set asa = states('input_boolean.alarm_1_saturday') %} 
+      {% set asu = states('input_boolean.alarm_1_sunday') %} 
+      {% set ltwd = (((state_attr('input_datetime.alarm_clock_1_workday', 'timestamp')) -
+        (states('input_number.light_until_alarm') | int*60)) | timestamp_custom('%H:%M', false)) %} 
+      {% set ltonce = (((state_attr('input_datetime.alarm_clock_1_once', 'timestamp')) -
+        (states('input_number.light_until_alarm') | int*60)) | timestamp_custom('%H:%M', false)) %} 
+      {% set ltsa = (((state_attr('input_datetime.alarm_clock_1_saturday', 'timestamp')) -
+        (states('input_number.light_until_alarm') | int*60)) | timestamp_custom('%H:%M', false)) %} 
+      {% set ltsu = (((state_attr('input_datetime.alarm_clock_1_sunday', 'timestamp')) -
+        (states('input_number.light_until_alarm') | int*60)) | timestamp_custom('%H:%M', false)) %} 
+      {% set sa = (now().weekday() == 5) %} 
+      {% set su = (now().weekday() == 6) %} 
+      {% set le = states('input_boolean.light_on_1') %} 
+      {% set wd = states('binary_sensor.workday_sensor') %}
+
+      {{ (awd == 'on' and states('sensor.time') == ltwd and le == 'on' and wd =='on')  
+        or (asa == 'on' and states('sensor.time') == ltsa and le == 'on' and sa == true)  
+        or (asu == 'on' and states('sensor.time') == ltsu and le  == 'on' and su == true)  
+        or (aonce == 'on' and states('sensor.time') == ltonce and le == 'on') }}
+    id: light
+
+  - trigger: template
+    value_template: >-
+      {% set aonce = states('input_boolean.alarm_1_once') %} 
+      {% set tonce = (state_attr('input_datetime.alarm_clock_1_once', 'timestamp'))|timestamp_custom('%H:%M', false) %}  
+
+      {{ aonce == 'on' and states('sensor.time') == tonce }}
+    id: once
+
+conditions:
+  - condition: state
+    entity_id: !input person_sensor
+    state:
+      - home
+
+actions:
+  - choose:
+      - conditions: # Чайник на кипячение
+          - condition: trigger
+            id:
+              - kettle
+          - condition: template
+            value_template: "{{ state_attr(kettle_switch,'current_temperature') | int < states('input_number.kettle_temp_boil') | int }}"
+        sequence:
+          - target:
+              entity_id: !input kettle_switch
+            data:
+              temperature: "{{ states('input_number.kettle_temp_heat') | int }}"
+            action: water_heater.set_temperature
+          - target:
+              entity_id: !input kettle_switch
+            data:
+              operation_mode: boil_heat
+            action: water_heater.set_operation_mode
+
+      - conditions: # Чайник на подогрев
+          - condition: trigger
+            id:
+              - kettle
+          - condition: template
+            value_template: "{{ state_attr(kettle_switch,'current_temperature') | int > states('input_number.kettle_temp_boil') | int }}"
+        sequence:
+          - target:
+              entity_id: !input kettle_switch
+            data:
+              temperature: "{{ states('input_number.kettle_temp_heat') | int }}"
+            action: water_heater.set_temperature
+          - target:
+              entity_id: !input kettle_switch
+            data:
+              operation_mode: heat
+            action: water_heater.set_operation_mode
+
+      - conditions: # Ночник
+          - condition: trigger
+            id:
+              - light
+          - condition: template
+            value_template: "{{ states(light_switch) not in invalid_states }}"
+        sequence:
+          - repeat:
+              count: 254
+              sequence:
+                - data:
+                    brightness: "{{ 254 / (254-1) * (repeat.index-1) + 1 }}"
+                    color_temp_kelvin: 2000
+                  action: light.turn_on
+                  target:
+                    entity_id: !input light_switch
+                - delay:
+                    hours: 0
+                    minutes: 0
+                    seconds: 2
+                    milliseconds: 0
+
+      - conditions: # Чайник на подогрев
+          - condition: trigger
+            id:
+              - once
+        sequence:
+          - action: input_boolean.turn_off
+            target:
+              entity_id: input_boolean.alarm_1_once
+
+mode: single
+
+  # - if:
+  #     - condition: trigger
+  #       id:
+  #         - kettle
+  #   then:
+  #     - alias: Кипячение
+  #       if:
+  #         - condition: template
+  #           value_template: >-
+  #             {{state_attr(kettle_switch,'current_temperature') | int < states('input_number.kettle_temp_boil') | int}}
+  #       then:
+
+  #     - alias: Подогрев
+  #       if:
+  #         - condition: template
+  #           value_template: >-
+  #             {{ state_attr('water_heater.skykettle_rk_m216s','current_temperature') | int > states('input_number.kettle_temp_boil') | int - 1 }}
+  #       then:
+  #         - target:
+  #             entity_id: !input kettle_switch
+  #           data:
+  #             temperature: "{{ states('input_number.kettle_temp_heat') | int }}"
+  #           action: water_heater.set_temperature
+  #         - target:
+  #             entity_id: !input kettle_switch
+  #           data:
+  #             operation_mode: heat
+  #           action: water_heater.set_operation_mode
+  # - if:
+  #     - condition: trigger
+  #       id:
+  #         - light
+  #   then:
+  #     - metadata: {}
+  #       data:
+  #         variables:
+  #           entity_light: !input light_switch
+  #       target:
+  #         entity_id:
+  #           - script.slowly_turn_on_lamp_1
+  #       action: script.turn_on
+  # - if:
+  #     - condition: trigger
+  #       id:
+  #         - once
+  #   then:
+  #     - action: input_boolean.turn_off
+  #       metadata: {}
+  #       target:
+  #         entity_id: input_boolean.alarm_1_once
+  #       data: {}
+
+  # sequence:
+  # - repeat:
+  #     count: 254
+  #     sequence:
+  #     - if:
+  #       - condition: template
+  #         value_template: '{{ is_state(''light.light_nightlight_left'',''Недоступно'')
+  #           | bool == false }} '
+  #       then:
+  #       - data:
+  #           brightness: '{{ 254 / (254-1) * (repeat.index-1) + 1 }}'
+  #           color_temp_kelvin: 2000
+  #         action: light.turn_on
+  #         target:
+  #           entity_id:
+  #           - light.light_nightlight_left
+  #     - delay:
+  #         hours: 0
+  #         minutes: 0
+  #         seconds: 2
+  #         milliseconds: 0
