@@ -81,10 +81,12 @@ blueprint:
 
         set_kettle_on_workday:
           name: Включать чайник
+          deafault: false
           selector:
             boolean:
         set_light_on_workday:
           name: Включать ночник
+          deafault: false
           selector:
             boolean:
 
@@ -128,12 +130,14 @@ blueprint:
 
         set_kettle_on_saturday:
           name: Включать чайник
+          deafault: false
           selector:
             boolean:
         set_light_on_saturday:
           name: Включать ночник
+          deafault: false
           selector:
-            boolean:
+            boolean: 
 
     options_sunday:
       name: Будни
@@ -175,10 +179,12 @@ blueprint:
 
         set_kettle_on_sunday:
           name: Включать чайник
+          deafault: false
           selector:
             boolean:
         set_light_on_sunday:
           name: Включать ночник
+          deafault: false
           selector:
             boolean:
 
@@ -222,10 +228,12 @@ blueprint:
 
         set_kettle_on_once:
           name: Включать чайник
+          deafault: false
           selector:
             boolean:
         set_light_on_once:
           name: Включать ночник
+          deafault: false
           selector:
             boolean:
 
