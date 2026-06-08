@@ -1,0 +1,116 @@
+blueprint:
+  name: Управление вентиляцией в ванной
+  description: |
+    ### Управление вентиляцией в ванной.
+    <small>Версия 2026.06.01 Сборка 1</small> 
+
+    <small><a href="https://github.com/S0ft0r/ha-blueprints/blob/main/as-is.md">Отказ от ответственности</a></small>
+  domain: automation
+  source_url: https://github.com/S0ft0r/ha-blueprints/blob/main/other/dev/dev.ventbath.yaml
+  author: Softor
+
+  input:
+    fan_switch:
+      name: Вентилятор в санузле
+      description: |
+        Вентилятор
+      selector:
+        entity:
+          filter:
+            - domain:
+                - switch
+          multiple: false
+    humidity_sensor:
+      name: Датчик влажности
+      selector:
+        entity:
+          filter:
+            - domain:
+                - sensor
+              device_class:
+                - humidity
+    set_min_humidity:
+      name: Минимальная влажность для выключения вентилятора
+      selector:
+        choose:
+          choices:
+            'процент':
+              selector:
+                number:
+                  min: 1
+                  max: 100
+                  step: 1
+                  mode: box
+                  unit_of_measurement: "%"
+            'сенсор':
+              selector:
+                entity:
+                  filter:
+                    - domain: 
+                        - input_number
+                  multiple: false
+    set_max_humidity:
+      name: Максимальная влажность для включения вентилятора
+      selector:
+        choose:
+          choices:
+            'процент':
+              selector:
+                number:
+                  min: 1
+                  max: 100
+                  step: 1
+                  mode: box
+                  unit_of_measurement: "%"
+            'сенсор':
+              selector:
+                entity:
+                  filter:
+                    - domain: 
+                        - input_number
+                  multiple: false
+
+
+trigger_variables:
+  fan_switch: !input fan_switch
+  humidity_sensor: !input humidity_sensor  
+
+variables:
+  chosen_min_humidity: "{{ set_min_humidity.active_choice }}"
+  chosen_max_humidity: "{{ set_max_humidity.active_choice }}"
+
+  min_humidity: "{{ set_min_humidity.процент if chosen_min_humidity == 'процент' else states(set_min_humidity.сенсор) }}"
+  max_humidity: "{{ set_max_humidity.процент if chosen_max_humidity == 'процент' else states(set_max_humidity.сенсор) }}"
+
+triggers:
+  - entity_id: !input humidity_sensor
+    trigger: state
+
+actions:
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: >-
+              {{ (states(humidity_sensor) | float) >= max_humidity | float) }}
+          - condition: state
+            entity_id: !input fan_switch
+            state:
+              - "off"
+        sequence:
+          - target:
+              entity_id: !input fan_switch
+            action: switch.turn_on
+
+      - conditions:
+          - condition: template
+            value_template: >-
+              {{ (states(humidity_sensor) | float) <= min_humidity | float }}
+          - condition: state
+            entity_id: !input fan_switch
+            state:
+              - "on"
+        sequence:
+          - action: switch.turn_off
+            target:
+              entity_id: !input fan_switch
+mode: single
