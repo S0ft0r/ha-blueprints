@@ -258,6 +258,27 @@ blueprint:
                             - input_datetime
                       multiple: false
 
+        set_temperature_boil:
+          name: Температура кипячения
+          description: Температура, ниже которой включается режим кипячения
+          selector:
+            number:
+              min: 1
+              max: 100
+              step: 1
+              mode: slider
+              unit_of_measurement: "°C"
+
+        set_temperature_heat:
+          name: Температура подогрева
+          selector:
+            number:
+              min: 1
+              max: 100
+              step: 1
+              mode: slider
+              unit_of_measurement: "°C"
+
 trigger_variables:
   kettle_switch: !input kettle_switch
   light_switch: !input light_switch
@@ -282,6 +303,19 @@ trigger_variables:
   set_kettle_before_alarm: !input set_kettle_before_alarm
   set_light_before_alarm: !input set_light_before_alarm
 
+  set_kettle_on_workday: !input set_kettle_on_workday
+  set_light_on_workday: !input set_light_on_workday
+  set_kettle_on_saturday: !input set_kettle_on_saturday
+  set_light_on_saturday: !input set_light_on_saturday
+  set_kettle_on_sunday: !input set_kettle_on_sunday
+  set_light_on_sunday: !input set_light_on_sunday
+  set_kettle_on_once: !input set_kettle_on_once
+  set_light_on_once: !input set_light_on_once
+
+  set_temperature_boil: !input set_temperature_boil
+  set_temperature_heat: !input set_temperature_heat
+
+
 variables:
   invalid_states:
     - ''                    
@@ -292,7 +326,6 @@ variables:
     - 'null'         
 
   chosen_alarm_workday_enabled: "{{ set_alarm_workday_enabled.active_choice }}"
-
 
   chosen_alarm_workday: "{{ set_alarm_workday.active_choice }}"
   chosen_alarm_saturday: "{{ set_alarm_saturday.active_choice }}"
@@ -310,31 +343,36 @@ variables:
   kettle_before_alarm: "{{ set_kettle_before_alarm.время if chosen_kettle_before_alarm == 'время' else states(set_kettle_before_alarm.сенсор) }}"
   light_before_alarm: "{{ set_light_before_alarm.время if chosen_light_before_alarm == 'время' else states(set_light_before_alarm.сенсор) }}"
 
+    #   {% set awd = states('input_boolean.alarm_1_workday') %} 
+    #   {% set aonce = states('input_boolean.alarm_1_once') %} 
+    #   {% set asa = states('input_boolean.alarm_1_saturday') %} 
+    #   {% set asu = states('input_boolean.alarm_1_sunday') %} 
+    #   {% set ktwd = (((state_attr('input_datetime.alarm_clock_1_workday', 'timestamp')) -
+    #     (states('input_number.kettle_until_alarm') | int*60)) | timestamp_custom('%H:%M', false)) %} 
+    #   {% set ktonce = (((state_attr('input_datetime.alarm_clock_1_once', 'timestamp')) - 
+    #     (states('input_number.kettle_until_alarm') | int*60)) | timestamp_custom('%H:%M', false)) %} 
+    #   {% set ktsa = (((state_attr('input_datetime.alarm_clock_1_saturday', 'timestamp')) -
+    #     (states('input_number.kettle_until_alarm') | int*60)) | timestamp_custom('%H:%M', false)) %} 
+    #   {% set ktsu = (((state_attr('input_datetime.alarm_clock_1_sunday', 'timestamp')) -
+    #     (states('input_number.kettle_until_alarm') | int*60)) | timestamp_custom('%H:%M', false)) %}
+    #   {% set sa = (now().weekday() == 5) %} 
+    #   {% set su = (now().weekday() == 6) %} 
+    #   {% set ke = states('input_boolean.kettle_on_1') %} 
+    #   {% set wd = states('binary_sensor.workday_sensor') %}
+
+    #   {{ (awd == 'on' and states('sensor.time') == ktwd and ke == 'on' and wd =='on')  
+    #     or (asa == 'on' and states('sensor.time') == ktsa and ke == 'on' and sa == true)
+    #     or (asu == 'on' and states('sensor.time') == ktsu and ke == 'on' and su == true)  
+    #     or (aonce == 'on' and states('sensor.time') ==  ktonce and ke == 'on') }}
+    # id: kettle
+
 triggers:
   - trigger: template
     value_template: >-
-      {% set awd = states('input_boolean.alarm_1_workday') %} 
-      {% set aonce = states('input_boolean.alarm_1_once') %} 
-      {% set asa = states('input_boolean.alarm_1_saturday') %} 
-      {% set asu = states('input_boolean.alarm_1_sunday') %} 
       {% set ktwd = (((state_attr('input_datetime.alarm_clock_1_workday', 'timestamp')) -
         (states('input_number.kettle_until_alarm') | int*60)) | timestamp_custom('%H:%M', false)) %} 
-      {% set ktonce = (((state_attr('input_datetime.alarm_clock_1_once', 'timestamp')) - 
-        (states('input_number.kettle_until_alarm') | int*60)) | timestamp_custom('%H:%M', false)) %} 
-      {% set ktsa = (((state_attr('input_datetime.alarm_clock_1_saturday', 'timestamp')) -
-        (states('input_number.kettle_until_alarm') | int*60)) | timestamp_custom('%H:%M', false)) %} 
-      {% set ktsu = (((state_attr('input_datetime.alarm_clock_1_sunday', 'timestamp')) -
-        (states('input_number.kettle_until_alarm') | int*60)) | timestamp_custom('%H:%M', false)) %}
-      {% set sa = (now().weekday() == 5) %} 
-      {% set su = (now().weekday() == 6) %} 
-      {% set ke = states('input_boolean.kettle_on_1') %} 
-      {% set wd = states('binary_sensor.workday_sensor') %}
-
-      {{ (awd == 'on' and states('sensor.time') == ktwd and ke == 'on' and wd =='on')  
-        or (asa == 'on' and states('sensor.time') == ktsa and ke == 'on' and sa == true)
-        or (asu == 'on' and states('sensor.time') == ktsu and ke == 'on' and su == true)  
-        or (aonce == 'on' and states('sensor.time') ==  ktonce and ke == 'on') }}
-    id: kettle
+      {{ states('sensor.time') == ktwd }}
+    id: kettle_workday
 
   - trigger: template
     value_template: >-
@@ -380,15 +418,22 @@ actions:
       - conditions: # Чайник на кипячение
           - condition: trigger
             id:
-              - kettle
+              - kettle_workday
+
           - condition: template
-            value_template: "{{ state_attr(kettle_switch,'current_temperature') | int < states('input_number.kettle_temp_boil') | int }}"
+            value_template: "{{ state_attr(kettle_switch,'current_temperature') | int < set_temperature_boil | int }}"
+
+          - condition: template
+            value_template: |
+              {{ now().weekday() < 5 }}
+
         sequence:
           - target:
               entity_id: !input kettle_switch
             data:
-              temperature: "{{ states('input_number.kettle_temp_heat') | int }}"
+              temperature: "{{ set_temperature_heat | int }}"
             action: water_heater.set_temperature
+
           - target:
               entity_id: !input kettle_switch
             data:
