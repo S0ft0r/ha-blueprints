@@ -91,7 +91,7 @@ actions:
       - conditions:
           - condition: template
             value_template: >-
-              {{ (states(humidity_sensor) | float) >= max_humidity | float) }}
+              {{ states(humidity_sensor) | float >= max_humidity | float }}
           - condition: state
             entity_id: !input fan_switch
             state:
@@ -104,7 +104,7 @@ actions:
       - conditions:
           - condition: template
             value_template: >-
-              {{ (states(humidity_sensor) | float) <= min_humidity | float }}
+              {{ states(humidity_sensor) | float <= min_humidity | float }}
           - condition: state
             entity_id: !input fan_switch
             state:
