@@ -153,8 +153,8 @@ blueprint:
         set_alarm_sunday:
           name: Время включения будильника в будни
           description: Время включения будильника в будни
-          selector:
           default:
+          selector:
             choose:
               choices:
                 'время':
