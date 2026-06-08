@@ -256,17 +256,17 @@ variables:
   watervalve_count: "{{ expand(watervalve_switch) | map(attribute='entity_id') | list | count }}"
 
   on_time_morning_in_seconds: |
-    {{ set_time_work_morning.split(':')[0]|int*3600 + set_time_work_morning.split(':')[1]|int*60 + set_time_work_morning.split(':')[2]|int %} }}
+    {{ set_time_work_morning.split(':')[0] | int * 3600 + set_time_work_morning.split(':')[1] | int * 60 + set_time_work_morning.split(':')[2] | int }}
 
   on_time_evening_in_seconds: |
-    {{ set_time_work_evening.split(':')[0]|int*3600 + set_time_work_evening.split(':')[1]|int*60 + set_time_work_evening.split(':')[2]|int %} }}
+    {{ set_time_work_evening.split(':')[0] | int * 3600 + set_time_work_evening.split(':')[1] | int * 60 + set_time_work_evening.split(':')[2] | int }}
+
+  auto_off_pump_time_in_seconds: |
+    {{ set_auto_off_pump_time.split(':')[0] | int * 3600 + set_auto_off_pump_time.split(':')[1] | int * 60 + set_auto_off_pump_time.split(':')[2] | int }}
 
   auto_off_pump_time: |  # На будущее - рассчитывать время отключения исходя из количества направлений!
-    {{ set valve_const = set_auto_off_pump_time }}
-    {% set valve_sec = tt.split(':')[0]|int*3600+tt.split(':')[1]|int*60+tt.split(':')[2]|int %}
-    {% set of = today_at("00:00:00") + timedelta(seconds=(sec*cnt)+1) %}
-    {{ as_timestamp(of) | timestamp_custom("%H:%M:%S") }}
-
+    {% set max_seconds = max((on_time_morning_in_seconds * watervalve_count + 60), (on_time_evening_in_seconds * watervalve_count + 60), auto_off_pump_time_in_seconds) %}
+    {{ '%02d:%02d:%02d' | format(max_seconds// 3600, (max_seconds % 3600) // 60, max_seconds % 60) }}
 
   watervalve_switch_on: "{{ 'valve.open_valve' if watervalve_switch.split('.')[0] == 'valve' else 'switch.turn_on' }}"
   watervalve_switch_off: "{{ 'valve.close_valve' if watervalve_switch.split('.')[0] == 'valve' else 'switch.turn_off' }}"
