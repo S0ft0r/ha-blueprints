@@ -154,6 +154,7 @@ blueprint:
           name: Время включения будильника в будни
           description: Время включения будильника в будни
           selector:
+          default:
             choose:
               choices:
                 'время':
@@ -283,12 +284,6 @@ trigger_variables:
   kettle_switch: !input kettle_switch
   light_switch: !input light_switch
   person_sensor: !input person_sensor
-
-  # options_workday: !input options_workday
-  # options_saturday: !input options_saturday
-  # options_sun: !input options_sun
-  # options_once: !input options_once
-  # options_extra: !input options_extra
 
   set_alarm_workday_enabled: !input set_alarm_workday_enabled
   set_alarm_saturday_enabled: !input set_alarm_saturday_enabled
