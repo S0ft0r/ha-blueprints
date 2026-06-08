@@ -120,7 +120,7 @@ variables:
   chosen_fan_wc_on_duration: "{{ set_fan_wc_on_duration.active_choice }}"
   chosen_fan_wc_delay: "{{ set_fan_wc_delay.active_choice }}"
 
-  pet_mode: "{{ set_pet_mode.выбор if chosen_pet_mode == 'выбор' else states(set_pet_mode.сенсор) }}"
+  pet_mode: "{{ set_pet_mode.выбор if chosen_pet_mode == 'выбор' else (states(set_pet_mode.сенсор) == 'on') }}"
   fan_wc_on_duration: "{{ set_fan_wc_on_duration.время if chosen_pet_mode == 'время' else ((states(set_fan_wc_on_duration.сенсор) | float * 60) | timestamp_custom('%H:%M:%S',0)) }}"
   fan_wc_delay: "{{ set_fan_wc_delay.время if chosen_pet_mode == 'время' else ((states(set_fan_wc_delay.сенсор) | float * 60) | timestamp_custom('%H:%M:%S',0)) }}"
 
