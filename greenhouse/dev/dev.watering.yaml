@@ -253,7 +253,8 @@ variables:
   selected_days_evening: |
     {{ now().strftime('%a') | lower in set_select_days_evening }}
 
-  watervalve_count: "{{ expand(watervalve_switch) | map(attribute='entity_id') | list | count }}"
+  watervalve_entities: "{{ expand(watervalve_switch) | map(attribute='entity_id') | list }}"
+  watervalve_count: "{{ watervalve_entities | count }}"
 
   on_time_morning_in_seconds: |
     {{ set_time_work_morning.split(':')[0] | int * 3600 + set_time_work_morning.split(':')[1] | int * 60 + set_time_work_morning.split(':')[2] | int }}
@@ -349,6 +350,15 @@ actions:
               entity_id: !input waterpump_switch
             data: {}
             action: "{{ waterpump_switch_on }}"
+
+          - repeat:
+              for_each: "{{ watervalve_entities }}"
+              sequence:
+                - action: "{{ watervalve_switch_on }}" #  Выключение клапана потока
+                  target:
+                    entity_id: "{{ repeat.item }}"
+                - delay:
+                    seconds: 1
 
       - conditions:
           - condition: trigger
