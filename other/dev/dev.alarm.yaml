@@ -84,7 +84,7 @@ blueprint:
           default: false
           selector:
             boolean:
-            
+
         set_light_on_workday:
           name: Включать ночник
           default: false
@@ -231,12 +231,12 @@ blueprint:
 
         set_kettle_on_once:
           name: Включать чайник
-          deafault: false
+          default: false
           selector:
             boolean:
         set_light_on_once:
           name: Включать ночник
-          deafault: false
+          default: false
           selector:
             boolean:
 
