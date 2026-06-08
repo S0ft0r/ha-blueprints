@@ -136,6 +136,7 @@ blueprint:
       input:
         set_alarm_sunday_enabled:
           name: Включение будильника в будни
+          default:
           selector:
             choose:
               choices:
@@ -182,6 +183,7 @@ blueprint:
       input:
         set_alarm_once_enabled:
           name: Включение будильника в будни
+          default:
           selector:
             choose:
               choices:
@@ -199,6 +201,7 @@ blueprint:
         set_alarm_once:
           name: Время включения будильника в будни
           description: Время включения будильника в будни
+          default:
           selector:
             choose:
               choices:
@@ -228,6 +231,7 @@ blueprint:
         set_kettle_before_alarm:
           name: Время включения будильника в будни
           description: Время включения будильника в будни
+          default:
           selector:
             choose:
               choices:
@@ -245,6 +249,7 @@ blueprint:
         set_light_before_alarm:
           name: Время включения будильника в будни
           description: Время включения будильника в будни
+          default:
           selector:
             choose:
               choices:
@@ -262,6 +267,7 @@ blueprint:
         set_temperature_boil:
           name: Температура кипячения
           description: Температура, ниже которой включается режим кипячения
+          default: 1
           selector:
             number:
               min: 1
@@ -272,6 +278,7 @@ blueprint:
 
         set_temperature_heat:
           name: Температура подогрева
+          default: 1
           selector:
             number:
               min: 1
