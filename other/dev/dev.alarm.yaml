@@ -435,7 +435,6 @@ triggers:
     value_template: >-
       {{ now().weekday() < 5 and as_timestamp(now()) | timestamp_custom("%H:%M") == (as_timestamp(today_at(alarm_workday)) - as_timestamp(today_at(light_before_alarm))) | timestamp_custom('%H:%M', false) }}
     id: light_workday
-#    enabled: "{{ light_on_workday_enabled }}"
 
   - trigger: template
     value_template: >-
@@ -489,11 +488,11 @@ triggers:
   #     {{ aonce == 'on' and states('sensor.time') == tonce }}
   #   id: once
 
-conditions:
-  - condition: state
-    entity_id: !input person_sensor
-    state:
-      - home
+# conditions:
+#   - condition: state
+#     entity_id: !input person_sensor
+#     state:
+#       - home
 
 actions:
   - choose:
@@ -537,9 +536,19 @@ actions:
             action: water_heater.set_operation_mode
 
       - conditions: # Ночник
-          - condition: trigger
-            id:
-              - light_workday
+          - condition: or
+            conditions:
+              - condition: trigger
+                id:
+                  - light_workday
+              - condition: trigger
+                id:
+                  - light_saturday
+              - condition: trigger
+                id:
+                  - light_sunday
+          - condition: template
+            value_template: "{{ light_on_workday_enabled }}"
 
         sequence:
           - repeat:
