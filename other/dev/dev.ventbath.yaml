@@ -31,7 +31,7 @@ blueprint:
                 - humidity
     set_min_humidity:
       name: Минимальная влажность для выключения вентилятора
-      default: 
+      default: 55
       selector:
         number:
           min: 1
@@ -41,6 +41,7 @@ blueprint:
           unit_of_measurement: "%"
     set_min_humidity_sensor:
       name: Сенсор минимальной влажности для выключения вентилятора
+      default: []
       selector:
         entity:
           filter:
@@ -49,7 +50,7 @@ blueprint:
           multiple: false
     set_max_humidity:
       name: Максимальная влажность для включения вентилятора
-      default:
+      default: 65
       selector:
         number:
           min: 1
@@ -59,6 +60,7 @@ blueprint:
           unit_of_measurement: "%"
     set_max_humidity_sensor:
       name: Сенсор максимальной влажности для включения вентилятора
+      default: []
       selector:
         entity:
           filter:
