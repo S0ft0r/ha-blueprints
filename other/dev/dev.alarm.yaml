@@ -73,19 +73,19 @@ blueprint:
           name: Время включения будильника
           description: ""
           default:
+            selector:
+              time: {}
+
+        set_alarm_workday_sensor:
+          name: Сенсор времени включения будильника
+          description: ""
+          default: []
           selector:
-            choose:
-              choices:
-                'время':
-                  selector:
-                    time: {}
-                'сенсор':
-                  selector:
-                    entity:
-                      filter:
-                        - domain: 
-                            - input_datetime
-                      multiple: false
+            entity:
+              filter:
+                - domain: 
+                    - input_datetime
+              multiple: false
 
         set_kettle_on_workday:
           name: Включать чайник
@@ -124,18 +124,19 @@ blueprint:
           description: ""
           default:
           selector:
-            choose:
-              choices:
-                'время':
-                  selector:
-                    time: {}
-                'сенсор':
-                  selector:
-                    entity:
-                      filter:
-                        - domain: 
-                            - input_datetime
-                      multiple: false
+            selector:
+              time: {}
+
+        set_alarm_saturday_sensor:
+          name: Сенсор времени включения будильника
+          description: ""
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain: 
+                    - input_datetime
+              multiple: false
 
         set_kettle_on_saturday:
           name: Включать чайник
@@ -174,18 +175,18 @@ blueprint:
           description: ""
           default:
           selector:
-            choose:
-              choices:
-                'время':
-                  selector:
-                    time: {}
-                'сенсор':
-                  selector:
-                    entity:
-                      filter:
-                        - domain: 
-                            - input_datetime
-                      multiple: false
+            time: {}
+
+        set_alarm_sunday_sensor:
+          name: Сенсор времени включения будильника
+          description: ""
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain: 
+                    - input_datetime
+              multiple: false
 
         set_kettle_on_sunday:
           name: Включать чайник
@@ -252,40 +253,40 @@ blueprint:
       name: Дополнительные настройки
       input:
         set_kettle_before_alarm:
-          name: Включать чайник до будильника на 
+          name: Включать чайник до будильника за 
           description: ""
           default:
           selector:
-            choose:
-              choices:
-                'время':
-                  selector:
-                    time: {}
-                'сенсор':
-                  selector:
-                    entity:
-                      filter:
-                        - domain: 
-                            - input_datetime
-                      multiple: false
+            time: {}
+
+        set_kettle_before_alarm_sensor:
+          name: Сенсор включения чайника до будильника за 
+          description: ""
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain: 
+                    - input_datetime
+              multiple: false
 
         set_light_before_alarm:
-          name: Включать ночник до будильника на
+          name: Включать ночник до будильника за
           description: ""
           default:
           selector:
-            choose:
-              choices:
-                'время':
-                  selector:
-                    time: {}
-                'сенсор':
-                  selector:
-                    entity:
-                      filter:
-                        - domain: 
-                            - input_datetime
-                      multiple: false
+            time: {}
+
+        set_light_before_alarm_sensor:
+          name: Сенсор включения ночника до будильника за
+          description: ""
+          default:
+            selector:
+              entity:
+                filter:
+                  - domain: 
+                      - input_datetime
+                multiple: false
 
         set_temperature_boil:
           name: Температура кипячения
@@ -321,12 +322,17 @@ trigger_variables:
   # set_alarm_once_enabled: !input set_alarm_once_enabled
 
   set_alarm_workday: !input set_alarm_workday
+  set_alarm_workday_sensor: !input set_alarm_workday_sensor
   set_alarm_saturday: !input set_alarm_saturday
+  set_alarm_saturday_sensor: !input set_alarm_saturday_sensor
   set_alarm_sunday: !input set_alarm_sunday
+  set_alarm_sunday_sensor: !input set_alarm_sunday_sensor
 #  set_alarm_once: !input set_alarm_once
 
   set_kettle_before_alarm: !input set_kettle_before_alarm
+  set_kettle_before_alarm_sensor: !input set_kettle_before_alarm_sensor
   set_light_before_alarm: !input set_light_before_alarm
+  set_light_before_alarm_sensor: !input set_light_before_alarm_sensor
 
   set_kettle_on_workday: !input set_kettle_on_workday
   set_light_on_workday: !input set_light_on_workday
@@ -349,8 +355,6 @@ trigger_variables:
   light_on_sunday_enabled: "{{ set_light_on_sunday }}"
   # light_on_once_enabled: "{{ set_light_on_once }}"
 
-
-variables:
   invalid_states:
     - ''                    
     - 'unavailable'         
@@ -359,24 +363,18 @@ variables:
     - 'None'                
     - 'null'         
 
+variables:
+
 #  chosen_alarm_workday_enabled: "{{ set_alarm_workday_enabled.active_choice }}"
 
-  chosen_alarm_workday: "{{ set_alarm_workday.active_choice }}"
-  chosen_alarm_saturday: "{{ set_alarm_saturday.active_choice }}"
-  chosen_alarm_sunday: "{{ set_alarm_sunday.active_choice }}"
-  # chosen_alarm_once: "{{ set_alarm_once.active_choice }}"
+  # alarm_workday: "{{ set_alarm_workday if set_alarm_workday_sensor == [] else (set_alarm_workday if states(set_alarm_workday_sensor) if invalid_states else states(set_alarm_workday_sensor)) }}"
+  # alarm_saturday: "{{ set_alarm_saturday if set_alarm_saturday_sensor == [] else (set_alarm_saturday if states(set_alarm_saturday_sensor) if invalid_states else states(set_alarm_saturday_sensor)) }}"
+  # alarm_sunday: "{{ set_alarm_sunday if set_alarm_sunday_sensor == [] else (set_alarm_sunday if states(set_alarm_sunday_sensor) if invalid_states else states(set_alarm_sunday_sensor)) }}"
+  # # alarm_once: "{{ set_alarm_once.время if chosen_alarm_once == 'время' else states(set_alarm_once.сенсор) }}"
 
-  chosen_kettle_before_alarm: "{{ set_kettle_before_alarm.active_choice }}"
-  chosen_light_before_alarm: "{{ set_light_before_alarm.active_choice }}"
+  # kettle_before_alarm: "{{ set_kettle_before_alarm if set_kettle_before_alarm_sensor == [] else (set_kettle_before_alarm if states(set_kettle_before_alarm_sensor) if invalid_states else states(set_kettle_before_alarm_sensor)) }}"
 
-  alarm_workday: "{{ set_alarm_workday.время if chosen_alarm_workday == 'время' else states(set_alarm_workday.сенсор) }}"
-  alarm_saturday: "{{ set_alarm_saturday.время if chosen_alarm_saturday == 'время' else states(set_alarm_saturday.сенсор) }}"
-  alarm_sunday: "{{ set_alarm_sunday.время if chosen_alarm_sunday == 'время' else states(set_alarm_sunday.сенсор) }}"
-  # alarm_once: "{{ set_alarm_once.время if chosen_alarm_once == 'время' else states(set_alarm_once.сенсор) }}"
-
-  kettle_before_alarm: "{{ set_kettle_before_alarm.время if chosen_kettle_before_alarm == 'время' else states(set_kettle_before_alarm.сенсор) }}"
-  light_before_alarm: "{{ set_light_before_alarm.время if chosen_light_before_alarm == 'время' else states(set_light_before_alarm.сенсор) }}"
-
+  light_before_alarm: "{{ set_light_before_alarm if set_light_before_alarm_sensor == [] else (set_light_before_alarm if states(set_light_before_alarm_sensor) if invalid_states else states(set_light_before_alarm_sensor)) }}"
   light_before_alarm_in_seconds: |
     {{ light_before_alarm.split(':')[0] | int * 3600 + light_before_alarm.split(':')[1] | int * 60 + light_before_alarm.split(':')[2] | int }}
   light_delay: "{{ (light_before_alarm_in_seconds | int / 254) | round(0) }}"  
@@ -432,15 +430,12 @@ triggers:
     # enabled: "{{ kettle_on_once_enabled }}"
 
   - trigger: template
-    value_template: >-
-      {% set alarm_workday = "18:59:00" %}
-      {% set light_before_alarm = "00:01:00" %}
-      {{ as_timestamp(now()) | timestamp_custom("%H:%M") == (as_timestamp(today_at(alarm_workday)) - as_timestamp(today_at(light_before_alarm))) | timestamp_custom('%H:%M', false) }}
     id: light_workday
+    value_template: >-
+      {% set alarm_workday = set_alarm_workday if set_alarm_workday_sensor == [] else (set_alarm_workday if states(set_alarm_workday_sensor) if invalid_states else states(set_alarm_workday_sensor)) %}
+      {% set light_before_alarm = set_light_before_alarm if set_light_before_alarm_sensor == [] else (set_light_before_alarm if states(set_light_before_alarm_sensor) if invalid_states else states(set_light_before_alarm_sensor)) %}
+      {{ as_timestamp(now()) | timestamp_custom("%H:%M") == (as_timestamp(today_at(alarm_workday)) - as_timestamp(today_at(light_before_alarm))) | timestamp_custom('%H:%M', false) }}
 #    enabled: "{{ now().weekday() < 5 }}"
-      # {% set alarm_workday = set_alarm_workday.время if set_alarm_workday.active_choice == 'время' else states(set_alarm_workday.сенсор) %}
-      # {% set light_before_alarm = set_light_before_alarm.время if set_light_before_alarm.active_choice == 'время' else states(set_light_before_alarm.сенсор) %}
-      # {{ as_timestamp(now()) | timestamp_custom("%H:%M") == (as_timestamp(today_at(alarm_workday)) - as_timestamp(today_at(light_before_alarm))) | timestamp_custom('%H:%M', false) }}
 
   # - trigger: template
   #   value_template: >-
