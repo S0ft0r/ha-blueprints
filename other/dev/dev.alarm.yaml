@@ -518,9 +518,9 @@ actions:
             data:
               operation_mode: |
                 {% if state_attr(kettle_switch,'current_temperature') | int < set_temperature_boil | int %}
-                  {{ boil_heat }}
+                  boil_heat
                 {% elif {{ state_attr(kettle_switch,'current_temperature') | int > set_temperature_boil | int %}
-                  {{ heat }}
+                  heat
                 {% endif %} 
             action: water_heater.set_operation_mode
 
