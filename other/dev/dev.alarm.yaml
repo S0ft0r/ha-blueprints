@@ -373,10 +373,10 @@ variables:
 
   # kettle_before_alarm: "{{ set_kettle_before_alarm if set_kettle_before_alarm_sensor == [] else (set_kettle_before_alarm if states(set_kettle_before_alarm_sensor) if invalid_states else states(set_kettle_before_alarm_sensor)) }}"
 
-  light_before_alarm: "{{ set_light_before_alarm if set_light_before_alarm_sensor == [] else (set_light_before_alarm if states(set_light_before_alarm_sensor) if invalid_states else states(set_light_before_alarm_sensor)) }}"
-  light_before_alarm_in_seconds: |
-    {{ light_before_alarm.split(':')[0] | int * 3600 + light_before_alarm.split(':')[1] | int * 60 + light_before_alarm.split(':')[2] | int }}
-  light_delay: "{{ (light_before_alarm_in_seconds | int / 254) | round(0) }}"  
+  # light_before_alarm: "{{ set_light_before_alarm if set_light_before_alarm_sensor == [] else (set_light_before_alarm if states(set_light_before_alarm_sensor) if invalid_states else states(set_light_before_alarm_sensor)) }}"
+  # light_before_alarm_in_seconds: |
+  #   {{ light_before_alarm.split(':')[0] | int * 3600 + light_before_alarm.split(':')[1] | int * 60 + light_before_alarm.split(':')[2] | int }}
+  # light_delay: "{{ (light_before_alarm_in_seconds | int / 254) | round(0) }}"  
 
     #   {% set awd = states('input_boolean.alarm_1_workday') %} 
     #   {% set aonce = states('input_boolean.alarm_1_once') %} 
