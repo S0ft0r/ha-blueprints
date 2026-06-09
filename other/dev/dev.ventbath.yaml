@@ -86,8 +86,8 @@ variables:
     - 'None'                
     - 'null'         
 
-  min_humidity: "{{ set_min_humidity if (set_min_humidity_sensor == [] and states(set_min_humidity_sensor) not in invalid_states) else states(set_min_humidity_sensor) }}"
-  max_humidity: "{{ set_max_humidity if (set_max_humidity_sensor == [] and states(set_max_humidity_sensor) not in invalid_states) else states(set_max_humidity_sensor) }}"
+  min_humidity: "{{ set_min_humidity if set_min_humidity_sensor == [] else (set_min_humidity if states(set_min_humidity_sensor) if invalid_states else states(set_min_humidity_sensor)) }}"
+  max_humidity: "{{ set_max_humidity if set_max_humidity_sensor == [] else (set_max_humidity if states(set_max_humidity_sensor) if invalid_states else states(set_max_humidity_sensor)) }}"
 
 triggers:
   - entity_id: !input humidity_sensor
