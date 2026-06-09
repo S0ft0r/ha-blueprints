@@ -433,7 +433,7 @@ triggers:
 
   - trigger: template
     value_template: >-
-      {% set alarm_workday = set_alarm_workday.время if set_kettle_before_alarm.active_choice == 'время' else states(set_alarm_workday.сенсор) %}
+      {% set alarm_workday = set_alarm_workday.время if set_alarm_workday.active_choice == 'время' else states(set_alarm_workday.сенсор) %}
       {% set light_before_alarm = set_light_before_alarm.время if set_light_before_alarm.active_choice == 'время' else states(set_light_before_alarm.сенсор) %}
       {{ as_timestamp(now()) | timestamp_custom("%H:%M") == (as_timestamp(today_at(alarm_workday)) - as_timestamp(today_at(light_before_alarm))) | timestamp_custom('%H:%M', false) }}
     id: light_workday
