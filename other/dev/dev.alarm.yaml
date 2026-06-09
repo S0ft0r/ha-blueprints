@@ -362,7 +362,7 @@ trigger_variables:
     - 'None'                
     - 'null'         
 
-variables:
+# variables:
 
 #  chosen_alarm_workday_enabled: "{{ set_alarm_workday_enabled.active_choice }}"
 
