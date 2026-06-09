@@ -346,7 +346,7 @@ trigger_variables:
   # kettle_on_once_enabled: "{{ set_kettle_on_once }}"
   light_on_workday_enabled: "{{ set_light_on_workday }}"
   light_on_saturday_enabled: "{{ set_light_on_saturday }}"
-  light_on_sunday_enabled: "{{ set_light_on_sunsay }}"
+  light_on_sunday_enabled: "{{ set_light_on_sunday }}"
   # light_on_once_enabled: "{{ set_light_on_once }}"
 
 
