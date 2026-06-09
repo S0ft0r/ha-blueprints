@@ -433,8 +433,8 @@ triggers:
 
   - trigger: template
     value_template: >-
-      {% set alarm_workday = "17:15:00" %}
-      {% set light_before_alarm = "00:10:00" %}
+      {% set alarm_workday = "18:59:00" %}
+      {% set light_before_alarm = "00:01:00" %}
       {{ as_timestamp(now()) | timestamp_custom("%H:%M") == (as_timestamp(today_at(alarm_workday)) - as_timestamp(today_at(light_before_alarm))) | timestamp_custom('%H:%M', false) }}
     id: light_workday
 #    enabled: "{{ now().weekday() < 5 }}"
@@ -557,17 +557,19 @@ actions:
           #   value_template: "{{ light_on_workday_enabled }}"
 
         sequence:
-          - repeat:
-              count: 254
-              sequence:
-                - data:
-                    brightness: "{{ 254 / (254-1) * (repeat.index-1) + 1 }}"
-                    color_temp_kelvin: 2000
-                  action: light.turn_on
-                  target:
-                    entity_id: !input light_switch
-                - delay: 
-                    seconds: "{{ light_delay }}"
+          - delay:
+              seconds: 1
+          # - repeat:
+          #     count: 254
+          #     sequence:
+          #       - data:
+          #           brightness: "{{ 254 / (254-1) * (repeat.index-1) + 1 }}"
+          #           color_temp_kelvin: 2000
+          #         action: light.turn_on
+          #         target:
+          #           entity_id: !input light_switch
+          #       - delay: 
+          #           seconds: "{{ light_delay }}"
 
 mode: single
 #max: 5
