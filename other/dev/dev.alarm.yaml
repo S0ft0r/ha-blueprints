@@ -433,7 +433,7 @@ triggers:
 
   - trigger: template
     value_template: >-
-      {% set alarm_workday = "17:15:00") %}
+      {% set alarm_workday = "17:15:00" %}
       {% set light_before_alarm = "00:10:00" %}
       {{ as_timestamp(now()) | timestamp_custom("%H:%M") == (as_timestamp(today_at(alarm_workday)) - as_timestamp(today_at(light_before_alarm))) | timestamp_custom('%H:%M', false) }}
     id: light_workday
