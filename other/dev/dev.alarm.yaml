@@ -73,8 +73,8 @@ blueprint:
           name: Время включения будильника
           description: ""
           default:
-            selector:
-              time: {}
+          selector:
+            time: {}
 
         set_alarm_workday_sensor:
           name: Сенсор времени включения будильника
@@ -124,8 +124,7 @@ blueprint:
           description: ""
           default:
           selector:
-            selector:
-              time: {}
+            time: {}
 
         set_alarm_saturday_sensor:
           name: Сенсор времени включения будильника
@@ -281,12 +280,12 @@ blueprint:
           name: Сенсор включения ночника до будильника за
           description: ""
           default:
-            selector:
-              entity:
-                filter:
-                  - domain: 
-                      - input_datetime
-                multiple: false
+          selector:
+            entity:
+              filter:
+                - domain: 
+                    - input_datetime
+              multiple: false
 
         set_temperature_boil:
           name: Температура кипячения
