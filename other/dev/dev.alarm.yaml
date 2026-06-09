@@ -383,7 +383,8 @@ variables:
   # light_before_alarm: "{{ set_light_before_alarm if set_light_before_alarm_sensor == [] else (set_light_before_alarm if states(set_light_before_alarm_sensor) if invalid_states else states(set_light_before_alarm_sensor)) }}"
   light_before_alarm_in_seconds: |
     {{ set_light_before_alarm.split(':')[0] | int * 3600 + set_light_before_alarm.split(':')[1] | int * 60 + set_light_before_alarm.split(':')[2] | int }}
-  light_delay: "{{ (light_before_alarm_in_seconds | int / 254) | round(0) }}"  
+  light_delay_seconds: "{{ ((light_before_alarm_in_seconds | int / 254) | round(3) | string).split('.')[0] | int }}"  
+  light_delay_milliseconds: "{{ ((light_before_alarm_in_seconds | int / 254) | round(3) | string).split('.')[1] | int }}"  
 
     #   {% set awd = states('input_boolean.alarm_1_workday') %} 
     #   {% set aonce = states('input_boolean.alarm_1_once') %} 
@@ -569,7 +570,8 @@ actions:
                   target:
                     entity_id: !input light_switch
                 - delay: 
-                    seconds: "{{ light_delay }}"
+                    seconds: "{{ light_delay_seconds }}"
+                    milliseconds: "{{ light_delay_milliseconds }}"
 
 mode: single
 #max: 5
