@@ -406,23 +406,23 @@ variables:
 
 
 triggers:
-  - trigger: template
-    value_template: >-
-      {{ now().weekday() < 5 and as_timestamp(now()) | timestamp_custom("%H:%M") == (as_timestamp(today_at(alarm_workday)) - as_timestamp(today_at(kettle_before_alarm))) | timestamp_custom('%H:%M', false) }}
-    id: kettle_workday
-    enabled: "{{ kettle_on_workday_enabled }}"
+  # - trigger: template
+  #   value_template: >-
+  #     {{ now().weekday() < 5 and as_timestamp(now()) | timestamp_custom("%H:%M") == (as_timestamp(today_at(alarm_workday)) - as_timestamp(today_at(kettle_before_alarm))) | timestamp_custom('%H:%M', false) }}
+  #   id: kettle_workday
+  #   enabled: "{{ kettle_on_workday_enabled }}"
 
-  - trigger: template
-    value_template: >-
-      {{ now().weekday() == 5 and as_timestamp(now()) | timestamp_custom("%H:%M") == (as_timestamp(today_at(alarm_saturday)) - as_timestamp(today_at(kettle_before_alarm))) | timestamp_custom('%H:%M', false) }}
-    id: kettle_saturday
-    enabled: "{{ kettle_on_saturday_enabled }}"
+  # - trigger: template
+  #   value_template: >-
+  #     {{ now().weekday() == 5 and as_timestamp(now()) | timestamp_custom("%H:%M") == (as_timestamp(today_at(alarm_saturday)) - as_timestamp(today_at(kettle_before_alarm))) | timestamp_custom('%H:%M', false) }}
+  #   id: kettle_saturday
+  #   enabled: "{{ kettle_on_saturday_enabled }}"
 
-  - trigger: template
-    value_template: >-
-      {{ now().weekday() == 6 and as_timestamp(now()) | timestamp_custom("%H:%M") == (as_timestamp(today_at(alarm_sunday)) - as_timestamp(today_at(kettle_before_alarm))) | timestamp_custom('%H:%M', false) }}
-    id: kettle_sunday
-    enabled: "{{ kettle_on_sunday_enabled }}"
+  # - trigger: template
+  #   value_template: >-
+  #     {{ now().weekday() == 6 and as_timestamp(now()) | timestamp_custom("%H:%M") == (as_timestamp(today_at(alarm_sunday)) - as_timestamp(today_at(kettle_before_alarm))) | timestamp_custom('%H:%M', false) }}
+  #   id: kettle_sunday
+  #   enabled: "{{ kettle_on_sunday_enabled }}"
 
   # - trigger: template
     # value_template: >-
@@ -437,19 +437,19 @@ triggers:
       {% set light_before_alarm = set_light_before_alarm.время if set_light_before_alarm.active_choice == 'время' else states(set_light_before_alarm.сенсор) %}
       {{ as_timestamp(now()) | timestamp_custom("%H:%M") == (as_timestamp(today_at(alarm_workday)) - as_timestamp(today_at(light_before_alarm))) | timestamp_custom('%H:%M', false) }}
     id: light_workday
-    enabled: "{{ now().weekday() < 5 }}"
+#    enabled: "{{ now().weekday() < 5 }}"
 
-  - trigger: template
-    value_template: >-
-      {{ now().weekday() == 5 and as_timestamp(now()) | timestamp_custom("%H:%M") == (as_timestamp(today_at(alarm_saturday)) - as_timestamp(today_at(light_before_alarm))) | timestamp_custom('%H:%M', false) }}
-    id: light_saturday
-    enabled: "{{ light_on_saturday_enabled }}"
+  # - trigger: template
+  #   value_template: >-
+  #     {{ now().weekday() == 5 and as_timestamp(now()) | timestamp_custom("%H:%M") == (as_timestamp(today_at(alarm_saturday)) - as_timestamp(today_at(light_before_alarm))) | timestamp_custom('%H:%M', false) }}
+  #   id: light_saturday
+  #   enabled: "{{ light_on_saturday_enabled }}"
 
-  - trigger: template
-    value_template: >-
-      {{ now().weekday() == 6 and as_timestamp(now()) | timestamp_custom("%H:%M") == (as_timestamp(today_at(alarm_sunday)) - as_timestamp(today_at(light_before_alarm))) | timestamp_custom('%H:%M', false) }}
-    id: light_sunday
-    enabled: "{{ light_on_sunday_enabled }}"
+  # - trigger: template
+  #   value_template: >-
+  #     {{ now().weekday() == 6 and as_timestamp(now()) | timestamp_custom("%H:%M") == (as_timestamp(today_at(alarm_sunday)) - as_timestamp(today_at(light_before_alarm))) | timestamp_custom('%H:%M', false) }}
+  #   id: light_sunday
+  #   enabled: "{{ light_on_sunday_enabled }}"
 
   # - trigger: template
   #   value_template: >-
@@ -499,44 +499,44 @@ triggers:
 
 actions:
   - choose:
-      - conditions: # Чайник на кипячение
-          - condition: trigger
-            id:
-              - kettle_workday
-          - condition: template
-            value_template: "{{ state_attr(kettle_switch,'current_temperature') | int < set_temperature_boil | int }}"
+      # - conditions: # Чайник на кипячение
+      #     - condition: trigger
+      #       id:
+      #         - kettle_workday
+      #     - condition: template
+      #       value_template: "{{ state_attr(kettle_switch,'current_temperature') | int < set_temperature_boil | int }}"
 
-        sequence:
-          - target:
-              entity_id: !input kettle_switch
-            data:
-              temperature: "{{ set_temperature_heat | int }}"
-            action: water_heater.set_temperature
+      #   sequence:
+      #     - target:
+      #         entity_id: !input kettle_switch
+      #       data:
+      #         temperature: "{{ set_temperature_heat | int }}"
+      #       action: water_heater.set_temperature
 
-          - target:
-              entity_id: !input kettle_switch
-            data:
-              operation_mode: boil_heat
-            action: water_heater.set_operation_mode
+      #     - target:
+      #         entity_id: !input kettle_switch
+      #       data:
+      #         operation_mode: boil_heat
+      #       action: water_heater.set_operation_mode
 
-      - conditions: # Чайник на подогрев
-          - condition: trigger
-            id:
-              - kettle_workday
-          - condition: template
-            value_template: "{{ state_attr(kettle_switch,'current_temperature') | int > set_temperature_boil | int }}"
+      # - conditions: # Чайник на подогрев
+      #     - condition: trigger
+      #       id:
+      #         - kettle_workday
+      #     - condition: template
+      #       value_template: "{{ state_attr(kettle_switch,'current_temperature') | int > set_temperature_boil | int }}"
 
-        sequence:
-          - target:
-              entity_id: !input kettle_switch
-            data:
-              temperature: "{{ set_temperature_heat | int }}"
-            action: water_heater.set_temperature
-          - target:
-              entity_id: !input kettle_switch
-            data:
-              operation_mode: heat
-            action: water_heater.set_operation_mode
+      #   sequence:
+      #     - target:
+      #         entity_id: !input kettle_switch
+      #       data:
+      #         temperature: "{{ set_temperature_heat | int }}"
+      #       action: water_heater.set_temperature
+      #     - target:
+      #         entity_id: !input kettle_switch
+      #       data:
+      #         operation_mode: heat
+      #       action: water_heater.set_operation_mode
 
       - conditions: # Ночник
           # - condition: or
@@ -566,8 +566,8 @@ actions:
                 - delay: 
                     seconds: "{{ light_delay }}"
 
-mode: queued
-max: 5
+mode: single
+#max: 5
 
   # - if:
   #     - condition: trigger
