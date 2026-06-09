@@ -547,8 +547,8 @@ actions:
               - condition: trigger
                 id:
                   - light_sunday
-          - condition: template
-            value_template: "{{ light_on_workday_enabled }}"
+          # - condition: template
+          #   value_template: "{{ light_on_workday_enabled }}"
 
         sequence:
           - repeat:
