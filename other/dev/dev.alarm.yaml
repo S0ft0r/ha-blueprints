@@ -410,7 +410,6 @@ variables:
     #     or (aonce == 'on' and states('sensor.time') ==  ktonce and ke == 'on') }}
     # id: kettle
 
-
 triggers:
   # - trigger: template
   #   value_template: >-
@@ -460,8 +459,6 @@ triggers:
       {% set light_before_alarm = set_light_before_alarm %}
       {{ as_timestamp(now()) | timestamp_custom("%H:%M") == (as_timestamp(today_at(alarm_sunday)) - as_timestamp(today_at(light_before_alarm))) | timestamp_custom('%H:%M', false) }}
     enabled: "{{ now().weekday() == 6 }}"
-
-
 
       # {% set alarm_workday = set_alarm_workday if set_alarm_workday_sensor == [] else (set_alarm_workday if states(set_alarm_workday_sensor) if invalid_states else states(set_alarm_workday_sensor)) %}
       # {% set light_before_alarm = set_light_before_alarm if set_light_before_alarm_sensor == [] else (set_light_before_alarm if states(set_light_before_alarm_sensor) if invalid_states else states(set_light_before_alarm_sensor)) %}
@@ -613,19 +610,19 @@ actions:
           - condition: template
             value_template: "{{ light_on_sunday_enabled }}"
 
-        sequence:
-          - repeat:
-              count: 254
-              sequence:
-                - data:
-                    brightness: "{{ 254 / (254-1) * (repeat.index-1) + 1 }}"
-                    color_temp_kelvin: 2000
-                  action: light.turn_on
-                  target:
-                    entity_id: !input light_switch
-                - delay: 
-                    seconds: "{{ light_delay_seconds }}"
-                    milliseconds: "{{ light_delay_milliseconds }}"
+        sequence: *ref_light
+          # - repeat:
+          #     count: 254
+          #     sequence:
+          #       - data:
+          #           brightness: "{{ 254 / (254-1) * (repeat.index-1) + 1 }}"
+          #           color_temp_kelvin: 2000
+          #         action: light.turn_on
+          #         target:
+          #           entity_id: !input light_switch
+          #       - delay: 
+          #           seconds: "{{ light_delay_seconds }}"
+          #           milliseconds: "{{ light_delay_milliseconds }}"
 
 mode: single
 #max: 5
