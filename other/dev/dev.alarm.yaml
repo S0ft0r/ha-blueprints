@@ -424,7 +424,7 @@ triggers:
     id: kettle_sunday
     enabled: "{{ kettle_on_sunday_enabled }}"
 
-  - trigger: template
+  # - trigger: template
     # value_template: >-
     #   {% set kettle_on = (as_timestamp(today_at(alarm_once)) - as_timestamp(today_at(kettle_before_alarm))) | timestamp_custom('%H:%M', false) %} 
     #   {{ states('sensor.time') == kettle_on }}
