@@ -498,17 +498,9 @@ conditions:
 actions:
   - choose:
       - conditions: # Чайник на кипячение
-          - condition: or
-            conditions:
-              - condition: trigger
-                id:
-                  - kettle_workday
-              - condition: trigger
-                id:
-                  - kettle_saturday
-              - condition: trigger
-                id:
-                  - kettle_sunday
+          - condition: trigger
+            id:
+              - kettle_workday
           - condition: template
             value_template: "{{ state_attr(kettle_switch,'current_temperature') | int < set_temperature_boil | int }}"
 
@@ -526,17 +518,9 @@ actions:
             action: water_heater.set_operation_mode
 
       - conditions: # Чайник на подогрев
-          - condition: or
-            conditions:
-              - condition: trigger
-                id:
-                  - kettle_workday
-              - condition: trigger
-                id:
-                  - kettle_saturday
-              - condition: trigger
-                id:
-                  - kettle_sunday
+          - condition: trigger
+            id:
+              - kettle_workday
           - condition: template
             value_template: "{{ state_attr(kettle_switch,'current_temperature') | int > set_temperature_boil | int }}"
 
@@ -553,20 +537,9 @@ actions:
             action: water_heater.set_operation_mode
 
       - conditions: # Ночник
-          - condition: or
-            conditions:
-              - condition: trigger
-                id:
-                  - light_workday
-              - condition: trigger
-                id:
-                  - light_saturday
-              - condition: trigger
-                id:
-                  - light_sunday
-
-          # - condition: template
-          #   value_template: "{{ states(light_switch) not in invalid_states }}"
+          - condition: trigger
+            id:
+              - light_workday
 
         sequence:
           - repeat:
