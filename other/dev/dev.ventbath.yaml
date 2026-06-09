@@ -31,56 +31,61 @@ blueprint:
                 - humidity
     set_min_humidity:
       name: Минимальная влажность для выключения вентилятора
+      default: 
       selector:
-        choose:
-          choices:
-            'процент':
-              selector:
-                number:
-                  min: 1
-                  max: 100
-                  step: 1
-                  mode: box
-                  unit_of_measurement: "%"
-            'сенсор':
-              selector:
-                entity:
-                  filter:
-                    - domain: 
-                        - input_number
-                  multiple: false
+        number:
+          min: 1
+          max: 100
+          step: 1
+          mode: box
+          unit_of_measurement: "%"
+    set_min_humidity_sensor:
+      name: Сенсор минимальной влажности для выключения вентилятора
+      selector:
+        entity:
+          filter:
+            - domain: 
+                - input_number
+          multiple: false
     set_max_humidity:
       name: Максимальная влажность для включения вентилятора
+      default:
       selector:
-        choose:
-          choices:
-            'процент':
-              selector:
-                number:
-                  min: 1
-                  max: 100
-                  step: 1
-                  mode: box
-                  unit_of_measurement: "%"
-            'сенсор':
-              selector:
-                entity:
-                  filter:
-                    - domain: 
-                        - input_number
-                  multiple: false
-
+        number:
+          min: 1
+          max: 100
+          step: 1
+          mode: box
+          unit_of_measurement: "%"
+    set_max_humidity_sensor:
+      name: Сенсор максимальной влажности для включения вентилятора
+      selector:
+        entity:
+          filter:
+            - domain: 
+                - input_number
+          multiple: false
 
 trigger_variables:
   fan_switch: !input fan_switch
   humidity_sensor: !input humidity_sensor  
 
-variables:
-  chosen_min_humidity: "{{ set_min_humidity.active_choice }}"
-  chosen_max_humidity: "{{ set_max_humidity.active_choice }}"
+  set_min_humidity: !input set_min_humidity
+  set_min_humidity_sensor: !input set_min_humidity_sensor
+  set_max_humidity: !input set_max_humidity
+  set_max_humidity_sensor: !input set_max_humidity_sensor
 
-  min_humidity: "{{ set_min_humidity.процент if chosen_min_humidity == 'процент' else states(set_min_humidity.сенсор) }}"
-  max_humidity: "{{ set_max_humidity.процент if chosen_max_humidity == 'процент' else states(set_max_humidity.сенсор) }}"
+variables:
+  invalid_states:
+    - ''                    
+    - 'unavailable'         
+    - 'unknown'             
+    - 'none'                
+    - 'None'                
+    - 'null'         
+
+  min_humidity: "{{ set_min_humidity if (set_min_humidity_sensor == [] and states(set_min_humidity_sensor) not in invalid_states) else states(set_min_humidity_sensor) }}"
+  max_humidity: "{{ set_max_humidity if (set_max_humidity_sensor == [] and states(set_max_humidity_sensor) not in invalid_states) else states(set_max_humidity_sensor) }}"
 
 triggers:
   - entity_id: !input humidity_sensor
