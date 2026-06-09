@@ -431,7 +431,9 @@ triggers:
   - trigger: template
     id: light_workday
     value_template: >-
-      {{ as_timestamp(now()) | timestamp_custom("%H:%M") == (as_timestamp(today_at(set_alarm_workday)) - as_timestamp(today_at(set_light_before_alarm))) | timestamp_custom('%H:%M', false) }}
+      {% set alarm_workday = set_alarm_workday %}
+      {% set light_before_alarm = set_light_before_alarm %}
+      {{ as_timestamp(now()) | timestamp_custom("%H:%M") == (as_timestamp(today_at(alarm_workday)) - as_timestamp(today_at(light_before_alarm))) | timestamp_custom('%H:%M', false) }}
     enabled: "{{ now().weekday() < 5 }}"
       # {% set alarm_workday = set_alarm_workday if set_alarm_workday_sensor == [] else (set_alarm_workday if states(set_alarm_workday_sensor) if invalid_states else states(set_alarm_workday_sensor)) %}
       # {% set light_before_alarm = set_light_before_alarm if set_light_before_alarm_sensor == [] else (set_light_before_alarm if states(set_light_before_alarm_sensor) if invalid_states else states(set_light_before_alarm_sensor)) %}
