@@ -246,8 +246,8 @@ variables:
 
   commands_music: |
     {{ (set_command_music | regex_replace('\\s+', ' ', true) | replace('; ', ';')).split(';') | list }}
-  commands_music_count: "{{ command_music | count }}"
-  command_music: "{{ set_command_base ~ ' ' ~ commands_music[random(0, commands_music_count)] }}"
+  commands_music_count: "{{ commands_music | count }}"
+  command_music: "{{ set_command_base ~ ' ' ~ commands_music[range(0, commands_music_count)|random] }}"
 
 triggers:
   - trigger: template
