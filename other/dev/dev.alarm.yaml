@@ -55,6 +55,7 @@ blueprint:
               mode: list
 
         alarm_on_options:
+          name: Настройки включения устройств 
           selector:
             select:
               options:
@@ -159,11 +160,26 @@ blueprint:
           selector:
             text: 
 
+        set_command_base:
+          name: Фраза-обращение к колонке.
+          default: "Алиса, включи"
+          selector:
+            text:
+
         set_command_music:
           name: Текстовая фраза для включения музыки
-          default: "Алиса, включи пение птиц"
+          description: |
+            Фраза будет добавлена после обращения*
+            Можно использовать несколько фраз, перечисленных через точку с запятой. 
+          default: "пение птиц; шум моря"
           selector:
             text: 
+        
+        set_random_command:
+          name: Случайный выбор фраз
+          default: true
+          selector:
+            boolean:
 
         set_music_before_alarm:
           name: Включать музыку до будильника за
@@ -214,6 +230,9 @@ trigger_variables:
   phrase_enabled: "{{ 'on_phrase' in alarm_on_options }}"
   music_enabled: "{{ 'on_music' in alarm_on_options }}"
 
+  set_command_base: !input set_command_base
+  set_command_music: !input set_command_music
+
   invalid_states:
     - ''                    
     - 'unavailable'         
@@ -227,6 +246,11 @@ variables:
     {{ set_light_before_alarm.split(':')[0] | int * 3600 + set_light_before_alarm.split(':')[1] | int * 60 + set_light_before_alarm.split(':')[2] | int }}
   light_delay_seconds: "{{ ((light_before_alarm_in_seconds | int / 254) | round(3) | string).split('.')[0] | int }}"  
   light_delay_milliseconds: "{{ ((light_before_alarm_in_seconds | int / 254) | round(3) | string).split('.')[1] | int }}"  
+
+  commands_music: |
+    {{ (set_command_music | regex_replace('\\s+', ' ', true) | replace('; ', ';')).split(';') | list }}
+  commands_music_count: "{{ command_music | count }}"
+  command_music: "{{ set_command_base ~ ' ' ~ commands_music[random(0, commands_music_count)] }}"
 
 triggers:
   - trigger: template
@@ -319,7 +343,7 @@ actions:
           - service: media_player.play_media
             entity_id: !input media_player
             data:
-              media_content_id: !input set_command_music
+              media_content_id: "{{ set_command_music }}"
               media_content_type: command
               extra:
                 volume_level: 0.3
