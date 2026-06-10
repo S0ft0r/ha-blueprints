@@ -221,7 +221,6 @@ triggers:
     id: light_on
     value_template: >-
       {{ as_timestamp(now()) | timestamp_custom("%H:%M") == (as_timestamp(today_at(time_alarm)) - as_timestamp(today_at(set_light_before_alarm))) | timestamp_custom('%H:%M', false) }}
-    id: light_workday
     enabled: "{{ light_enabled and now().strftime('%a') | lower in alarm_on_days }}"
 
 conditions:
