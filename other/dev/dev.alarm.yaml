@@ -62,10 +62,10 @@ blueprint:
                   value: on_kettle
                 - label: Включение ночника
                   value: on_light
-                - label: Проговаривание фразы
-                  value: on_phrase
-                - label: Включение музыки
-                  value: on_music
+                # - label: Проговаривание фразы
+                #   value: on_phrase
+                # - label: Включение музыки
+                #   value: on_music
               sort: false
               multiple: true
               custom_value: false
@@ -137,53 +137,53 @@ blueprint:
           selector:
             time: {}
 
-    media_section:
-      name: Настройка медиаплейера
-      description: Алиса
-      input:
-        media_player:
-          name: Медиаплейер
-          default: []
-          selector:
-            entity:
-              filter:
-                - domain:
-                    - media_player
-              multiple: false
+    # media_section:
+    #   name: Настройка медиаплейера
+    #   description: Алиса
+    #   input:
+    #     media_player:
+    #       name: Медиаплейер
+    #       default: []
+    #       selector:
+    #         entity:
+    #           filter:
+    #             - domain:
+    #                 - media_player
+    #           multiple: false
 
-        set_phrase:
-          name: Фраза 
-          default: "Вставай, соня. Пора творить!"
-          selector:
-            text: 
+    #     set_phrase:
+    #       name: Фраза 
+    #       default: "Вставай, соня. Пора творить!"
+    #       selector:
+    #         text: 
 
-        set_command_base:
-          name: Фраза-обращение к колонке.
-          default: "Алиса, включи"
-          selector:
-            text:
+    #     set_command_base:
+    #       name: Фраза-обращение к колонке.
+    #       default: "Алиса, включи"
+    #       selector:
+    #         text:
 
-        set_command_music:
-          name: Текстовая фраза для включения музыки
-          description: |
-            Фраза будет добавлена после обращения*
-            Можно использовать несколько фраз, перечисленных через точку с запятой. 
-          default: "пение птиц; шум моря"
-          selector:
-            text: 
+    #     set_command_music:
+    #       name: Текстовая фраза для включения музыки
+    #       description: |
+    #         Фраза будет добавлена после обращения*
+    #         Можно использовать несколько фраз, перечисленных через точку с запятой. 
+    #       default: "пение птиц; шум моря"
+    #       selector:
+    #         text: 
         
-        set_random_command:
-          name: Случайный выбор фраз
-          default: true
-          selector:
-            boolean:
+    #     set_random_command:
+    #       name: Случайный выбор фраз
+    #       default: true
+    #       selector:
+    #         boolean:
 
-        set_music_before_alarm:
-          name: Включать музыку до будильника за
-          description: ""
-          default: "00:00:00"
-          selector:
-            time: {}
+    #     set_music_before_alarm:
+    #       name: Включать музыку до будильника за
+    #       description: ""
+    #       default: "00:00:00"
+    #       selector:
+    #         time: {}
 
     person_section:
       name: Настройка персоны
@@ -209,14 +209,14 @@ trigger_variables:
   kettle_switch: !input kettle_switch
   light_switch: !input light_switch
   person_sensor: !input person_sensor
-  media_player: !input media_player
+  # media_player: !input media_player
 
   alarm_on_days: !input alarm_on_days
   alarm_on_options: !input alarm_on_options
 
   set_kettle_before_alarm: !input set_kettle_before_alarm
   set_light_before_alarm: !input set_light_before_alarm
-  set_music_before_alarm: !input set_music_before_alarm
+  # set_music_before_alarm: !input set_music_before_alarm
 
   set_temperature_boil: !input set_temperature_boil
   set_temperature_heat: !input set_temperature_heat
@@ -224,11 +224,11 @@ trigger_variables:
   person_home_enabled: "{{ person_home }}"
   kettle_enabled: "{{ 'on_kettle' in alarm_on_options }}"
   light_enabled: "{{ 'on_light' in alarm_on_options }}"
-  phrase_enabled: "{{ 'on_phrase' in alarm_on_options }}"
-  music_enabled: "{{ 'on_music' in alarm_on_options }}"
+  # phrase_enabled: "{{ 'on_phrase' in alarm_on_options }}"
+  # music_enabled: "{{ 'on_music' in alarm_on_options }}"
 
-  set_command_base: !input set_command_base
-  set_command_music: !input set_command_music
+  # set_command_base: !input set_command_base
+  # set_command_music: !input set_command_music
 
   invalid_states:
     - ''                    
@@ -266,20 +266,20 @@ triggers:
       {{ as_timestamp(now()) | timestamp_custom("%H:%M") == (as_timestamp(today_at(time_alarm)) - as_timestamp(today_at(before_alarm))) | timestamp_custom('%H:%M', false) }}
     enabled: "{{ light_enabled }}"
 
-  - trigger: template
-    id: music_on
-    value_template: >-
-      {% set time_alarm = set_time_alarm %}
-      {% set before_alarm = set_music_before_alarm %}
-      {{ as_timestamp(now()) | timestamp_custom("%H:%M") == (as_timestamp(today_at(time_alarm)) - as_timestamp(today_at(before_alarm))) | timestamp_custom('%H:%M', false) }}
-    enabled: "{{ music_enabled }}"
+  # - trigger: template
+  #   id: music_on
+  #   value_template: >-
+  #     {% set time_alarm = set_time_alarm %}
+  #     {% set before_alarm = set_music_before_alarm %}
+  #     {{ as_timestamp(now()) | timestamp_custom("%H:%M") == (as_timestamp(today_at(time_alarm)) - as_timestamp(today_at(before_alarm))) | timestamp_custom('%H:%M', false) }}
+  #   enabled: "{{ music_enabled }}"
 
-  - trigger: template
-    id: phase_on
-    value_template: >-
-      {% set time_alarm = set_time_alarm %}
-      {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(time_alarm)) | timestamp_custom('%H:%M', false) }}
-    enabled: "{{ phrase_enabled }}"
+  # - trigger: template
+  #   id: phase_on
+  #   value_template: >-
+  #     {% set time_alarm = set_time_alarm %}
+  #     {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(time_alarm)) | timestamp_custom('%H:%M', false) }}
+  #   enabled: "{{ phrase_enabled }}"
 
 conditions:
   - condition: template
@@ -345,21 +345,21 @@ actions:
       #         extra:
       #           volume_level: 0.3
         
-      - conditions: # Музыка
-          - condition: trigger
-            id:
-              - phrase_on
-          - condition: template
-            value_template: |
-              {{ now().strftime('%a') | lower in alarm_on_days }}
-        sequence: 
-          - service: media_player.play_media
-            entity_id: !input media_player
-            data:
-              media_content_id: !input set_phrase
-              media_content_type: text  
-              extra:
-                volume_level: 0.8
+      # - conditions: # Музыка
+      #     - condition: trigger
+      #       id:
+      #         - phrase_on
+      #     - condition: template
+      #       value_template: |
+      #         {{ now().strftime('%a') | lower in alarm_on_days }}
+      #   sequence: 
+      #     - service: media_player.play_media
+      #       entity_id: !input media_player
+      #       data:
+      #         media_content_id: !input set_phrase
+      #         media_content_type: text  
+      #         extra:
+      #           volume_level: 0.8
 
 mode: parallel
 max: 5
