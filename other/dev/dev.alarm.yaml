@@ -312,6 +312,7 @@ actions:
           - condition: trigger
             id:
               - music_on
+          - condition: template
             value_template: |
               {{ now().strftime('%a') | lower in alarm_on_days }}
         sequence: 
@@ -327,6 +328,7 @@ actions:
           - condition: trigger
             id:
               - phrase_on
+          - condition: template
             value_template: |
               {{ now().strftime('%a') | lower in alarm_on_days }}
         sequence: 
