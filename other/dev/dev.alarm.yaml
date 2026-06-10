@@ -229,7 +229,7 @@ triggers:
       {% set time_alarm = set_time_alarm %}
       {% set before_alarm = set_kettle_before_alarm %}
       {{ as_timestamp(now()) | timestamp_custom("%H:%M") == (as_timestamp(today_at(time_alarm)) - as_timestamp(today_at(before_alarm))) | timestamp_custom('%H:%M', false) }}
-    enabled: "{{ kettle_enabled and now().strftime('%a') | lower in alarm_on_days }}"
+    enabled: "{{ kettle_enabled }}"
 
   - trigger: template
     id: light_on
@@ -237,7 +237,7 @@ triggers:
       {% set time_alarm = set_time_alarm %}
       {% set before_alarm = set_light_before_alarm %}
       {{ as_timestamp(now()) | timestamp_custom("%H:%M") == (as_timestamp(today_at(time_alarm)) - as_timestamp(today_at(before_alarm))) | timestamp_custom('%H:%M', false) }}
-    enabled: "{{ light_enabled and now().strftime('%a') | lower in alarm_on_days }}"
+    enabled: "{{ light_enabled }}"
 
   - trigger: template
     id: music_on
@@ -245,14 +245,14 @@ triggers:
       {% set time_alarm = set_time_alarm %}
       {% set before_alarm = set_music_before_alarm %}
       {{ as_timestamp(now()) | timestamp_custom("%H:%M") == (as_timestamp(today_at(time_alarm)) - as_timestamp(today_at(before_alarm))) | timestamp_custom('%H:%M', false) }}
-    enabled: "{{ music_enabled and now().strftime('%a') | lower in alarm_on_days }}"
+    enabled: "{{ music_enabled }}"
 
   - trigger: template
     id: phase_on
     value_template: >-
       {% set time_alarm = set_time_alarm %}
       {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(time_alarm)) | timestamp_custom('%H:%M', false) }}
-    enabled: "{{ music_enabled and now().strftime('%a') | lower in alarm_on_days }}"
+    enabled: "{{ music_enabled }}"
 
 conditions:
   - condition: template
@@ -265,6 +265,8 @@ actions:
           - condition: trigger
             id:
               - kettle_on
+            value_template: |
+              {{ now().strftime('%a') | lower in alarm_on_days }}
         sequence: 
           - target:
               entity_id: !input kettle_switch
@@ -282,6 +284,9 @@ actions:
           - condition: trigger
             id:
               - light_on
+          - condition: template
+            value_template: |
+              {{ now().strftime('%a') | lower in alarm_on_days }}
         sequence: 
           - repeat:
               count: 254
@@ -296,28 +301,32 @@ actions:
                     seconds: "{{ light_delay_seconds }}"
                     milliseconds: "{{ light_delay_milliseconds }}"
 
-      - conditions: # Музыка
-          - condition: trigger
-            id:
-              - music_on
-        sequence: 
-          - service: yandex_station.send_command
-            target:
-              entity_id: !input media_player
-            data:
-              text: !input set_command_music
+      # - conditions: # Музыка
+      #     - condition: trigger
+      #       id:
+      #         - music_on
+      #       value_template: |
+      #         {{ now().strftime('%a') | lower in alarm_on_days }}
+      #   sequence: 
+      #     - service: yandex_station.send_command
+      #       target:
+      #         entity_id: !input media_player
+      #       data:
+      #         text: !input set_command_music
 
-      - conditions: # Музыка
-          - condition: trigger
-            id:
-              - phrase_on
-        sequence: 
-          - service: tts.speak
-            target:
-              entity_id: tts.yandex_station
-            data:
-              media_player_entity_id: !input media_player
-              message: !input set_phrase
+      # - conditions: # Музыка
+      #     - condition: trigger
+      #       id:
+      #         - phrase_on
+      #       value_template: |
+      #         {{ now().strftime('%a') | lower in alarm_on_days }}
+      #   sequence: 
+      #     - service: tts.speak
+      #       target:
+      #         entity_id: tts.yandex_station
+      #       data:
+      #         media_player_entity_id: !input media_player
+      #         message: !input set_phrase
 
 mode: parallel
 max: 5
