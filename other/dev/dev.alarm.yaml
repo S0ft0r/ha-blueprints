@@ -244,10 +244,10 @@ variables:
   light_delay_seconds: "{{ ((light_before_alarm_in_seconds | int / 254) | round(3) | string).split('.')[0] | int }}"  
   light_delay_milliseconds: "{{ ((light_before_alarm_in_seconds | int / 254) | round(3) | string).split('.')[1] | int }}"  
 
-  commands_music: |
-    {{ (set_command_music | regex_replace('\\s+', ' ', true) | replace('; ', ';')).split(';') | list }}
-  commands_music_count: "{{ commands_music | count }}"
-  command_music: "{{ set_command_base ~ ' ' ~ commands_music[range(0, commands_music_count)|random] }}"
+  # commands_music: |
+  #   {{ (set_command_music | regex_replace('\\s+', ' ', true) | replace('; ', ';')).split(';') | list }}
+  # commands_music_count: "{{ commands_music | count }}"
+  # command_music: "{{ set_command_base ~ ' ' ~ commands_music[range(0, commands_music_count)|random] }}"
 
 triggers:
   - trigger: template
@@ -329,21 +329,21 @@ actions:
                     seconds: "{{ light_delay_seconds }}"
                     milliseconds: "{{ light_delay_milliseconds }}"
 
-      - conditions: # Музыка
-          - condition: trigger
-            id:
-              - music_on
-          - condition: template
-            value_template: |
-              {{ now().strftime('%a') | lower in alarm_on_days }}
-        sequence: 
-          - service: media_player.play_media
-            entity_id: !input media_player
-            data:
-              media_content_id: "{{ set_command_music }}"
-              media_content_type: command
-              extra:
-                volume_level: 0.3
+      # - conditions: # Музыка
+      #     - condition: trigger
+      #       id:
+      #         - music_on
+      #     - condition: template
+      #       value_template: |
+      #         {{ now().strftime('%a') | lower in alarm_on_days }}
+      #   sequence: 
+      #     - service: media_player.play_media
+      #       entity_id: !input media_player
+      #       data:
+      #         media_content_id: "{{ command_music }}"
+      #         media_content_type: command
+      #         extra:
+      #           volume_level: 0.3
         
       - conditions: # Музыка
           - condition: trigger
