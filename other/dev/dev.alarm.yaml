@@ -68,6 +68,10 @@ blueprint:
                   value: on_phrase
                 - label: Включение музыки
                   value: on_music
+              sort: false
+              multiple: true
+              custom_value: false
+              mode: list
 
     kettle_section:
       name: Настройка чайника
@@ -135,19 +139,6 @@ blueprint:
           selector:
             time: {}
 
-    person_section:
-      name: Настройка персоны
-      input:
-        person_sensor:
-          name: Персона
-          default: []
-          selector:
-            entity:
-              filter:
-                - domain:
-                    - person
-              multiple: false
-
     media_section:
       name: Настройка медиаплейера
       description: Алиса
@@ -174,6 +165,26 @@ blueprint:
           selector:
             text: 
 
+        set_music_before_alarm:
+          name: Включать музыку до будильника за
+          description: ""
+          default: "00:00:00"
+          selector:
+            time: {}
+
+    person_section:
+      name: Настройка персоны
+      input:
+        person_sensor:
+          name: Персона
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - person
+              multiple: false
+
 trigger_variables:
   time_alarm: !input time_alarm
   kettle_switch: !input kettle_switch
@@ -186,6 +197,7 @@ trigger_variables:
 
   set_kettle_before_alarm: !input set_kettle_before_alarm
   set_light_before_alarm: !input set_light_before_alarm
+  set_music_before_alarm: !input set_music_before_alarm
 
   set_temperature_boil: !input set_temperature_boil
   set_temperature_heat: !input set_temperature_heat
@@ -223,6 +235,18 @@ triggers:
       {{ as_timestamp(now()) | timestamp_custom("%H:%M") == (as_timestamp(today_at(time_alarm)) - as_timestamp(today_at(set_light_before_alarm))) | timestamp_custom('%H:%M', false) }}
     enabled: "{{ light_enabled and now().strftime('%a') | lower in alarm_on_days }}"
 
+  - trigger: template
+    id: music_on
+    value_template: >-
+      {{ as_timestamp(now()) | timestamp_custom("%H:%M") == (as_timestamp(today_at(time_alarm)) - as_timestamp(today_at(set_music_before_alarm))) | timestamp_custom('%H:%M', false) }}
+    enabled: "{{ music_enabled and now().strftime('%a') | lower in alarm_on_days }}"
+
+  - trigger: template
+    id: phase_on
+    value_template: >-
+      {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(time_alarm)) | timestamp_custom('%H:%M', false) }}
+    enabled: "{{ music_enabled and now().strftime('%a') | lower in alarm_on_days }}"
+
 conditions:
   - condition: template
     value_template: |
@@ -234,26 +258,23 @@ actions:
           - condition: trigger
             id:
               - kettle_on
-
         sequence: 
           - target:
               entity_id: !input kettle_switch
             data:
               temperature: "{{ set_temperature_heat | int }}"
             action: water_heater.set_temperature
-
           - target:
               entity_id: !input kettle_switch
             data:
               operation_mode: |
-                {{ 'boil_heat' if (state_attr('water_heater.skykettle_rk_m216s','current_temperature') | int < 45 | int) else 'heat' }}
+                {{ 'boil_heat' if (state_attr(kettle_switch,'current_temperature') | int < 45 | int) else 'heat' }}
             action: water_heater.set_operation_mode
 
       - conditions: # Ночник
           - condition: trigger
             id:
               - light_on
-
         sequence: 
           - repeat:
               count: 254
@@ -268,8 +289,31 @@ actions:
                     seconds: "{{ light_delay_seconds }}"
                     milliseconds: "{{ light_delay_milliseconds }}"
 
-mode: single
-#max: 5
+      - conditions: # Музыка
+          - condition: trigger
+            id:
+              - music_on
+        sequence: 
+          - service: yandex_station.send_command
+            target:
+              entity_id: !input media_player
+            data:
+              text: !input set_command_music
+
+      - conditions: # Музыка
+          - condition: trigger
+            id:
+              - phrase_on
+        sequence: 
+          - service: tts.speak
+            target:
+              entity_id: tts.yandex_station
+            data:
+              media_player_entity_id: !input media_player
+              message: !input set_phrase
+
+mode: parallel
+max: 5
 
   # - if:
   #     - condition: trigger
