@@ -252,7 +252,7 @@ actions:
       - conditions: # Ночник
           - condition: trigger
             id:
-              - light_workday
+              - light_on
 
         sequence: 
           - repeat:
