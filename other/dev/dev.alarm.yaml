@@ -58,8 +58,8 @@ blueprint:
           selector:
             select:
               options:
-                - label: Учитывать присутствие персоны в доме
-                  value: on_person
+                # - label: Учитывать присутствие персоны в доме
+                #   value: on_person
                 - label: Включение чайника
                   value: on_kettle
                 - label: Включение ночника
@@ -175,6 +175,12 @@ blueprint:
     person_section:
       name: Настройка персоны
       input:
+        person_home:
+          name: Учитывать положение персоны
+          default: false
+          selector:
+            boolean:
+
         person_sensor:
           name: Персона
           default: []
@@ -202,7 +208,7 @@ trigger_variables:
   set_temperature_boil: !input set_temperature_boil
   set_temperature_heat: !input set_temperature_heat
 
-  person_home_enabled: "{{ 'on_person' in alarm_on_options }}"
+  person_home_enabled: "{{ person_home }}"
   kettle_enabled: "{{ 'on_kettle' in alarm_on_options }}"
   light_enabled: "{{ 'on_light' in alarm_on_options }}"
   phrase_enabled: "{{ 'on_phrase' in alarm_on_options }}"
@@ -302,32 +308,35 @@ actions:
                     seconds: "{{ light_delay_seconds }}"
                     milliseconds: "{{ light_delay_milliseconds }}"
 
-      # - conditions: # Музыка
-      #     - condition: trigger
-      #       id:
-      #         - music_on
-      #       value_template: |
-      #         {{ now().strftime('%a') | lower in alarm_on_days }}
-      #   sequence: 
-      #     - service: yandex_station.send_command
-      #       target:
-      #         entity_id: !input media_player
-      #       data:
-      #         text: !input set_command_music
-
-      # - conditions: # Музыка
-      #     - condition: trigger
-      #       id:
-      #         - phrase_on
-      #       value_template: |
-      #         {{ now().strftime('%a') | lower in alarm_on_days }}
-      #   sequence: 
-      #     - service: tts.speak
-      #       target:
-      #         entity_id: tts.yandex_station
-      #       data:
-      #         media_player_entity_id: !input media_player
-      #         message: !input set_phrase
+      - conditions: # Музыка
+          - condition: trigger
+            id:
+              - music_on
+            value_template: |
+              {{ now().strftime('%a') | lower in alarm_on_days }}
+        sequence: 
+          - service: media_player.play_media
+            entity_id: !input media_player
+            data:
+              media_content_id: !input set_command_music
+              media_content_type: command
+              extra:
+                volume_level: 0.3
+        
+      - conditions: # Музыка
+          - condition: trigger
+            id:
+              - phrase_on
+            value_template: |
+              {{ now().strftime('%a') | lower in alarm_on_days }}
+        sequence: 
+          - service: media_player.play_media
+            entity_id: !input media_player
+            data:
+              media_content_id: !input set_phrase
+              media_content_type: text  
+              extra:
+                volume_level: 0.8
 
 mode: parallel
 max: 5
