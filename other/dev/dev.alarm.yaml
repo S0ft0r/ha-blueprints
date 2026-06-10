@@ -272,14 +272,14 @@ triggers:
       {% set time_alarm = set_time_alarm %}
       {% set before_alarm = set_music_before_alarm %}
       {{ as_timestamp(now()) | timestamp_custom("%H:%M") == (as_timestamp(today_at(time_alarm)) - as_timestamp(today_at(before_alarm))) | timestamp_custom('%H:%M', false) }}
-    enabled: "{{ phrase_enabled }}"
+    enabled: "{{ music_enabled }}"
 
   - trigger: template
     id: phase_on
     value_template: >-
       {% set time_alarm = set_time_alarm %}
       {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(time_alarm)) | timestamp_custom('%H:%M', false) }}
-    enabled: "{{ music_enabled }}"
+    enabled: "{{ phrase_enabled }}"
 
 conditions:
   - condition: template
