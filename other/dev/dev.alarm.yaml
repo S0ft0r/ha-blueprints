@@ -135,7 +135,7 @@ blueprint:
           selector:
             time: {}
 
-    light_section:
+    person_section:
       name: Настройка персоны
       input:
         person_sensor:
