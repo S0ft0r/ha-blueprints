@@ -265,6 +265,7 @@ actions:
           - condition: trigger
             id:
               - kettle_on
+          - condition: template
             value_template: |
               {{ now().strftime('%a') | lower in alarm_on_days }}
         sequence: 
