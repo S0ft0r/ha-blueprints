@@ -438,10 +438,22 @@ triggers:
   - trigger: template
     id: light_workday
     value_template: >-
+<<<<<<< HEAD
+      {% set alarm_workday = set_alarm_workday.время %}
+      {% set light_before_alarm = set_light_before_alarm.время %}
+=======
       {% set alarm_workday = set_alarm_workday %}
       {% set light_before_alarm = set_light_before_alarm %}
+>>>>>>> 0c952aab9b6ae53a57d5dbe5da40da5d98d86691
       {{ as_timestamp(now()) | timestamp_custom("%H:%M") == (as_timestamp(today_at(alarm_workday)) - as_timestamp(today_at(light_before_alarm))) | timestamp_custom('%H:%M', false) }}
+<<<<<<< HEAD
+    id: light_workday
+#    enabled: "{{ now().weekday() < 5 }}"
+      # {% set alarm_workday = set_alarm_workday.время if set_alarm_workday.active_choice == 'время' else states(set_alarm_workday.сенсор) %}
+      # {% set light_before_alarm = set_light_before_alarm.время if set_light_before_alarm.active_choice == 'время' else states(set_light_before_alarm.сенсор) %}
+=======
     enabled: "{{ now().weekday() < 5 }}"
+>>>>>>> 0c952aab9b6ae53a57d5dbe5da40da5d98d86691
 
   - trigger: template
     id: light_saturday
