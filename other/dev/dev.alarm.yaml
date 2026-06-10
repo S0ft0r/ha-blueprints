@@ -18,7 +18,7 @@ blueprint:
 
 
   input: 
-    time_alarm:
+    set_time_alarm:
       name: Будильник
       description: Установка будильника
       selector:
@@ -186,7 +186,7 @@ blueprint:
               multiple: false
 
 trigger_variables:
-  time_alarm: !input time_alarm
+  set_time_alarm: !input set_time_alarm
   kettle_switch: !input kettle_switch
   light_switch: !input light_switch
   person_sensor: !input person_sensor
@@ -226,24 +226,31 @@ triggers:
   - trigger: template
     id: kettle_on
     value_template: >-
-      {{ as_timestamp(now()) | timestamp_custom("%H:%M") == (as_timestamp(today_at(time_alarm)) - as_timestamp(today_at(set_kettle_before_alarm))) | timestamp_custom('%H:%M', false) }}
+      {% set time_alarm = set_time_alarm %}
+      {% set before_alarm = set_kettle_before_alarm %}
+      {{ as_timestamp(now()) | timestamp_custom("%H:%M") == (as_timestamp(today_at(time_alarm)) - as_timestamp(today_at(before_alarm))) | timestamp_custom('%H:%M', false) }}
     enabled: "{{ kettle_enabled and now().strftime('%a') | lower in alarm_on_days }}"
 
   - trigger: template
     id: light_on
     value_template: >-
-      {{ as_timestamp(now()) | timestamp_custom("%H:%M") == (as_timestamp(today_at(time_alarm)) - as_timestamp(today_at(set_light_before_alarm))) | timestamp_custom('%H:%M', false) }}
+      {% set time_alarm = set_time_alarm %}
+      {% set before_alarm = set_light_before_alarm %}
+      {{ as_timestamp(now()) | timestamp_custom("%H:%M") == (as_timestamp(today_at(time_alarm)) - as_timestamp(today_at(before_alarm))) | timestamp_custom('%H:%M', false) }}
     enabled: "{{ light_enabled and now().strftime('%a') | lower in alarm_on_days }}"
 
   - trigger: template
     id: music_on
     value_template: >-
-      {{ as_timestamp(now()) | timestamp_custom("%H:%M") == (as_timestamp(today_at(time_alarm)) - as_timestamp(today_at(set_music_before_alarm))) | timestamp_custom('%H:%M', false) }}
+      {% set time_alarm = set_time_alarm %}
+      {% set before_alarm = set_music_before_alarm %}
+      {{ as_timestamp(now()) | timestamp_custom("%H:%M") == (as_timestamp(today_at(time_alarm)) - as_timestamp(today_at(before_alarm))) | timestamp_custom('%H:%M', false) }}
     enabled: "{{ music_enabled and now().strftime('%a') | lower in alarm_on_days }}"
 
   - trigger: template
     id: phase_on
     value_template: >-
+      {% set time_alarm = set_time_alarm %}
       {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(time_alarm)) | timestamp_custom('%H:%M', false) }}
     enabled: "{{ music_enabled and now().strftime('%a') | lower in alarm_on_days }}"
 
