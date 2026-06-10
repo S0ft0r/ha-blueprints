@@ -284,7 +284,7 @@ triggers:
 conditions:
   - condition: template
     value_template: |
-      {{ true if person_home_enabled == false else states(peson_sensor) == 'home' }}
+      {{ true if person_home_enabled == false else states(person_sensor) == 'home' }}
 
 actions:
   - choose:
