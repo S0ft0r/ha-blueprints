@@ -135,6 +135,26 @@ blueprint:
           selector:
             time: {}
 
+        sun_section:
+          name: Настройка включения ночника 
+          input:
+            set_sunset:
+              name: Включать после рассвета?
+              default: false
+              selector:
+                boolean:
+
+            sun_sensor:
+              name: Датчик солнца
+              default: sun.sun
+              selector:
+                entity:
+                  filter:
+                    - domain:
+                        - sun
+                  multiple: true
+          
+
     # media_section:
     #   name: Настройка медиаплейера
     #   description: Алиса
@@ -327,6 +347,7 @@ actions:
                   action: light.turn_on
                   target:
                     entity_id: !input light_switch
+                  continue_on_error: true
                 - delay: 
                     seconds: "{{ light_delay_seconds }}"
                     milliseconds: "{{ light_delay_milliseconds }}"
