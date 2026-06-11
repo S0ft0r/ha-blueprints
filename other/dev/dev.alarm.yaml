@@ -200,7 +200,7 @@ blueprint:
               filter:
                 - domain:
                     - person
-              multiple: false
+              multiple: true
 
 trigger_variables:
   set_time_alarm: !input set_time_alarm
@@ -282,7 +282,11 @@ triggers:
 conditions:
   - condition: template
     value_template: |
-      {{ true if not person_home_enabled else states(person_sensor) == 'home' }}
+      {% set i = namespace(cnt=int(0)) %}
+      {% for person in person_sensor %}
+      {% set i.cnt = i.cnt + (1 if is_state(person,'home') else 0) | int %}
+      {% endfor %}
+      {{ true if not person_home_enabled else i.cnt > 0 }}
 
 actions:
   - choose:
