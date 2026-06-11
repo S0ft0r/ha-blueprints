@@ -84,39 +84,35 @@ blueprint:
                     - water_heater
               multiple: false
         
-        kettle_options_section:
-          name: Настройка включения чайника
-          collapsed: true
-          input:
-            set_kettle_before_alarm:
-              name: Включать чайник до будильника за 
-              description: ""
-              default: "00:10:00"
-              selector:
-                time: {}
+        set_kettle_before_alarm:
+          name: Включать чайник до будильника за 
+          description: ""
+          default: "00:10:00"
+          selector:
+            time: {}
 
-            set_temperature_boil:
-              name: Температура кипячения
-              description: Температура, ниже которой включается режим кипячения
-              default: 40
-              selector:
-                number:
-                  min: 1
-                  max: 100
-                  step: 1
-                  mode: slider
-                  unit_of_measurement: "°C"
+        set_temperature_boil:
+          name: Температура кипячения
+          description: Температура, ниже которой включается режим кипячения
+          default: 40
+          selector:
+            number:
+              min: 1
+              max: 100
+              step: 1
+              mode: slider
+              unit_of_measurement: "°C"
 
-            set_temperature_heat:
-              name: Температура подогрева
-              default: 80
-              selector:
-                number:
-                  min: 1
-                  max: 100
-                  step: 1
-                  mode: slider
-                  unit_of_measurement: "°C"
+        set_temperature_heat:
+          name: Температура подогрева
+          default: 80
+          selector:
+            number:
+              min: 1
+              max: 100
+              step: 1
+              mode: slider
+              unit_of_measurement: "°C"
 
     light_section:
       name: Настройка ночника
@@ -132,32 +128,28 @@ blueprint:
                     - light
               multiple: true
 
-        light_options_section:
-          name: Настройка включения ночника 
-          collapsed: true
-          input:
-            set_light_before_alarm:
-              name: Включать ночник до будильника за
-              description: ""
-              default: "00:00:00"
-              selector:
-                time: {}
+        set_light_before_alarm:
+          name: Включать ночник до будильника за
+          description: ""
+          default: "00:00:00"
+          selector:
+            time: {}
 
-            set_sunset:
-              name: Включать после рассвета?
-              default: false
-              selector:
-                boolean:
+        set_sunset:
+          name: Включать после рассвета?
+          default: false
+          selector:
+            boolean:
 
-            sun_sensor:
-              name: Датчик солнца
-              default: sun.sun
-              selector:
-                entity:
-                  filter:
-                    - domain:
-                        - sun
-                  multiple: true
+        sun_sensor:
+          name: Датчик солнца
+          default: sun.sun
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - sun
+              multiple: true
           
 
     # media_section:
