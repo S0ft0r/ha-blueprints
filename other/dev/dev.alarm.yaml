@@ -358,7 +358,7 @@ actions:
               {{ now().strftime('%a') | lower in alarm_on_days }}
         sequence: 
           - delay:
-            seconds: 1
+              seconds: 1
           # - service: media_player.play_media
           #   entity_id: !input media_player
           #   data:
@@ -376,7 +376,7 @@ actions:
               {{ now().strftime('%a') | lower in alarm_on_days }}
         sequence: 
           - delay:
-            seconds: 1
+              seconds: 1
           # - service: media_player.play_media
           #   entity_id: !input media_player
           #   data:
