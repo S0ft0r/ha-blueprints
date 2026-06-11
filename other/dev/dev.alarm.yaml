@@ -56,8 +56,8 @@ blueprint:
           selector:
             select:
               options:
-                # - label: Учитывать присутствие персоны в доме
-                #   value: on_person
+                - label: Учитывать присутствие персоны в доме
+                  value: on_person
                 - label: Включение чайника
                   value: on_kettle
                 - label: Включение ночника
