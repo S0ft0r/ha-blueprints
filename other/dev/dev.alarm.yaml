@@ -149,7 +149,7 @@ blueprint:
               filter:
                 - domain:
                     - sun
-              multiple: true
+              multiple: false
           
 
     # media_section:
