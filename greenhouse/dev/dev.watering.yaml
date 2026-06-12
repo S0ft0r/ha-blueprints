@@ -336,6 +336,8 @@ actions:
               entity_id: !input waterpump_switch
             data: {}
             action: "{{ waterpump_switch_on }}"
+          - delay:
+              seconds: 1
 
           - repeat:
               for_each: !input watervalve_switch
