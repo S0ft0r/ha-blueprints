@@ -282,12 +282,12 @@ variables:
   watering_switch_toggle: "{{ watering_switch.split('.')[0] ~ '.toggle' }}"
 
 triggers:
-  - trigger: template
-    value_template: >-
-      {% set on_time_morning = set_on_time_morning %}
-      {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(on_time_morning)) | timestamp_custom('%H:%M') }}
-    id: on_morning_trigger
-    enabled: !input pump_morning_enable
+  # - trigger: template
+  #   value_template: >-
+  #     {% set on_time_morning = set_on_time_morning %}
+  #     {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(on_time_morning)) | timestamp_custom('%H:%M') }}
+  #   id: on_morning_trigger
+  #   enabled: !input pump_morning_enable
 
   # - trigger: template
   #   value_template: >-
@@ -306,13 +306,13 @@ triggers:
   #   trigger: state
   #   id: watering_toggle_trigger
 
-  # - trigger: template
-  #   value_template: >-
-  #     {% set on_time_morning = set_on_time_morning %}
-  #     {% set time_waterpump_work = set_time_waterpump_work %}
-  #     {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(on_time_morning) - time_waterpump_work | as_timedelta) | timestamp_custom('%H:%M') }}
-  #   id: time_before_morning_trigger
-  #   enabled: !input pump_morning_enable
+  - trigger: template
+    value_template: >-
+      {% set on_time_morning = set_on_time_morning %}
+      {% set time_waterpump_work = set_time_waterpump_work %}
+      {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(on_time_morning) - time_waterpump_work | as_timedelta) | timestamp_custom('%H:%M') }}
+    id: time_before_morning_trigger
+    enabled: !input pump_morning_enable
 
   # - trigger: template
   #   value_template: >-
