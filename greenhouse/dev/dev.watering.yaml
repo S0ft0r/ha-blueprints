@@ -338,7 +338,7 @@ actions:
             action: "{{ waterpump_switch_on }}"
 
           - repeat:
-              for_each: !input watervalve_entities
+              for_each: !input watervalve_switch
               sequence:
                 - action: "{{ 'valve.open_valve' if  (repeat.item).split('.')[0] == 'valve' else 'switch.turn_on' }}" #  Выключение клапана потока
                   target:
