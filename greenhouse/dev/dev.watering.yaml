@@ -332,6 +332,14 @@ triggers:
     to: "on"
     from: "off"
 
+  - trigger: state
+    entity_id: !input watervalve_switch
+    id: watervalve_switch_on_trigger
+    to: "off"
+    from: "on"
+    for:
+      seconds: 5
+
   - entity_id: !input watering_switch
     trigger: state
     id: watering_toggle_trigger
@@ -354,6 +362,29 @@ triggers:
 
 actions:
   - choose:
+
+#######################################################################################
+# Ручное выключение направления
+#######################################################################################
+
+      - conditions:
+          - condition: trigger
+            id:
+              - watervalve_switch_off_trigger
+          - condition: template
+            value_template: |
+              {% set i = namespace(item=int(0)) %}
+              {% for switch in watervale_switch %}
+                {% set i.item = i.item + (1 if is_state(switch,'off') else 0) %}
+              {% endfor %}
+              {{ i.item == watervale_switch | count }}
+        sequence:
+          - action: "{{ 'valve.close_valve' if watering_switch.split('.')[0] == 'valve' else 'switch.turn_off' }}"
+            target:
+              entity_id: !input watering_switch
+            data: {}
+
+
 
 #######################################################################################
 # Ручное включение направления
