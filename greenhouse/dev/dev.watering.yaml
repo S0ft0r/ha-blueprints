@@ -369,7 +369,7 @@ actions:
                 entity_id: !input waterpump_switch
                 state: "off"
             then:
-              - action: "{{ 'valve.close_valve' if waterpump_switch.split('.')[0] == 'valve' else 'switch.turn_off' }}"
+              - action: "{{ 'valve.open_valve' if waterpump_switch.split('.')[0] == 'valve' else 'switch.turn_on' }}"
                 target:
                   entity_id: !input waterpump_switch
                 data: {}
@@ -379,7 +379,7 @@ actions:
                 state: "off"
             then:
               - delay: "{{ '%02d:%02d:%02d' | format(set_watervalve_open_delay // 3600, (set_watervalve_open_delay % 3600) // 60, set_watervalve_open_delay % 60) }}"
-              - action: "{{ 'valve.close_valve' if watering_switch.split('.')[0] == 'valve' else 'switch.turn_off' }}"
+              - action: "{{ 'valve.open_valve' if watering_switch.split('.')[0] == 'valve' else 'switch.turn_on' }}"
                 target:
                   entity_id: !input watering_switch
                 data: {}
