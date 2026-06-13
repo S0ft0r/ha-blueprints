@@ -110,11 +110,13 @@ blueprint:
           default: false
           selector:
             boolean: {}
+
         set_on_time_evening:
           name: Включить вечером в
           default: "20:00:00"
           selector:
             time: {}
+
         set_time_work_evening:
           name: Включать на
           description: |
@@ -123,6 +125,7 @@ blueprint:
           default: "00:10:00"
           selector:
             time: {}
+
         set_working_day_evening:
           name: Режим включения вечером
           description: |
@@ -138,6 +141,7 @@ blueprint:
                 - label: Выбор
                   value: select_evening
               mode: dropdown
+
         set_select_days_evening:
           name: Выбор дней 
           description: |
@@ -185,7 +189,9 @@ blueprint:
               multiple: false
         set_time_waterpump_work: # Стоит переделать на number - минуты
           name: Включать насос на
-          description: Время, на которое включается насос перед и после полива 
+          description: | 
+            Время, на которое включается насос перед и после полива
+            <small>* При отсутствии людей в доме<small> 
           default: "00:01:00"
           selector:
             time: {}
@@ -376,7 +382,7 @@ actions:
               {% for switch in watervale_switch %}
                 {% set i.item = i.item + (1 if is_state(switch,'off') else 0) %}
               {% endfor %}
-              {{ i.item == watervale_switch | count }}
+              {{ i.item == watervale_switch | list | count }}
         sequence:
           - action: "{{ 'valve.close_valve' if watering_switch.split('.')[0] == 'valve' else 'switch.turn_off' }}"
             target:
@@ -628,7 +634,7 @@ actions:
 #######################################################################################
 
       - conditions:
-          - condition: trigger
+          - condition: trigger 
             id:
               - watering_toggle_trigger
           - condition: template
@@ -640,8 +646,8 @@ actions:
         sequence:
           - action: timer.start
             metadata: {}
-            data: 
-              duration: |
+            data: # Расчет времени до автоотключение  
+              duration: | 
                 {% set watervalve_count = watervale_switch | list | count %}
                 {% set on_time_morning_in_seconds = set_time_work_morning.split(':')[0] | int * 3600 + set_time_work_morning.split(':')[1] | int * 60 + set_time_work_morning.split(':')[2] | int %}
                 {% set on_time_evening_in_seconds = set_time_work_evening.split(':')[0] | int * 3600 + set_time_work_evening.split(':')[1] | int * 60 + set_time_work_evening.split(':')[2] | int %}
@@ -650,15 +656,6 @@ actions:
                 {{ '%02d:%02d:%02d' | format(max_seconds// 3600, (max_seconds % 3600) // 60, max_seconds % 60) }}
             target:
               entity_id: !input pump_off_auto
-          # - if:
-          #     - condition: state
-          #       entity_id: !input waterpump_switch
-          #       state: "off"
-          #   then:
-          #     - action: "{{ 'valve.close_valve' if waterpump_switch.split('.')[0] == 'valve' else 'switch.turn_off' }}"
-          #       target:
-          #         entity_id: !input waterpump_switch
-          #       data: {}
 
 mode: parallel
 max: 10
