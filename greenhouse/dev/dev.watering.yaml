@@ -206,19 +206,21 @@ blueprint:
           description: ""
           default: 5
           selector:
-            min: 1
-            max: 300
-            mode: slider
-            unit_of_measurement: "сек"
+            number:
+              min: 1
+              max: 300
+              mode: slider
+              unit_of_measurement: "сек"
         set_watervalve_close_delay:
           name: Задержка открытия клапана направления
           description: ""
           default: 5
           selector:
-            min: 1
-            max: 300
-            mode: slider
-            unit_of_measurement: "сек"
+            number:
+              min: 1
+              max: 300
+              mode: slider
+              unit_of_measurement: "сек"
         set_auto_off_pump_time:
           name: Время работы до автоотключения
           description: |
