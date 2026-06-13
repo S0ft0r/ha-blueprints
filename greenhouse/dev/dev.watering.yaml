@@ -203,7 +203,7 @@ blueprint:
               multiple: true
         set_watervalve_open_delay:
           name: Задержка открытия клапана направления
-          description: ""
+          description: Время ожидания полного открытия клапана направления
           default: 5
           selector:
             number:
@@ -212,8 +212,8 @@ blueprint:
               mode: slider
               unit_of_measurement: "сек"
         set_watervalve_close_delay:
-          name: Задержка открытия клапана направления
-          description: ""
+          name: Задержка закрытия клапана направления
+          description: Время ожидания полного закрытия клапана направления
           default: 5
           selector:
             number:
@@ -373,6 +373,20 @@ actions:
                 target:
                   entity_id: !input waterpump_switch
                 data: {}
+          - repeat:
+              for_each: !input watervalve_switch
+              sequence:
+                - if:
+                    - condition: template
+                      value_template: |
+                        {{ repeat.item != trigger.from_state.entity_id }}
+                  then:
+                    - action: "{{ 'valve.close_valve' if (repeat.item).split('.')[0] == 'valve' else 'switch.turn_off' }}" #  Выключение клапана потока
+                      target:
+                        entity_id: "{{ repeat.item }}"
+                    - delay:
+                        seconds: 1
+          - delay: "{{ '%02d:%02d:%02d' | format(set_watervalve_close_delay // 3600, (set_watervalve_close_delay % 3600) // 60, set_watervalve_close_delay % 60) }}"
           - if:
               - condition: state
                 entity_id: !input watering_switch
