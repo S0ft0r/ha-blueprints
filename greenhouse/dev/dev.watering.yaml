@@ -228,7 +228,6 @@ blueprint:
           default: "00:30:00"
           selector:
             time: {}
-        
 
 trigger_variables:
   watering_switch: !input watering_switch
@@ -334,15 +333,15 @@ triggers:
 
   - trigger: state
     entity_id: !input watervalve_switch
-    id: watervalve_switch_on_trigger
+    id: watervalve_switch_off_trigger
     to: "off"
     from: "on"
     for:
       seconds: 5
 
-  - entity_id: !input watering_switch
-    trigger: state
-    id: watering_toggle_trigger
+  # - entity_id: !input watering_switch
+  #   trigger: state
+  #   id: watering_toggle_trigger
 
   - trigger: template
     value_template: >-
@@ -383,8 +382,6 @@ actions:
             target:
               entity_id: !input watering_switch
             data: {}
-
-
 
 #######################################################################################
 # Ручное включение направления
@@ -637,6 +634,9 @@ actions:
           - condition: template
             value_template: |
               {{ trigger.from_state.state in closed_states and trigger.to_state.state in open_states }}
+          - condition: state
+            entity_id: waterpump_switch
+            state: "on"
         sequence:
           - action: timer.start
             metadata: {}
@@ -650,15 +650,15 @@ actions:
                 {{ '%02d:%02d:%02d' | format(max_seconds// 3600, (max_seconds % 3600) // 60, max_seconds % 60) }}
             target:
               entity_id: !input pump_off_auto
-          - if:
-              - condition: state
-                entity_id: !input waterpump_switch
-                state: "off"
-            then:
-              - action: "{{ 'valve.close_valve' if waterpump_switch.split('.')[0] == 'valve' else 'switch.turn_off' }}"
-                target:
-                  entity_id: !input waterpump_switch
-                data: {}
+          # - if:
+          #     - condition: state
+          #       entity_id: !input waterpump_switch
+          #       state: "off"
+          #   then:
+          #     - action: "{{ 'valve.close_valve' if waterpump_switch.split('.')[0] == 'valve' else 'switch.turn_off' }}"
+          #       target:
+          #         entity_id: !input waterpump_switch
+          #       data: {}
 
 mode: parallel
 max: 10
