@@ -324,6 +324,12 @@ triggers:
     trigger: state
     id: pump_off_auto_trigger
 
+  - trigger: state
+    entity_id: !input watervalve_switch
+    id: watervalve_switch_on_trigger
+    to: "on"
+    from: "off"
+
   - entity_id: !input watering_switch
     trigger: state
     id: watering_toggle_trigger
@@ -346,12 +352,41 @@ triggers:
 
 actions:
   - choose:
+
+#######################################################################################
+# Ручное включение направления
+#######################################################################################
+
       - conditions:
+          - condition: trigger
+            id:
+              - watervalve_switch_on_trigger
+        sequence:
+          - if:
+              - condition: state
+                entity_id: !input waterpump_switch
+                state: "off"
+            then:
+              - action: "{{ 'valve.close_valve' if waterpump_switch.split('.')[0] == 'valve' else 'switch.turn_off' }}"
+                target:
+                  entity_id: !input waterpump_switch
+                data: {}
+          - if:
+              - condition: state
+                entity_id: !input watering_switch
+                state: "off"
+            then:
+              - delay: "{{ '%02d:%02d:%02d' | format(set_watervalve_open_delay // 3600, (set_watervalve_open_delay % 3600) // 60, set_watervalve_open_delay % 60) }}"
+              - action: "{{ 'valve.close_valve' if watering_switch.split('.')[0] == 'valve' else 'switch.turn_off' }}"
+                target:
+                  entity_id: !input watering_switch
+                data: {}
 
 #######################################################################################
 # Включение насоса и закрытие клапанов направления до включения системы утром
 #######################################################################################
 
+      - conditions:
           - condition: trigger
             id: 
               - time_before_morning_trigger
