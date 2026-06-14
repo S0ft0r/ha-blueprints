@@ -330,9 +330,9 @@ triggers:
     for:
       seconds: 5
 
-  # - entity_id: !input watering_switch
-  #   trigger: state
-  #   id: watering_toggle_trigger
+  - entity_id: !input watering_switch
+    trigger: state
+    id: watering_toggle_trigger
 
   - trigger: template
     value_template: >-
@@ -348,7 +348,7 @@ triggers:
       {% set time_waterpump_work = set_time_waterpump_work %}
       {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(on_time_evening) - time_waterpump_work | as_timedelta) | timestamp_custom('%H:%M') }}
     id: time_before_evening_trigger
-    enabled: !input pump_morning_enable
+    enabled: !input pump_evening_enable
 
 actions:
   - choose:
