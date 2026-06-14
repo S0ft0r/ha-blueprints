@@ -23,6 +23,7 @@ blueprint:
                 - valve
           reorder: false
           multiple: false
+
     pump_off_auto:
       name: Таймер автоматического отключения
       description: ""
@@ -45,11 +46,13 @@ blueprint:
           default: false
           selector:
             boolean: {}
+
         set_on_time_morning:
           name: Включить утром в
           default: "08:00:00"
           selector:
             time: {}
+
         set_time_work_morning:
           name: Включать на
           description: |
@@ -58,6 +61,7 @@ blueprint:
           default: "00:10:00"
           selector:
             time: {}
+
         set_working_day_morning:
           name: Режим работы полива
           default: every_day_morning
@@ -70,7 +74,10 @@ blueprint:
                   value: every_over_day_morning
                 - label: Выбор дней
                   value: select_morning
-              mode: dropdown
+#              mode: dropdown
+              mode: list
+              multiple: false
+
         set_select_days_morning:
           name: Выбор дней 
           description: |
@@ -140,7 +147,8 @@ blueprint:
                   value: every_over_day_evening
                 - label: Выбор
                   value: select_evening
-              mode: dropdown
+              mode: list
+              multiple: false
 
         set_select_days_evening:
           name: Выбор дней 
@@ -187,6 +195,7 @@ blueprint:
                     - valve
               reorder: false
               multiple: false
+
         set_time_waterpump_work: # Стоит переделать на number - минуты
           name: Включать насос на
           description: | 
@@ -195,6 +204,7 @@ blueprint:
           default: "00:01:00"
           selector:
             time: {}
+
         watervalve_switch:
           name: Клапаны направления
           description: ""
@@ -207,6 +217,7 @@ blueprint:
                     - valve
               reorder: false
               multiple: true
+
         set_watervalve_open_delay:
           name: Задержка открытия клапана направления
           description: Время ожидания полного открытия клапана направления
@@ -217,6 +228,7 @@ blueprint:
               max: 300
               mode: slider
               unit_of_measurement: "сек"
+
         set_watervalve_close_delay:
           name: Задержка закрытия клапана направления
           description: Время ожидания полного закрытия клапана направления
@@ -227,6 +239,7 @@ blueprint:
               max: 300
               mode: slider
               unit_of_measurement: "сек"
+
         set_auto_off_pump_time:
           name: Время работы до автоотключения
           description: |
@@ -281,34 +294,6 @@ variables:
 
   selected_days_evening: |
     {{ now().strftime('%a') | lower in set_select_days_evening }}
-
-#  watervalve_entities: "{{ expand(watervalve_switch) | map(attribute='entity_id') | list }}"
-  # watervalve_count: "{{ watervalve_entities | count }}"
-
-  # on_time_morning_in_seconds: |
-  #   {{ set_time_work_morning.split(':')[0] | int * 3600 + set_time_work_morning.split(':')[1] | int * 60 + set_time_work_morning.split(':')[2] | int }}
-
-  # on_time_evening_in_seconds: |
-  #   {{ set_time_work_evening.split(':')[0] | int * 3600 + set_time_work_evening.split(':')[1] | int * 60 + set_time_work_evening.split(':')[2] | int }}
-
-  # auto_off_pump_time_in_seconds: |
-  #   {{ set_auto_off_pump_time.split(':')[0] | int * 3600 + set_auto_off_pump_time.split(':')[1] | int * 60 + set_auto_off_pump_time.split(':')[2] | int }}
-
-  # auto_off_pump_time: |  # На будущее - рассчитывать время отключения исходя из количества направлений!
-  #   {% set max_seconds = max((on_time_morning_in_seconds * watervalve_count + 60), (on_time_evening_in_seconds * watervalve_count + 60), auto_off_pump_time_in_seconds) %}
-  #   {{ '%02d:%02d:%02d' | format(max_seconds// 3600, (max_seconds % 3600) // 60, max_seconds % 60) }}
-
-  # watervalve_switch_on: "{{ 'valve.open_valve' if watervalve_switch.split('.')[0] == 'valve' else 'switch.turn_on' }}"
-  # watervalve_switch_off: "{{ 'valve.close_valve' if watervalve_switch.split('.')[0] == 'valve' else 'switch.turn_off' }}"
-  # watervalve_switch_toggle: "{{ watervalve_switch.split('.')[0] ~ '.toggle' }}"
-
-  # waterpump_switch_on: "{{ 'valve.open_valve' if waterpump_switch.split('.')[0] == 'valve' else 'switch.turn_on' }}"
-  # waterpump_switch_off: "{{ 'valve.close_valve' if waterpump_switch.split('.')[0] == 'valve' else 'switch.turn_off' }}"
-  # waterpump_switch_toggle: "{{ waterpump_switch.split('.')[0] ~ '.toggle' }}"
-
-  # watering_switch_on: "{{ 'valve.open_valve' if watering_switch.split('.')[0] == 'valve' else 'switch.turn_on' }}"
-  # watering_switch_off: "{{ 'valve.close_valve' if watering_switch.split('.')[0] == 'valve' else 'switch.turn_off' }}"
-  # watering_switch_toggle: "{{ watering_switch.split('.')[0] ~ '.toggle' }}"
 
 triggers:
   - trigger: template
@@ -379,10 +364,10 @@ actions:
           - condition: template
             value_template: |
               {% set i = namespace(item=int(0)) %}
-              {% for switch in watervale_switch %}
+              {% for switch in watervalve_switch %}
                 {% set i.item = i.item + (1 if is_state(switch,'off') else 0) %}
               {% endfor %}
-              {{ i.item == watervale_switch | list | count }}
+              {{ i.item == watervalve_switch | list | count }}
         sequence:
           - action: "{{ 'valve.close_valve' if watering_switch.split('.')[0] == 'valve' else 'switch.turn_off' }}"
             target:
@@ -648,7 +633,7 @@ actions:
             metadata: {}
             data: # Расчет времени до автоотключение  
               duration: | 
-                {% set watervalve_count = watervale_switch | list | count %}
+                {% set watervalve_count = watervalve_switch | list | count %}
                 {% set on_time_morning_in_seconds = set_time_work_morning.split(':')[0] | int * 3600 + set_time_work_morning.split(':')[1] | int * 60 + set_time_work_morning.split(':')[2] | int %}
                 {% set on_time_evening_in_seconds = set_time_work_evening.split(':')[0] | int * 3600 + set_time_work_evening.split(':')[1] | int * 60 + set_time_work_evening.split(':')[2] | int %}
                 {% set auto_off_pump_time_in_seconds = set_auto_off_pump_time.split(':')[0] | int * 3600 + set_auto_off_pump_time.split(':')[1] | int * 60 + set_auto_off_pump_time.split(':')[2] | int %}
