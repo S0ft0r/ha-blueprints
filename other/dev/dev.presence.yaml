@@ -93,22 +93,21 @@ triggers:
 
   - trigger: template
     value_template: |
-      {{ states('sensor.time') == "18:00" }}
-    # {% set i = namespace(item=int(0)) %}
-    # {% set items = states.person | rejectattr('state', 'in', invalid_states) | map(attribute='entity_id') | list %}
-    # {% for item in items %}
-    #   {% set zla = state_attr('zone.home', 'latitude') | round(3) %}
-    #   {% set zlo = state_attr('zone.home', 'longitude') | round(3) %}
-      
-    #   {% set ila = 0 if state_attr(item, 'latitude') is none else state_attr(item, 'latitude') | round(3) %}
-    #   {% set ilo = 0 if state_attr(item, 'longitude') is none else state_attr(item, 'longitude') | round(3) %}
+      {% set i = namespace(item=int(0)) %}
+      {% set items = states.person | rejectattr('state', 'in', invalid_states) | map(attribute='entity_id') | list %}
+      {% for item in items %}
+        {% set zla = state_attr('zone.home', 'latitude') | round(3) %}
+        {% set zlo = state_attr('zone.home', 'longitude') | round(3) %}
+        
+        {% set ila = 0 if state_attr(item, 'latitude') is none else state_attr(item, 'latitude') | round(3) %}
+        {% set ilo = 0 if state_attr(item, 'longitude') is none else state_attr(item, 'longitude') | round(3) %}
 
-    #   {% set la = (zla - ila) | abs | round (2) | float < 0.03 %}
-    #   {% set lo = (zlo - ilo) | abs | round (2) | float < 0.03 %}
-      
-    #   {% set i.item = i.item + (1 if (la and lo) else 0) %}
-    # {% endfor %}
-    # {{ i.item == 0 }}
+        {% set la = (zla - ila) | abs | round (2) | float < 0.03 %}
+        {% set lo = (zlo - ilo) | abs | round (2) | float < 0.03 %}
+        
+        {% set i.item = i.item + (1 if (la and lo) else 0) %}
+      {% endfor %}
+      {{ i.item == 0 }}
     id: leaving_trigger
 
 actions:
