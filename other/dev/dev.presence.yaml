@@ -74,40 +74,42 @@ trigger_variables:
 triggers:
   - trigger: template
     value_template: |
-      {% set i = namespace(item=int(0)) %}
-      {% set items = states.person | rejectattr('state', 'in', invalid_states) | map(attribute='entity_id') | list %}
-      {% for item in items %}
-        {% set zla = state_attr('zone.home', 'latitude') | round(3) %}
-        {% set zlo = state_attr('zone.home', 'longitude') | round(3) %}
-        
-        {% set ila = 0 if state_attr(item, 'latitude') is none else state_attr(item, 'latitude') | round(3) %}
-        {% set ilo = 0 if state_attr(item, 'longitude') is none else state_attr(item, 'longitude') | round(3) %}
+      {{ states('sensor.time') == "18:01" }}
+    # {% set i = namespace(item=int(0)) %}
+    # {% set items = states.person | rejectattr('state', 'in', invalid_states) | map(attribute='entity_id') | list %}
+    # {% for item in items %}
+    #   {% set zla = state_attr('zone.home', 'latitude') | round(3) %}
+    #   {% set zlo = state_attr('zone.home', 'longitude') | round(3) %}
+      
+    #   {% set ila = 0 if state_attr(item, 'latitude') is none else state_attr(item, 'latitude') | round(3) %}
+    #   {% set ilo = 0 if state_attr(item, 'longitude') is none else state_attr(item, 'longitude') | round(3) %}
 
-        {% set la = (zla - ila) | abs | round (2) | float < 0.03 %}
-        {% set lo = (zlo - ilo) | abs | round (2) | float < 0.03 %}
-        
-        {% set i.item = i.item + (1 if (la and lo) else 0) %}
-      {% endfor %}
-      {{ i.item > 0 }}
+    #   {% set la = (zla - ila) | abs | round (2) | float < 0.03 %}
+    #   {% set lo = (zlo - ilo) | abs | round (2) | float < 0.03 %}
+      
+    #   {% set i.item = i.item + (1 if (la and lo) else 0) %}
+    # {% endfor %}
+    # {{ i.item > 0 }}
     id: arrival_trigger
 
   - trigger: template
     value_template: |
-      {% set i = namespace(item=int(0)) %}
-      {% set items = states.person | rejectattr('state', 'in', invalid_states) | map(attribute='entity_id') | list %}
-      {% for item in items %}
-        {% set zla = state_attr('zone.home', 'latitude') | round(3) %}
-        {% set zlo = state_attr('zone.home', 'longitude') | round(3) %}
-        
-        {% set ila = 0 if state_attr(item, 'latitude') is none else state_attr(item, 'latitude') | round(3) %}
-        {% set ilo = 0 if state_attr(item, 'longitude') is none else state_attr(item, 'longitude') | round(3) %}
+      {{ states('sensor.time') == "18:00" }}
+    # {% set i = namespace(item=int(0)) %}
+    # {% set items = states.person | rejectattr('state', 'in', invalid_states) | map(attribute='entity_id') | list %}
+    # {% for item in items %}
+    #   {% set zla = state_attr('zone.home', 'latitude') | round(3) %}
+    #   {% set zlo = state_attr('zone.home', 'longitude') | round(3) %}
+      
+    #   {% set ila = 0 if state_attr(item, 'latitude') is none else state_attr(item, 'latitude') | round(3) %}
+    #   {% set ilo = 0 if state_attr(item, 'longitude') is none else state_attr(item, 'longitude') | round(3) %}
 
-        {% set la = (zla - ila) | abs | round (2) | float < 0.03 %}
-        {% set lo = (zlo - ilo) | abs | round (2) | float < 0.03 %}
-        
-        {% set i.item = i.item + (1 if (la and lo) else 0) %}
-      {% endfor %}
-      {{ i.item == 0 }}
+    #   {% set la = (zla - ila) | abs | round (2) | float < 0.03 %}
+    #   {% set lo = (zlo - ilo) | abs | round (2) | float < 0.03 %}
+      
+    #   {% set i.item = i.item + (1 if (la and lo) else 0) %}
+    # {% endfor %}
+    # {{ i.item == 0 }}
     id: leaving_trigger
 
 actions:
@@ -122,13 +124,13 @@ actions:
           - action: homeassistant.turn_on
             target:
               entity_id: !input arrival_turn_on_switches
-          - if:
-              - condition: sun
-                after: sunset
-            then:
-              - target:
-                  entity_id: !input arrival_turn_on_sun_switches
-                action: homeassistant.turn_on
+          # - if:
+          #     - condition: sun
+          #       after: sunset
+          #   then:
+          #     - target:
+          #         entity_id: !input arrival_turn_on_sun_switches
+          #       action: homeassistant.turn_on
 
       - conditions:
           - condition: trigger
@@ -140,47 +142,47 @@ actions:
           - action: homeassistant.turn_off
             target:
               entity_id: !input arrival_turn_off_switches
-          - if:
-              - condition: template
-                value_template: >-
-                  {% set count = state_attr('sensor.opened','windows') +
-                  state_attr('sensor.opened','doors') %}
+          # - if:
+          #     - condition: template
+          #       value_template: >-
+          #         {% set count = state_attr('sensor.opened','windows') +
+          #         state_attr('sensor.opened','doors') %}
 
-                  {{ count > 0 }}
-            then:
-              - action: notify.send_message
-                target:
-                  entity_id: notify.vk_notify
-                data:
-                  message: >-
-                    {% set w = state_attr('sensor.opened','windows') | int %} {% set d =
-                    state_attr('sensor.opened','doors') | int %} {% set wd =
-                    state_attr('sensor.opened','doors') | int +
-                    state_attr('sensor.opened','windows') | int %} {% if wd > 1
-                    %}Открыты {{states('sensor.opened') }} {% elif w > 0 %}Открыто
-                    {{states('sensor.opened')  }} {% elif d > 0 %}Открыта
-                    {{states('sensor.opened') }} {% endif %}
-                  title: Деревня
-              - sequence:
-                  - action: notify.mobile_app_25053pc47g
-                    metadata: {}
-                    data:
-                      message: clear_notification
-                      data:
-                        tag: warning_notification
-                  - action: notify.mobile_app_25053pc47g
-                    metadata: {}
-                    data:
-                      data:
-                        tag: warning_notification
-                      message: >-
-                        {% set w = state_attr('sensor.opened','windows') | int %} {% set
-                        d = state_attr('sensor.opened','doors') | int %} {% set wd =
-                        state_attr('sensor.opened','doors') | int +
-                        state_attr('sensor.opened','windows') | int %} {% if wd > 1
-                        %}Открыты {{states('sensor.opened') }} {% elif w > 0 %}Открыто
-                        {{states('sensor.opened')  }} {% elif d > 0 %}Открыта
-                        {{states('sensor.opened') }} {% endif %}
-                      title: Внимание.
+          #         {{ count > 0 }}
+          #   then:
+          #     - action: notify.send_message
+          #       target:
+          #         entity_id: notify.vk_notify
+          #       data:
+          #         message: >-
+          #           {% set w = state_attr('sensor.opened','windows') | int %} {% set d =
+          #           state_attr('sensor.opened','doors') | int %} {% set wd =
+          #           state_attr('sensor.opened','doors') | int +
+          #           state_attr('sensor.opened','windows') | int %} {% if wd > 1
+          #           %}Открыты {{states('sensor.opened') }} {% elif w > 0 %}Открыто
+          #           {{states('sensor.opened')  }} {% elif d > 0 %}Открыта
+          #           {{states('sensor.opened') }} {% endif %}
+          #         title: Деревня
+          #     - sequence:
+          #         - action: notify.mobile_app_25053pc47g
+          #           metadata: {}
+          #           data:
+          #             message: clear_notification
+          #             data:
+          #               tag: warning_notification
+          #         - action: notify.mobile_app_25053pc47g
+          #           metadata: {}
+          #           data:
+          #             data:
+          #               tag: warning_notification
+          #             message: >-
+          #               {% set w = state_attr('sensor.opened','windows') | int %} {% set
+          #               d = state_attr('sensor.opened','doors') | int %} {% set wd =
+          #               state_attr('sensor.opened','doors') | int +
+          #               state_attr('sensor.opened','windows') | int %} {% if wd > 1
+          #               %}Открыты {{states('sensor.opened') }} {% elif w > 0 %}Открыто
+          #               {{states('sensor.opened')  }} {% elif d > 0 %}Открыта
+          #               {{states('sensor.opened') }} {% endif %}
+          #             title: Внимание.
 
 mode: single
