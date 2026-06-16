@@ -3,7 +3,7 @@ blueprint:
   description: |
     ### Управление поливом теплицы.
     <small>Версия 2026.05.01 Сборка 2</small> 
-
+    
     <small><a href="https://github.com/S0ft0r/ha-blueprints/blob/main/as-is.md">Отказ от ответственности</a></small>
   domain: automation
   source_url: https://raw.githubusercontent.com/S0ft0r/ha-blueprints/main/greenhouse/dev/dev.watering.yaml
@@ -307,14 +307,14 @@ triggers:
       {% set on_time_morning = set_on_time_morning %}
       {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(on_time_morning)) | timestamp_custom('%H:%M') }}
     id: on_morning_trigger
-    enabled: !input pump_morning_enable
+    enabled: "{{ pump_morning_enable }}"
 
   - trigger: template
     value_template: >-
       {% set on_time_evening = set_on_time_evening %}
       {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(on_time_evening)) | timestamp_custom('%H:%M') }}
     id: on_evening_trigger
-    enabled: !input pump_evening_enable
+    enabled: "{{ pump_morning_enable }}"
 
   - entity_id: !input pump_off_auto
     from: active
@@ -597,10 +597,26 @@ actions:
           - if:
               - condition: template
                 value_template: |
-                  {% set allpersons = state_attr('zone.home','persons') | count %}
-                  {% set cottagepersons = state_attr('zone.home','persons') | select('search', 'cottage') | list | count %}
-                  {% set apartmentpersons = state_attr('zone.home','persons') | select('search', 'apartment') | list | count %}
-                  {{ (allpersons - cottagepersons - apartmentpersons) | int == 0 }}
+                  {% set i = namespace(item=int(0)) %}
+                  {% set items = states.person | rejectattr('state', 'in', ['unavailable', 'unknown', 'none']) | map(attribute='entity_id') | list %}
+                  {% for item in items %}
+                    {% set zla = state_attr('zone.home', 'latitude') | round(3) %}
+                    {% set zlo = state_attr('zone.home', 'longitude') | round(3) %}
+                    
+                    {% set ila = state_attr(item, 'latitude') | round(3) %}
+                    {% set ilo = state_attr(item, 'longitude') | round(3) %}
+
+                    {% set ila = 0 if state_attr(item, 'latitude') is none else state_attr(item, 'latitude') | round(3) %}
+                    {% set ilo = 0 if state_attr(item, 'longitude') is none else state_attr(item, 'longitude') | round(3) %}
+                    
+                    {% set i.item = i.item + (1 if (la and lo) else 0) %}
+                    
+                  {% endfor %}
+                  {{ i.item == 0 }}
+              # {% set allpersons = state_attr('zone.home','persons') | count %}
+              # {% set cottagepersons = state_attr('zone.home','persons') | select('search', 'cottage') | list | count %}
+              # {% set apartmentpersons = state_attr('zone.home','persons') | select('search', 'apartment') | list | count %}
+              # {{ (allpersons - cottagepersons - apartmentpersons) | int == 0 }}
             then:
               - delay: !input set_time_waterpump_work
               - action: "{{ 'valve.close_valve' if waterpump_switch.split('.')[0] == 'valve' else 'switch.turn_off' }}"
