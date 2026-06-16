@@ -1,0 +1,189 @@
+blueprint:
+  name: Управление состянием дома
+  description: |
+    ### Управление состянием дома при приближении/удалении.
+    <small>Версия 2026.06.01 Сборка 1</small> 
+    
+    <small><a href="https://github.com/S0ft0r/ha-blueprints/blob/main/as-is.md">Отказ от ответственности</a></small>
+  domain: automation
+  source_url: https://raw.githubusercontent.com/S0ft0r/ha-blueprints/main/other/dev/dev.presence.yaml
+  author: Softor
+
+  input:
+    arrival_turn_on_switches:
+      name: ВКЛЮЧАТЬ устройства 
+      description: Устройства, которые необходимо ВКЛЮЧАТЬ при прибытии домой
+      selector:
+        entity:
+          filter:
+            - domain:
+                - switch
+                - input_boolean
+                - light
+          reorder: false
+          multiple: true
+
+    arrival_turn_off_switches:
+      name: ВЫКЛЮЧАТЬ устройства 
+      description: Устройства, которые необходимо ВЫКЛЮЧАТЬ при прибытии домой
+      selector:
+        entity:
+          filter:
+            - domain:
+                - switch
+                - input_boolean
+                - light
+          reorder: false
+          multiple: true
+
+    arrival_turn_on_sun_switches:
+      name: ВКЛЮЧАТЬ устройства после заката 
+      description: Необязательно. Нпример, приветственный свет. 
+      default: []
+      selector:
+        entity:
+          filter:
+            - domain:
+                - switch
+                - input_boolean
+                - light
+          reorder: false
+          multiple: true
+
+
+
+
+trigger_variables:
+  arrival_turn_on_switches: !input arrival_turn_on_switches
+  arrival_turn_off_switches: !input arrival_turn_off_switches
+  arrival_turn_on_sun_switches: !input arrival_turn_on_sun_switches
+
+  # open_states:
+  #   - 'on'
+  #   - 'open'
+
+  # closed_states:
+  #   - 'off'
+  #   - 'closed'
+
+  invalid_states:
+    - ''                    
+    - 'unavailable'         
+    - 'unknown'             
+    - 'none'                
+    - 'None'                
+    - 'null'       
+
+triggers:
+  - trigger: template
+    value_template: |
+      {% set i = namespace(item=int(0)) %}
+      {% set items = states.person | rejectattr('state', 'in', invalid_states) | map(attribute='entity_id') | list %}
+      {% for item in items %}
+        {% set zla = state_attr('zone.home', 'latitude') | round(3) %}
+        {% set zlo = state_attr('zone.home', 'longitude') | round(3) %}
+        
+        {% set ila = 0 if state_attr(item, 'latitude') is none else state_attr(item, 'latitude') | round(3) %}
+        {% set ilo = 0 if state_attr(item, 'longitude') is none else state_attr(item, 'longitude') | round(3) %}
+
+        {% set la = (zla - ila) | abs | round (2) | float < 0.03 %}
+        {% set lo = (zlo - ilo) | abs | round (2) | float < 0.03 %}
+        
+        {% set i.item = i.item + (1 if (la and lo) else 0) %}
+      {% endfor %}
+      {{ i.item > 0 }}
+    id: arrival_trigger
+
+  - trigger: template
+    value_template: |
+      {% set i = namespace(item=int(0)) %}
+      {% set items = states.person | rejectattr('state', 'in', invalid_states) | map(attribute='entity_id') | list %}
+      {% for item in items %}
+        {% set zla = state_attr('zone.home', 'latitude') | round(3) %}
+        {% set zlo = state_attr('zone.home', 'longitude') | round(3) %}
+        
+        {% set ila = 0 if state_attr(item, 'latitude') is none else state_attr(item, 'latitude') | round(3) %}
+        {% set ilo = 0 if state_attr(item, 'longitude') is none else state_attr(item, 'longitude') | round(3) %}
+
+        {% set la = (zla - ila) | abs | round (2) | float < 0.03 %}
+        {% set lo = (zlo - ilo) | abs | round (2) | float < 0.03 %}
+        
+        {% set i.item = i.item + (1 if (la and lo) else 0) %}
+      {% endfor %}
+      {{ i.item == 0 }}
+    id: leaving_trigger
+
+actions:
+  - choose:
+      - conditions:
+          - condition: trigger
+            id: arrival_trigger
+        sequence:
+          - action: homeassistant.turn_off
+            target:
+              entity_id: !input arrival_turn_off_switches
+          - action: homeassistant.turn_on
+            target:
+              entity_id: !input arrival_turn_on_switches
+          - if:
+              - condition: sun
+                after: sunset
+            then:
+              - target:
+                  entity_id: arrival_turn_on_sun_switches
+                action: homeassistant.turn_on
+
+      - conditions:
+          - condition: trigger
+            id: arrival_trigger
+        sequence:
+          - action: homeassistant.turn_on
+            target:
+              entity_id: !input arrival_turn_on_switches
+          - action: homeassistant.turn_off
+            target:
+              entity_id: !input arrival_turn_off_switches
+          - if:
+              - condition: template
+                value_template: >-
+                  {% set count = state_attr('sensor.opened','windows') +
+                  state_attr('sensor.opened','doors') %}
+
+                  {{ count > 0 }}
+            then:
+              - action: notify.send_message
+                target:
+                  entity_id: notify.vk_notify
+                data:
+                  message: >-
+                    {% set w = state_attr('sensor.opened','windows') | int %} {% set d =
+                    state_attr('sensor.opened','doors') | int %} {% set wd =
+                    state_attr('sensor.opened','doors') | int +
+                    state_attr('sensor.opened','windows') | int %} {% if wd > 1
+                    %}Открыты {{states('sensor.opened') }} {% elif w > 0 %}Открыто
+                    {{states('sensor.opened')  }} {% elif d > 0 %}Открыта
+                    {{states('sensor.opened') }} {% endif %}
+                  title: Деревня
+              - sequence:
+                  - action: notify.mobile_app_25053pc47g
+                    metadata: {}
+                    data:
+                      message: clear_notification
+                      data:
+                        tag: warning_notification
+                  - action: notify.mobile_app_25053pc47g
+                    metadata: {}
+                    data:
+                      data:
+                        tag: warning_notification
+                      message: >-
+                        {% set w = state_attr('sensor.opened','windows') | int %} {% set
+                        d = state_attr('sensor.opened','doors') | int %} {% set wd =
+                        state_attr('sensor.opened','doors') | int +
+                        state_attr('sensor.opened','windows') | int %} {% if wd > 1
+                        %}Открыты {{states('sensor.opened') }} {% elif w > 0 %}Открыто
+                        {{states('sensor.opened')  }} {% elif d > 0 %}Открыта
+                        {{states('sensor.opened') }} {% endif %}
+                      title: Внимание.
+
+mode: single

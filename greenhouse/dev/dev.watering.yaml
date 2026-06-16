@@ -603,14 +603,13 @@ actions:
                     {% set zla = state_attr('zone.home', 'latitude') | round(3) %}
                     {% set zlo = state_attr('zone.home', 'longitude') | round(3) %}
                     
-                    {% set ila = state_attr(item, 'latitude') | round(3) %}
-                    {% set ilo = state_attr(item, 'longitude') | round(3) %}
-
                     {% set ila = 0 if state_attr(item, 'latitude') is none else state_attr(item, 'latitude') | round(3) %}
                     {% set ilo = 0 if state_attr(item, 'longitude') is none else state_attr(item, 'longitude') | round(3) %}
+
+                    {% set la = (zla - ila) | abs | round (2) | float < 0.03 %}
+                    {% set lo = (zlo - ilo) | abs | round (2) | float < 0.03 %}
                     
                     {% set i.item = i.item + (1 if (la and lo) else 0) %}
-                    
                   {% endfor %}
                   {{ i.item == 0 }}
               # {% set allpersons = state_attr('zone.home','persons') | count %}
