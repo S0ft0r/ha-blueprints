@@ -127,7 +127,7 @@ actions:
                 after: sunset
             then:
               - target:
-                  entity_id: arrival_turn_on_sun_switches
+                  entity_id: !input arrival_turn_on_sun_switches
                 action: homeassistant.turn_on
 
       - conditions:
