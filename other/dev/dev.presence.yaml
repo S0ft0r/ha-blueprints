@@ -175,7 +175,7 @@ trigger_variables:
   distance_turn_on_switches: !input distance_turn_on_switches
   distance_turn_off_switches: !input distance_turn_off_switches
 
-  set_nearest_distance: !input set_nearest_distance
+  set_nearest_distance_sensor: !input set_nearest_distance_sensor
   set_approaching_to_home: !input set_approaching_to_home
   set_distance_from_home: !input set_distance_from_home
 
