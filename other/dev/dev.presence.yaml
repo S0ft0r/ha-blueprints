@@ -50,9 +50,6 @@ blueprint:
           reorder: false
           multiple: true
 
-
-
-
 trigger_variables:
   arrival_turn_on_switches: !input arrival_turn_on_switches
   arrival_turn_off_switches: !input arrival_turn_off_switches
@@ -135,7 +132,7 @@ actions:
 
       - conditions:
           - condition: trigger
-            id: arrival_trigger
+            id: leaving_trigger
         sequence:
           - action: homeassistant.turn_on
             target:
