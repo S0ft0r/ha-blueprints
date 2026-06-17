@@ -42,6 +42,7 @@ blueprint:
 
         arrival_turn_on_switches_extra:
           name: Дополнительные устройства
+          description: |
             Дополнительные устройства, которые необходимо ВКЛЮЧАТЬ при приближении к дому
             <small>* поддерживаются устройства в доменах vacuum, water_heater и climate</small>
           default: []
