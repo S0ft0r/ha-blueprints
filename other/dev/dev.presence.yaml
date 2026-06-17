@@ -10,135 +10,8 @@ blueprint:
   author: Softor
 
   input:
-    arrival_turn_on_switches:
-      name: ВКЛЮЧАТЬ устройства 
-      description: Устройства, которые необходимо ВКЛЮЧАТЬ при прибытии домой
-      default: []
-      selector:
-        entity:
-          filter:
-            - domain:
-                - switch
-                - input_boolean
-                - light
-          reorder: false
-          multiple: true
-
-    arrival_turn_off_switches:
-      name: ВЫКЛЮЧАТЬ устройства 
-      description: Устройства, которые необходимо ВЫКЛЮЧАТЬ при прибытии домой
-      default: []
-      selector:
-        entity:
-          filter:
-            - domain:
-                - switch
-                - input_boolean
-                - light
-          reorder: false
-          multiple: true
-
-    arrival_turn_on_sun_switches:
-      name: ВКЛЮЧАТЬ устройства после заката 
-      description: Необязательно. Нпример, приветственный свет. 
-      default: []
-      selector:
-        entity:
-          filter:
-            - domain:
-                - switch
-                - input_boolean
-                - light
-          reorder: false
-          multiple: true
-
-    approaching_turn_on_switches:
-      name: ВКЛЮЧАТЬ устройства 
-      description: Устройства, которые необходимо ВКЛЮЧАТЬ при приближении к дому
-      default: []
-      selector:
-        entity:
-          filter:
-            - domain:
-                - switch
-                - input_boolean
-                - light
-          reorder: false
-          multiple: true
-
-    approaching_turn_off_switches:
-      name: ВЫКЛЮЧАТЬ устройства 
-      description: Устройства, которые необходимо ВЫКЛЮЧАТЬ при приближении к дому
-      default: []
-      selector:
-        entity:
-          filter:
-            - domain:
-                - switch
-                - input_boolean
-                - light
-          reorder: false
-          multiple: true
-
-    leaving_turn_on_switches:
-      name: ВКЛЮЧАТЬ устройства 
-      description: Устройства, которые необходимо ВКЛЮЧАТЬ при выезде из дома
-      default: []
-      selector:
-        entity:
-          filter:
-            - domain:
-                - switch
-                - input_boolean
-                - light
-          reorder: false
-          multiple: true
-
-    leaving_turn_off_switches:
-      name: ВЫКЛЮЧАТЬ устройства 
-      description: Устройства, которые необходимо ВЫКЛЮЧАТЬ при выезде из дома
-      default: []
-      selector:
-        entity:
-          filter:
-            - domain:
-                - switch
-                - input_boolean
-                - light
-          reorder: false
-          multiple: true
-
-    distance_turn_on_switches:
-      name: ВКЛЮЧАТЬ устройства 
-      description: Устройства, которые необходимо ВКЛЮЧАТЬ при удалении от дома
-      default: []
-      selector:
-        entity:
-          filter:
-            - domain:
-                - switch
-                - input_boolean
-                - light
-          reorder: false
-          multiple: true
-
-    distance_turn_off_switches:
-      name: ВЫКЛЮЧАТЬ устройства 
-      description: Устройства, которые необходимо ВЫКЛЮЧАТЬ при удалении от дома
-      default: []
-      selector:
-        entity:
-          filter:
-            - domain:
-                - switch
-                - input_boolean
-                - light
-          reorder: false
-          multiple: true
-
     set_nearest_distance_sensor:
-      name: Сенсор ближайшего кстройства к дому
-      default: []
+      name: Сенсор ближайшего устройства к дому
       selector:
         entity:
           filter:
@@ -147,33 +20,179 @@ blueprint:
               device_class: distance 
           multiple: false
 
-    set_approaching_to_home:
-      name: Расстояние до дома при приближении 
-      default: 25
-      selector:
-        number:
-          min: 5
-          max: 250
-          step: 5
-          mode: slider
-          unit_of_measurement: "км"
+    arrival_section:
+      name: Настройки управления по прибытии домой
+      description: ""
+      input:
+        arrival_turn_on_switches:
+          name: ВКЛЮЧАТЬ устройства 
+          description: Устройства, которые необходимо ВКЛЮЧАТЬ при прибытии домой
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - switch
+                    - input_boolean
+                    - light
+              reorder: false
+              multiple: true
 
-    set_distance_from_home:
-      name: Расстояние от дома при удалении 
-      default: 25
-      selector:
-        number:
-          min: 5
-          max: 250
-          step: 5
-          mode: slider
-          unit_of_measurement: "км"
-      
-    set_delay_to_all_off:
-      name: Задержка до отключения всех устройств при удалении
-      default: "01:00:00"
-      selector:
-        time: {}
+        arrival_turn_off_switches:
+          name: ВЫКЛЮЧАТЬ устройства 
+          description: Устройства, которые необходимо ВЫКЛЮЧАТЬ при прибытии домой
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - switch
+                    - input_boolean
+                    - light
+              reorder: false
+              multiple: true
+
+        arrival_turn_on_sun_switches:
+          name: ВКЛЮЧАТЬ устройства после заката 
+          description: Необязательно. Нпример, приветственный свет. 
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - switch
+                    - input_boolean
+                    - light
+              reorder: false
+              multiple: true
+
+    approaching_section:
+      name: Настройки управления по приближению к дому
+      description: ""
+      input:
+        approaching_turn_on_switches:
+          name: ВКЛЮЧАТЬ устройства 
+          description: Устройства, которые необходимо ВКЛЮЧАТЬ при приближении к дому
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - switch
+                    - input_boolean
+                    - light
+              reorder: false
+              multiple: true
+
+        approaching_turn_off_switches:
+          name: ВЫКЛЮЧАТЬ устройства 
+          description: Устройства, которые необходимо ВЫКЛЮЧАТЬ при приближении к дому
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - switch
+                    - input_boolean
+                    - light
+              reorder: false
+              multiple: true
+
+        set_approaching_to_home:
+          name: Расстояние до дома при приближении 
+          default: 25
+          selector:
+            number:
+              min: 5
+              max: 250
+              step: 5
+              mode: slider
+              unit_of_measurement: "км"
+
+    leaving_section:
+      name: Настройки управления при выезде из дома
+      description: ""
+      input:
+        leaving_turn_on_switches:
+          name: ВКЛЮЧАТЬ устройства 
+          description: Устройства, которые необходимо ВКЛЮЧАТЬ при выезде из дома
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - switch
+                    - input_boolean
+                    - light
+              reorder: false
+              multiple: true
+
+        leaving_turn_off_switches:
+          name: ВЫКЛЮЧАТЬ устройства 
+          description: Устройства, которые необходимо ВЫКЛЮЧАТЬ при выезде из дома
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - switch
+                    - input_boolean
+                    - light
+              reorder: false
+              multiple: true
+
+    distance_section:
+      name: Настройки управления при выезде из дома
+      description: ""
+      input:
+        distance_turn_on_switches:
+          name: ВКЛЮЧАТЬ устройства 
+          description: Устройства, которые необходимо ВКЛЮЧАТЬ при удалении от дома
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - switch
+                    - input_boolean
+                    - light
+              reorder: false
+              multiple: true
+
+        distance_turn_off_switches:
+          name: ВЫКЛЮЧАТЬ устройства 
+          description: Устройства, которые необходимо ВЫКЛЮЧАТЬ при удалении от дома
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - switch
+                    - input_boolean
+                    - light
+              reorder: false
+              multiple: true
+
+        set_distance_from_home:
+          name: Расстояние от дома при удалении 
+          default: 25
+          selector:
+            number:
+              min: 5
+              max: 250
+              step: 5
+              mode: slider
+              unit_of_measurement: "км"
+
+    option_section:      
+      name: Дополнительные настройки управления
+      description: ""
+      input:
+        set_delay_to_all_off:
+          name: Задержка до отключения всех устройств при удалении
+          default: "01:00:00"
+          selector:
+            time: {}
 
 
 trigger_variables:
