@@ -229,6 +229,16 @@ blueprint:
           default: "01:00:00"
           selector:
             time: {}
+        set_notify_mobile:
+          name: Уведомления на мобильные устройства
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - notify
+              reorder: false
+              multiple: true
+
 
 
 trigger_variables:
