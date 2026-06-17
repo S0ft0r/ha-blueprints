@@ -171,6 +171,7 @@ blueprint:
       
     set_delay_to_all_off:
       name: Задержка до отключения всех устройств при удалении
+      default: "01:00:00"
       selector:
         time: {}
 
