@@ -238,14 +238,14 @@ triggers:
     value_template: |
       {{ states(set_nearest_distance_sensor) < set_approaching_to_home * 1000 }}
     for: 
-      "00:10:00"
+      minutes: 10
     id: approaching_trigger
 
   - trigger: template
     value_template: |
       {{ states(set_nearest_distance_sensor) > set_distance_from_home * 1000 }}
     for: 
-      "00:10:00"
+      minutes: 10
     id: distance_trigger
 
 actions:
