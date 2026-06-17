@@ -13,6 +13,7 @@ blueprint:
     arrival_turn_on_switches:
       name: ВКЛЮЧАТЬ устройства 
       description: Устройства, которые необходимо ВКЛЮЧАТЬ при прибытии домой
+      default: []
       selector:
         entity:
           filter:
@@ -26,6 +27,7 @@ blueprint:
     arrival_turn_off_switches:
       name: ВЫКЛЮЧАТЬ устройства 
       description: Устройства, которые необходимо ВЫКЛЮЧАТЬ при прибытии домой
+      default: []
       selector:
         entity:
           filter:
@@ -53,6 +55,7 @@ blueprint:
     approaching_turn_on_switches:
       name: ВКЛЮЧАТЬ устройства 
       description: Устройства, которые необходимо ВКЛЮЧАТЬ при приближении к дому
+      default: []
       selector:
         entity:
           filter:
@@ -66,6 +69,7 @@ blueprint:
     approaching_turn_off_switches:
       name: ВЫКЛЮЧАТЬ устройства 
       description: Устройства, которые необходимо ВЫКЛЮЧАТЬ при приближении к дому
+      default: []
       selector:
         entity:
           filter:
@@ -79,6 +83,7 @@ blueprint:
     leaving_turn_on_switches:
       name: ВКЛЮЧАТЬ устройства 
       description: Устройства, которые необходимо ВКЛЮЧАТЬ при выезде из дома
+      default: []
       selector:
         entity:
           filter:
@@ -92,6 +97,7 @@ blueprint:
     leaving_turn_off_switches:
       name: ВЫКЛЮЧАТЬ устройства 
       description: Устройства, которые необходимо ВЫКЛЮЧАТЬ при выезде из дома
+      default: []
       selector:
         entity:
           filter:
@@ -105,6 +111,7 @@ blueprint:
     distance_turn_on_switches:
       name: ВКЛЮЧАТЬ устройства 
       description: Устройства, которые необходимо ВКЛЮЧАТЬ при удалении от дома
+      default: []
       selector:
         entity:
           filter:
@@ -118,6 +125,7 @@ blueprint:
     distance_turn_off_switches:
       name: ВЫКЛЮЧАТЬ устройства 
       description: Устройства, которые необходимо ВЫКЛЮЧАТЬ при удалении от дома
+      default: []
       selector:
         entity:
           filter:
@@ -130,6 +138,7 @@ blueprint:
 
     set_nearest_distance_sensor:
       name: Сенсор ближайшего кстройства к дому
+      default: []
       selector:
         entity:
           filter:
@@ -162,6 +171,8 @@ blueprint:
       
     set_delay_to_all_off:
       name: Задержка до отключения всех устройств при удалении
+      selector:
+        time: {}
 
 
 trigger_variables:
