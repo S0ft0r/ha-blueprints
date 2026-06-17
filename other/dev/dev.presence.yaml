@@ -26,7 +26,36 @@ blueprint:
       input:
         arrival_turn_on_switches:
           name: ВКЛЮЧАТЬ устройства 
-          description: Устройства, которые необходимо ВКЛЮЧАТЬ при прибытии домой
+          description: |
+            Устройства, которые необходимо ВКЛЮЧАТЬ при прибытии домой
+            <small>* поддерживаются устройства в доменах switch, light и input_boolean</small>
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - switch
+                    - input_boolean
+                    - light
+              reorder: false
+              multiple: true
+
+        arrival_turn_on_switches_extra:
+          name: Дополнительные устройства
+            Дополнительные устройства, которые необходимо ВКЛЮЧАТЬ при приближении к дому
+            <small>* поддерживаются устройства в доменах vacuum, water_heater и climate</small>
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - vacuum
+                    - water_heater
+                    - climate
+
+        arrival_turn_on_sun_switches:
+          name: ВКЛЮЧАТЬ устройства после заката 
+          description: <small>Необязательно. Нпример, приветственный свет.</small> 
           default: []
           selector:
             entity:
@@ -40,21 +69,9 @@ blueprint:
 
         arrival_turn_off_switches:
           name: ВЫКЛЮЧАТЬ устройства 
-          description: Устройства, которые необходимо ВЫКЛЮЧАТЬ при прибытии домой
-          default: []
-          selector:
-            entity:
-              filter:
-                - domain:
-                    - switch
-                    - input_boolean
-                    - light
-              reorder: false
-              multiple: true
-
-        arrival_turn_on_sun_switches:
-          name: ВКЛЮЧАТЬ устройства после заката 
-          description: Необязательно. Нпример, приветственный свет. 
+          description: |
+            Устройства, которые необходимо ВЫКЛЮЧАТЬ при прибытии домой
+            <small>* поддерживаются устройства в доменах switch, light и input_boolean</small>
           default: []
           selector:
             entity:
@@ -72,7 +89,9 @@ blueprint:
       input:
         approaching_turn_on_switches:
           name: ВКЛЮЧАТЬ устройства 
-          description: Устройства, которые необходимо ВКЛЮЧАТЬ при приближении к дому
+          description: |
+            Устройства, которые необходимо ВКЛЮЧАТЬ при приближении к дому
+            <small>* поддерживаются устройства в доменах switch, light и input_boolean</small>
           default: []
           selector:
             entity:
@@ -84,9 +103,24 @@ blueprint:
               reorder: false
               multiple: true
 
+        approaching_turn_on_switches_extra:
+          name: Дополнительные устройства
+            Дополнительные устройства, которые необходимо ВКЛЮЧАТЬ при приближении к дому
+            <small>* поддерживаются устройства в доменах vacuum, water_heater и climate</small>
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - vacuum
+                    - water_heater
+                    - climate
+
         approaching_turn_off_switches:
           name: ВЫКЛЮЧАТЬ устройства 
-          description: Устройства, которые необходимо ВЫКЛЮЧАТЬ при приближении к дому
+          description: |
+            Устройства, которые необходимо ВЫКЛЮЧАТЬ при приближении к дому
+            <small>* поддерживаются устройства в доменах switch, light и input_boolean</small>
           default: []
           selector:
             entity:
