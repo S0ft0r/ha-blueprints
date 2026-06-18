@@ -331,7 +331,6 @@ triggers:
     to: idle
     id: set_leave_house_timer_trigger
 
-
   - trigger: template
     value_template: |    
       {% set i = namespace(item=int(0)) %}
