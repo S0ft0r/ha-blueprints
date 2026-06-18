@@ -113,7 +113,7 @@ blueprint:
           name: Дополнительные устройства
           description: |
             Дополнительные устройства, которые необходимо ВКЛЮЧАТЬ при приближении к дому
-            <small>* поддерживаются устройства в доменах vacuum, water_heater и climate</small>
+            <small>* поддерживаются устройства в доменах vacuum и water_heater</small>
           default: []
           selector:
             entity:
@@ -121,7 +121,8 @@ blueprint:
                 - domain:
                     - vacuum
                     - water_heater
-                    - climate
+              reorder: false
+              multiple: true
 
         arrival_turn_on_sun_switches:
           name: ВКЛЮЧАТЬ устройства после заката 
@@ -241,7 +242,7 @@ blueprint:
       description: ""
       input:
         set_movement_from_home_sensor:
-          name: Сенсор приближения к дому
+          name: Сенсор приближения от дома
           selector:
             entity:
               filter:
