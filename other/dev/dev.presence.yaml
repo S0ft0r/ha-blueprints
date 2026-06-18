@@ -435,7 +435,7 @@ actions:
             data:  
               duration: !input set_delay_to_all_off
             target:
-              entity_id: !input pump_off_auto
+              entity_id: !input set_leave_house_timer
 
       - conditions:
           - condition: trigger
