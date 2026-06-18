@@ -20,6 +20,75 @@ blueprint:
               device_class: distance 
           multiple: false
 
+#######################################################################################
+# ПРИБЛИЖЕНИЕ К ДОМУ
+#######################################################################################
+
+    approaching_section:
+      name: Настройки управления по приближению к дому
+      description: ""
+      input:
+        approaching_turn_on_switches:
+          name: ВКЛЮЧАТЬ устройства 
+          description: |
+            Устройства, которые необходимо ВКЛЮЧАТЬ при приближении к дому
+            <small>* поддерживаются устройства в доменах switch, light и input_boolean</small>
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - switch
+                    - input_boolean
+                    - light
+              reorder: false
+              multiple: true
+
+        approaching_turn_on_switches_extra:
+          name: Дополнительные устройства
+          description: |
+            Дополнительные устройства, которые необходимо ВКЛЮЧАТЬ при приближении к дому
+            <small>* поддерживаются устройства в доменах vacuum, water_heater и climate</small>
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - vacuum
+                    - water_heater
+                    - climate
+
+        approaching_turn_off_switches:
+          name: ВЫКЛЮЧАТЬ устройства 
+          description: |
+            Устройства, которые необходимо ВЫКЛЮЧАТЬ при приближении к дому
+            <small>* поддерживаются устройства в доменах switch, light и input_boolean</small>
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - switch
+                    - input_boolean
+                    - light
+              reorder: false
+              multiple: true
+
+        set_approaching_to_home:
+          name: Расстояние до дома при приближении 
+          default: 25
+          selector:
+            number:
+              min: 5
+              max: 250
+              step: 5
+              mode: slider
+              unit_of_measurement: "км"
+
+#######################################################################################
+# ПРИБЫТИЕ ДОМОЙ
+#######################################################################################
+
     arrival_section:
       name: Настройки управления по прибытии домой
       description: ""
@@ -84,66 +153,9 @@ blueprint:
               reorder: false
               multiple: true
 
-    approaching_section:
-      name: Настройки управления по приближению к дому
-      description: ""
-      input:
-        approaching_turn_on_switches:
-          name: ВКЛЮЧАТЬ устройства 
-          description: |
-            Устройства, которые необходимо ВКЛЮЧАТЬ при приближении к дому
-            <small>* поддерживаются устройства в доменах switch, light и input_boolean</small>
-          default: []
-          selector:
-            entity:
-              filter:
-                - domain:
-                    - switch
-                    - input_boolean
-                    - light
-              reorder: false
-              multiple: true
-
-        approaching_turn_on_switches_extra:
-          name: Дополнительные устройства
-          description: |
-            Дополнительные устройства, которые необходимо ВКЛЮЧАТЬ при приближении к дому
-            <small>* поддерживаются устройства в доменах vacuum, water_heater и climate</small>
-          default: []
-          selector:
-            entity:
-              filter:
-                - domain:
-                    - vacuum
-                    - water_heater
-                    - climate
-
-        approaching_turn_off_switches:
-          name: ВЫКЛЮЧАТЬ устройства 
-          description: |
-            Устройства, которые необходимо ВЫКЛЮЧАТЬ при приближении к дому
-            <small>* поддерживаются устройства в доменах switch, light и input_boolean</small>
-          default: []
-          selector:
-            entity:
-              filter:
-                - domain:
-                    - switch
-                    - input_boolean
-                    - light
-              reorder: false
-              multiple: true
-
-        set_approaching_to_home:
-          name: Расстояние до дома при приближении 
-          default: 25
-          selector:
-            number:
-              min: 5
-              max: 250
-              step: 5
-              mode: slider
-              unit_of_measurement: "км"
+#######################################################################################
+# ВЫЕЗД ИЗ ДОМА
+#######################################################################################
 
     leaving_section:
       name: Настройки управления при выезде из дома
@@ -176,6 +188,10 @@ blueprint:
                     - light
               reorder: false
               multiple: true
+
+#######################################################################################
+# УДАЛЕНИЕ ОТ ДОМА
+#######################################################################################
 
     distance_section:
       name: Настройки управления при удалении от дома
@@ -224,11 +240,42 @@ blueprint:
       name: Дополнительные настройки управления
       description: ""
       input:
+        set_movement_from_home_sensor:
+          name: Сенсор приближения к дому
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - input_boolean
+              reorder: false
+              multiple: false
+
+        set_moving_towards_home_sensor:
+          name: Сенсор приближения к дому
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - input_boolean
+              reorder: false
+              multiple: false
+
+        set_leave_house_timer:
+          name: Таймер для отстчета до отключения устройств
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - timer
+              reorder: false
+              multiple: false
+            
         set_delay_to_all_off:
           name: Задержка до отключения всех устройств при удалении
           default: "01:00:00"
           selector:
             time: {}
+
         set_notify_mobile:
           name: Уведомления на мобильные устройства
           selector:
@@ -238,8 +285,6 @@ blueprint:
                     - notify
               reorder: false
               multiple: true
-
-
 
 trigger_variables:
   arrival_turn_on_switches: !input arrival_turn_on_switches
@@ -255,6 +300,13 @@ trigger_variables:
   set_nearest_distance_sensor: !input set_nearest_distance_sensor
   set_approaching_to_home: !input set_approaching_to_home
   set_distance_from_home: !input set_distance_from_home
+
+  set_movement_from_home_sensor: !input set_movement_from_home_sensor
+  set_moving_towards_home_sensor: !input set_moving_towards_home_sensor
+  set_delay_to_all_off: !input set_delay_to_all_off
+  set_leave_house_timer: !input set_leave_house_timer
+
+  set_notify_mobile: !input set_notify_mobile
 
   # open_states:
   #   - 'on'
@@ -273,6 +325,13 @@ trigger_variables:
     - 'null' 
 
 triggers:
+  - trigger: state
+    entity_id: !input set_leave_house_timer
+    from: active
+    to: idle
+    id: set_leave_house_timer_trigger
+
+
   - trigger: template
     value_template: |    
       {% set i = namespace(item=int(0)) %}
@@ -329,7 +388,24 @@ actions:
   - choose:
       - conditions:
           - condition: trigger
+            id: set_leave_house_timer_trigger
+          - condition: state
+            entity_id: !input set_movement_from_home_sensor
+            state: "on"
+        sequence:
+          - action: homeassistant.turn_off
+            target:
+              entity_id: !input distance_turn_off_switches
+          - action: homeassistant.turn_on
+            target:
+              entity_id: !input distance_turn_on_switches
+
+      - conditions:
+          - condition: trigger
             id: distance_trigger
+          - condition: state
+            entity_id: !input set_movement_from_home_sensor
+            state: "off"
           - condition: template
             value_template: |
               {% set i = namespace(item=int(0)) %}
@@ -348,16 +424,25 @@ actions:
               {% endfor %}
               {{ i.item == 0 }}
         sequence:
-          - action: homeassistant.turn_off
-            target:
-              entity_id: !input distance_turn_off_switches
           - action: homeassistant.turn_on
             target:
-              entity_id: !input distance_turn_on_switches
+              entity_id: !input set_movement_from_home_sensor
+          - action: homeassistant.turn_off
+            target:
+              entity_id: !input set_moving_towards_home_sensor
+          - action: timer.start
+            metadata: {}
+            data:  
+              duration: !input set_delay_to_all_off
+            target:
+              entity_id: !input pump_off_auto
 
       - conditions:
           - condition: trigger
             id: approaching_trigger
+          - condition: state
+            entity_id: !input set_moving_towards_home_sensor
+            state: "off"
           - condition: template
             value_template: |
               {% set i = namespace(item=int(0)) %}
@@ -382,6 +467,12 @@ actions:
           - action: homeassistant.turn_on
             target:
               entity_id: !input approaching_turn_on_switches
+          - action: homeassistant.turn_off
+            target:
+              entity_id: !input set_movement_from_home_sensor
+          - action: homeassistant.turn_on
+            target:
+              entity_id: !input set_moving_towards_home_sensor
 
       - conditions:
           - condition: trigger
@@ -407,10 +498,10 @@ actions:
         sequence:
           - action: homeassistant.turn_on
             target:
-              entity_id: !input arrival_turn_on_switches
+              entity_id: !input leaving_turn_on_switches
           - action: homeassistant.turn_off
             target:
-              entity_id: !input arrival_turn_off_switches
+              entity_id: !input leaving_turn_off_switches
           # - if:
           #     - condition: template
           #       value_template: >-
