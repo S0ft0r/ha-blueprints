@@ -210,7 +210,7 @@ blueprint:
             choose:
               choices:
                 'время':
-                  default: "00:01:00"
+                  # default: "00:01:00"
                   selector:
                     time: {}
                 'сенсор':
