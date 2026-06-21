@@ -636,7 +636,7 @@ actions:
               # {% set apartmentpersons = state_attr('zone.home','persons') | select('search', 'apartment') | list | count %}
               # {{ (allpersons - cottagepersons - apartmentpersons) | int == 0 }}
             then:
-              - delay: !input set_time_waterpump_work
+              - delay: "{{ set_time_waterpump_work.время if set_time_waterpump_work.active_choice == 'время' else states(set_time_waterpump_work.сенсор) }}"
               - action: "{{ 'valve.close_valve' if waterpump_switch.split('.')[0] == 'valve' else 'homeassistant.turn_off' }}"
                 target:
                   entity_id: !input waterpump_switch
