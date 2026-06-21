@@ -204,7 +204,7 @@ blueprint:
           description: | 
             Время, на которое включается насос перед и после полива
             <small>* При отсутствии людей в доме</small> 
-          # default: "00:01:00"
+          default: "00:01:00"
           # selector:
           #   time: {}
 
