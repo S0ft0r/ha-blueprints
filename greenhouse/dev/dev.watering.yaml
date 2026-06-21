@@ -365,7 +365,7 @@ triggers:
       {% set time_waterpump_work = set_time_waterpump_work %}
       {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(on_time_morning) - time_waterpump_work | as_timedelta) | timestamp_custom('%H:%M') }}
     id: time_before_morning_trigger
-    enabled: !input pump_morning_enable
+    enabled: "{{ pump_morning_enable }}"
 
   - trigger: template
     value_template: >-
@@ -373,7 +373,7 @@ triggers:
       {% set time_waterpump_work = set_time_waterpump_work %}
       {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(on_time_evening) - time_waterpump_work | as_timedelta) | timestamp_custom('%H:%M') }}
     id: time_before_evening_trigger
-    enabled: !input pump_evening_enable
+    enabled: "{{ pump_evening_enable }}" 
 
 actions:
   - choose:
