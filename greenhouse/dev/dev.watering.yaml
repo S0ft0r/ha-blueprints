@@ -205,23 +205,23 @@ blueprint:
             Время, на которое включается насос перед и после полива
             <small>* При отсутствии людей в доме</small> 
           default: "00:01:00"
-          # selector:
-          #   time: {}
-
           selector:
-            choose:
-              choices:
-                'время':
-                  # default: "00:01:00"
-                  selector:
-                    time: {}
-                'сенсор':
-                  selector:
-                    entity:
-                      filter:
-                        - domain: 
-                            - input_datetime
-                      multiple: false
+            time: {}
+
+          # selector:
+          #   choose:
+          #     choices:
+          #       'время':
+          #         # default: "00:01:00"
+          #         selector:
+          #           time: {}
+          #       'сенсор':
+          #         selector:
+          #           entity:
+          #             filter:
+          #               - domain: 
+          #                   - input_datetime
+          #             multiple: false
 
 
         watervalve_switch:
