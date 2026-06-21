@@ -341,19 +341,19 @@ triggers:
     trigger: state
     id: pump_off_auto_trigger
 
-  - trigger: state
-    entity_id: !input watervalve_switch
-    id: watervalve_switch_on_trigger
-    to: "on"
-    from: "off"
+  # - trigger: state
+  #   entity_id: !input watervalve_switch
+  #   id: watervalve_switch_on_trigger
+  #   to: "on"
+  #   from: "off"
 
-  - trigger: state
-    entity_id: !input watervalve_switch
-    id: watervalve_switch_off_trigger
-    to: "off"
-    from: "on"
-    for:
-      seconds: 5
+  # - trigger: state
+  #   entity_id: !input watervalve_switch
+  #   id: watervalve_switch_off_trigger
+  #   to: "off"
+  #   from: "on"
+  #   for:
+  #     seconds: 5
 
   - entity_id: !input watering_switch
     trigger: state
