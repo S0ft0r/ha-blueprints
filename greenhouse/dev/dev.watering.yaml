@@ -326,14 +326,14 @@ triggers:
       {% set on_time_morning = set_on_time_morning %}
       {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(on_time_morning)) | timestamp_custom('%H:%M') }}
     id: on_morning_trigger
-    enabled: "{{ pump_morning_enable }}"
+    enabled: !input set_pump_morning_enable
 
   - trigger: template
     value_template: >-
       {% set on_time_evening = set_on_time_evening %}
       {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(on_time_evening)) | timestamp_custom('%H:%M') }}
     id: on_evening_trigger
-    enabled: "{{ pump_morning_enable }}"
+    enabled: !input set_pump_evening_enable
 
   - entity_id: !input pump_off_auto
     from: active
