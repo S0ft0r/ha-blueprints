@@ -47,7 +47,18 @@ blueprint:
           name: Включение полива утром
           default: false
           selector:
-            boolean: {}
+            choose:
+              choices:
+                'выбор':
+                  selector:
+                    boolean: {}
+                'сенсор':
+                  selector:
+                    entity:
+                      filter:
+                        - domain: 
+                            - input_boolean
+                      multiple: false
 
         set_on_time_morning:
           name: Включить утром в
@@ -118,7 +129,18 @@ blueprint:
           name: Включение вечером
           default: false
           selector:
-            boolean: {}
+            choose:
+              choices:
+                'выбор':
+                  selector:
+                    boolean: {}
+                'сенсор':
+                  selector:
+                    entity:
+                      filter:
+                        - domain: 
+                            - input_boolean
+                      multiple: false
 
         set_on_time_evening:
           name: Включить вечером в
@@ -205,9 +227,6 @@ blueprint:
             Время, на которое включается насос перед и после полива
             <small>* При отсутствии людей в доме</small> 
           default: "00:01:00"
-          # selector:
-          #   time: {}
-
           selector:
             choose:
               choices:
@@ -323,9 +342,6 @@ trigger_variables:
     - 'None'                
     - 'null'       
 
-  pump_evening_enable: "{{ set_pump_evening_enable }}"                            
-  pump_evening_morning: "{{ set_pump_morning_enable }}"                            
-
 variables:
   selected_days_morning: |
     {{ now().strftime('%a') | lower in set_select_days_morning }}
@@ -339,14 +355,14 @@ triggers:
       {% set on_time_morning = set_on_time_morning %}
       {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(on_time_morning)) | timestamp_custom('%H:%M') }}
     id: on_morning_trigger
-    enabled: !input set_pump_morning_enable
+    enabled: "{{ true if set_pump_morning_enable.active_choice == 'выбор' else states(set_pump_morning_enable.сенсор) }}"
 
   - trigger: template
     value_template: >-
       {% set on_time_evening = set_on_time_evening %}
       {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(on_time_evening)) | timestamp_custom('%H:%M') }}
     id: on_evening_trigger
-    enabled: !input set_pump_evening_enable
+    enabled: !input "{{ true if set_pump_evening_enable.active_choice == 'выбор' else states(set_pump_evening_enable.сенсор) }}"
 
   - entity_id: !input pump_off_auto
     from: active
@@ -378,7 +394,7 @@ triggers:
       {% set time_waterpump_work = set_time_waterpump_work.время if set_time_waterpump_work.active_choice == 'время' else states(set_time_waterpump_work.сенсор) %}
       {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(on_time_morning) - time_waterpump_work | as_timedelta) | timestamp_custom('%H:%M') }}
     id: time_before_morning_trigger
-    enabled: !input set_pump_morning_enable
+    enabled: "{{ true if set_pump_morning_enable.active_choice == 'выбор' else states(set_pump_morning_enable.сенсор) }}"
 
   - trigger: template
     value_template: >-
@@ -386,7 +402,7 @@ triggers:
       {% set time_waterpump_work = set_time_waterpump_work.время if set_time_waterpump_work.active_choice == 'время' else states(set_time_waterpump_work.сенсор) %}
       {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(on_time_evening) - time_waterpump_work | as_timedelta) | timestamp_custom('%H:%M') }}
     id: time_before_evening_trigger
-    enabled: !input set_pump_evening_enable
+    enabled: "{{ true if set_pump_evening_enable.active_choice == 'выбор' else states(set_pump_evening_enable.сенсор) }}"
 
 actions:
   - choose:
