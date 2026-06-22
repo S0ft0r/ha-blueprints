@@ -550,9 +550,6 @@ actions:
               entity_id: !input waterpump_switch
             action: "{{ 'valve.open_valve' if waterpump_switch.split('.')[0] == 'valve' else 'homeassistant.turn_on' }}"
 
-          - delay:
-              seconds: 5
-
           - if:
               - condition: template
                 value_template: |
@@ -854,8 +851,8 @@ actions:
           - action: timer.start
             data: # Расчет времени до автоотключение  
               duration: | 
-                {% set on_time_morning = set_on_time_morning.время if set_on_time_morning.active_choice == 'время' else states(set_on_time_morning.сенсор) %}
-                {% set on_time_evening = set_on_time_evening.время if set_on_time_evening.active_choice == 'время' else states(set_on_time_evening.сенсор) %}
+                {% set on_time_morning = set_on_time_morning.время if set_on_time_morning.active_choice == 'время' else set_auto_off_pump_time if set_on_time_morning.сенсор == [] else states(set_on_time_morning.сенсор) %}
+                {% set on_time_evening = set_on_time_evening.время if set_on_time_evening.active_choice == 'время' else set_auto_off_pump_time if set_on_time_evening.сенсор == [] else states(set_on_time_evening.сенсор) %}
                 {% set watervalve_count = watervalve_switch | list | count %}
                 {% set on_time_morning_in_seconds = on_time_morning.split(':')[0] | int * 3600 + on_time_morning.split(':')[1] | int * 60 + on_time_morning.split(':')[2] | int %}
                 {% set on_time_evening_in_seconds = on_time_evening.split(':')[0] | int * 3600 + on_time_evening.split(':')[1] | int * 60 + on_time_evening.split(':')[2] | int %}
