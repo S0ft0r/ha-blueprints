@@ -67,7 +67,6 @@ blueprint:
             choose:
               choices:
                 'время':
-                  # default: "00:01:00"
                   selector:
                     time: {}
                 'сенсор':
@@ -851,14 +850,14 @@ actions:
           - action: timer.start
             data: # Расчет времени до автоотключение  
               duration: | 
-                {% set on_time_morning = set_on_time_morning.время if set_on_time_morning.active_choice == 'время' else set_auto_off_pump_time if set_on_time_morning.сенсор == [] else states(set_on_time_morning.сенсор) %}
-                {% set on_time_evening = set_on_time_evening.время if set_on_time_evening.active_choice == 'время' else set_auto_off_pump_time if set_on_time_evening.сенсор == [] else states(set_on_time_evening.сенсор) %}
+                {% set on_time_morning = set_on_time_morning['время'] if set_on_time_morning.active_choice == 'время' else states(set_on_time_morning['сенсор']) %}
+                {% set on_time_evening = set_on_time_morning['время'] if set_on_time_evening.active_choice == 'время' else states(set_on_time_evening['сенсор']) %}
                 {% set watervalve_count = watervalve_switch | list | count %}
                 {% set on_time_morning_in_seconds = on_time_morning.split(':')[0] | int * 3600 + on_time_morning.split(':')[1] | int * 60 + on_time_morning.split(':')[2] | int %}
                 {% set on_time_evening_in_seconds = on_time_evening.split(':')[0] | int * 3600 + on_time_evening.split(':')[1] | int * 60 + on_time_evening.split(':')[2] | int %}
                 {% set auto_off_pump_time_in_seconds = set_auto_off_pump_time.split(':')[0] | int * 3600 + set_auto_off_pump_time.split(':')[1] | int * 60 + set_auto_off_pump_time.split(':')[2] | int %}
                 {% set max_seconds = max(((set_watervalve_open_delay + on_time_morning_in_seconds + set_watervalve_close_delay) * watervalve_count + 60), ((set_watervalve_open_delay + on_time_evening_in_seconds + set_watervalve_close_delay) * watervalve_count + 60), auto_off_pump_time_in_seconds) %}
-                {{ '%02d:%02d:%02d' | format(max_seconds// 3600, (max_seconds % 3600) // 60, max_seconds % 60) }}
+                {{ '%02d:%02d:%02d' | format(max_seconds // 3600, (max_seconds % 3600) // 60, max_seconds % 60) }}
             target:
               entity_id: !input pump_off_auto
 
