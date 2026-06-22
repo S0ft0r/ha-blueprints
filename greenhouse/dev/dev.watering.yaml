@@ -350,59 +350,53 @@ variables:
     {{ now().strftime('%a') | lower in set_select_days_evening }}
 
 triggers:
-  - trigger: template
-    value_template: >-
-      {% set on_time_morning = set_on_time_morning %}
-      {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(on_time_morning)) | timestamp_custom('%H:%M') }}
-    id: on_morning_trigger
-    enabled: "{{ true if set_pump_morning_enable.active_choice == 'выбор' else states(set_pump_morning_enable.сенсор) }}"
+  - trigger: state # Ручное выключение направления
+    entity_id: !input watervalve_switch
+    id: watervalve_switch_off_trigger
+    to: "off"
+    from: "on"
 
-  - trigger: template
-    value_template: >-
-      {% set on_time_evening = set_on_time_evening %}
-      {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(on_time_evening)) | timestamp_custom('%H:%M') }}
-    id: on_evening_trigger
-    enabled: "{{ true if set_pump_evening_enable.active_choice == 'выбор' else states(set_pump_evening_enable.сенсор) }}"
-
-  - entity_id: !input pump_off_auto
-    from: active
-    to: idle
-    trigger: state
-    id: pump_off_auto_trigger
-
-  - trigger: state
+  - trigger: state # Ручное включение направления
     entity_id: !input watervalve_switch
     id: watervalve_switch_on_trigger
     to: "on"
     from: "off"
 
-  - trigger: state
-    entity_id: !input watervalve_switch
-    id: watervalve_switch_off_trigger
-    to: "off"
-    from: "on"
-    for:
-      seconds: 5
-
-  - entity_id: !input watering_switch
-    trigger: state
-    id: watering_toggle_trigger
-
-  - trigger: template
+  - trigger: template # Включение насоса и закрытие клапанов направления до включения системы утром
     value_template: >-
       {% set on_time_morning = set_on_time_morning %}
       {% set time_waterpump_work = set_time_waterpump_work.время if set_time_waterpump_work.active_choice == 'время' else states(set_time_waterpump_work.сенсор) %}
       {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(on_time_morning) - time_waterpump_work | as_timedelta) | timestamp_custom('%H:%M') }}
     id: time_before_morning_trigger
-    enabled: "{{ true if set_pump_morning_enable.active_choice == 'выбор' else states(set_pump_morning_enable.сенсор) }}"
 
-  - trigger: template
+  - trigger: template # Включение насоса и закрытие клапанов направления до включения системы вечером
     value_template: >-
       {% set on_time_evening = set_on_time_evening %}
       {% set time_waterpump_work = set_time_waterpump_work.время if set_time_waterpump_work.active_choice == 'время' else states(set_time_waterpump_work.сенсор) %}
       {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(on_time_evening) - time_waterpump_work | as_timedelta) | timestamp_custom('%H:%M') }}
     id: time_before_evening_trigger
-    enabled: "{{ true if set_pump_evening_enable.active_choice == 'выбор' else states(set_pump_evening_enable.сенсор) }}"
+
+  - trigger: template # Включение системы утром
+    value_template: >-
+      {% set on_time_morning = set_on_time_morning %}
+      {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(on_time_morning)) | timestamp_custom('%H:%M') }}
+    id: on_morning_trigger
+
+  - trigger: template # Включение системы вечером
+    value_template: >-
+      {% set on_time_evening = set_on_time_evening %}
+      {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(on_time_evening)) | timestamp_custom('%H:%M') }}
+    id: on_evening_trigger
+
+  - entity_id: !input pump_off_auto # Аварийное выключение системы
+    from: active
+    to: idle
+    trigger: state
+    id: pump_off_auto_trigger
+
+  - entity_id: !input watering_switch # Влючение таймера для варийного выключение системы
+    trigger: state
+    id: watering_toggle_trigger
 
 actions:
   - choose:
@@ -432,7 +426,6 @@ actions:
           - action: "{{ 'valve.close_valve' if watering_switch.split('.')[0] == 'valve' else 'homeassistant.turn_off' }}"
             target:
               entity_id: !input watering_switch
-            data: {}
 
 #######################################################################################
 # Ручное включение направления
@@ -442,9 +435,6 @@ actions:
           - condition: trigger
             id:
               - watervalve_switch_on_trigger
-          # - condition: template
-          #   value_template: |
-          #     {{ (watervalve_switch | count) > 0 }}
           - condition: template
             value_template: >
               {{ trigger.to_state.context.user_id is not none }}
@@ -457,7 +447,6 @@ actions:
               - action: "{{ 'valve.open_valve' if waterpump_switch.split('.')[0] == 'valve' else 'homeassistant.turn_on' }}"
                 target:
                   entity_id: !input waterpump_switch
-                data: {}
           - repeat:
               for_each: !input watervalve_switch
               sequence:
@@ -465,7 +454,7 @@ actions:
                     - condition: template
                       value_template: |
                         {{ repeat.item != trigger.from_state.entity_id }}
-                  then: #  Выключение клапана потока
+                  then: 
                     - action: "{{ 'valve.close_valve' if watering_switch.split('.')[0] == 'valve' else 'homeassistant.turn_off' }}"
                       target:
                         entity_id: "{{ repeat.item }}"
@@ -482,7 +471,6 @@ actions:
               - action: "{{ 'valve.open_valve' if watering_switch.split('.')[0] == 'valve' else 'homeassistant.turn_on' }}"
                 target:
                   entity_id: !input watering_switch
-                data: {}
 
 #######################################################################################
 # Включение насоса и закрытие клапанов направления до включения системы утром
@@ -501,10 +489,12 @@ actions:
           - condition: template
             value_template: |
               {{ true if ('select_morning' not in set_working_day_morning) else selected_days_morning }}
+          - condition: template
+            value_template: |
+              {{ set_pump_morning_enable.выбор if set_pump_morning_enable.active_choice == 'выбор' else states(set_pump_morning_enable.сенсор) }}
         sequence:
           - target:
               entity_id: !input waterpump_switch
-            data: {}
             action: "{{ 'valve.open_valve' if waterpump_switch.split('.')[0] == 'valve' else 'homeassistant.turn_on' }}"
           - delay:
               seconds: 5
@@ -540,10 +530,12 @@ actions:
           - condition: template
             value_template: |
               {{ true if ('select_evening' not in set_working_day_evening) else selected_days_evening }}
+          - condition: template
+            value_template: |
+              {{ set_pump_evening_enable.выбор if set_pump_evening_enable.active_choice == 'выбор' else states(set_pump_evening_enable.сенсор) }}
         sequence:
           - target:
               entity_id: !input waterpump_switch
-            data: {}
             action: "{{ 'valve.open_valve' if waterpump_switch.split('.')[0] == 'valve' else 'homeassistant.turn_on' }}"
           - delay:
               seconds: 5
@@ -579,11 +571,13 @@ actions:
           - condition: template
             value_template: |
               {{ states(waterpump_switch) in open_states }}
+          - condition: template
+            value_template: |
+              {{ set_pump_morning_enable.выбор if set_pump_morning_enable.active_choice == 'выбор' else states(set_pump_morning_enable.сенсор) }}
         sequence:
           - action: "{{ 'valve.open_valve' if watering_switch.split('.')[0] == 'valve' else 'homeassistant.turn_on' }}" #            Клапан на воду включен
             target: 
               entity_id: !input watering_switch
-            data: {}
           - repeat:
               for_each: !input watervalve_switch
               sequence:
@@ -617,8 +611,7 @@ actions:
                         entity_id: "{{ repeat.item }}"
 
                 - delay: "{{ '%02d:%02d:%02d' | format(set_watervalve_close_delay // 3600, (set_watervalve_close_delay % 3600) // 60, set_watervalve_close_delay % 60) }}"
-          - data: {} #                                      Клапан на воду выключен
-            target:
+          - target:
               entity_id: !input watering_switch
             action: "{{ 'valve.close_valve' if watering_switch.split('.')[0] == 'valve' else 'homeassistant.turn_off' }}"
       
@@ -639,11 +632,13 @@ actions:
           - condition: template
             value_template: |
               {{ states(waterpump_switch) in open_states }}
+          - condition: template
+            value_template: |
+              {{ set_pump_evening_enable.выбор if set_pump_evening_enable.active_choice == 'выбор' else states(set_pump_evening_enable.сенсор) }}
         sequence:
           - action: "{{ 'valve.open_valve' if watering_switch.split('.')[0] == 'valve' else 'homeassistant.turn_on' }}" #            Клапан на воду включен
             target: 
               entity_id: !input watering_switch
-            data: {}
           - repeat:
               for_each: !input watervalve_switch
               sequence:
@@ -677,8 +672,7 @@ actions:
                         entity_id: "{{ repeat.item }}"
 
                 - delay: "{{ '%02d:%02d:%02d' | format(set_watervalve_close_delay // 3600, (set_watervalve_close_delay % 3600) // 60, set_watervalve_close_delay % 60) }}"
-          - data: {} #                                      Клапан на воду выключен
-            target:
+          - target:
               entity_id: !input watering_switch
             action: "{{ 'valve.close_valve' if watering_switch.split('.')[0] == 'valve' else 'homeassistant.turn_off' }}"
        
@@ -694,7 +688,6 @@ actions:
           - action: "{{ 'valve.close_valve' if watering_switch.split('.')[0] == 'valve' else 'homeassistant.turn_off' }}"
             target:
               entity_id: !input watering_switch
-            data: {}
           - repeat:
               for_each: !input watervalve_switch
               sequence:
@@ -721,16 +714,11 @@ actions:
                     {% set i.item = i.item + (1 if (la and lo) else 0) %}
                   {% endfor %}
                   {{ i.item == 0 }}
-              # {% set allpersons = state_attr('zone.home','persons') | count %}
-              # {% set cottagepersons = state_attr('zone.home','persons') | select('search', 'cottage') | list | count %}
-              # {% set apartmentpersons = state_attr('zone.home','persons') | select('search', 'apartment') | list | count %}
-              # {{ (allpersons - cottagepersons - apartmentpersons) | int == 0 }}
             then:
               - delay: "{{ set_time_waterpump_work.время if set_time_waterpump_work.active_choice == 'время' else states(set_time_waterpump_work.сенсор) }}"
               - action: "{{ 'valve.close_valve' if waterpump_switch.split('.')[0] == 'valve' else 'homeassistant.turn_off' }}"
                 target:
                   entity_id: !input waterpump_switch
-                data: {}
       
 #######################################################################################
 # Выключение таймера для варийного выключение системы
@@ -745,8 +733,6 @@ actions:
               {{ trigger.from_state.state in open_states and trigger.to_state.state in closed_states }}
         sequence:
           - action: timer.finish
-            metadata: {}
-            data: {}
             target:
               entity_id: !input pump_off_auto
       
@@ -766,7 +752,6 @@ actions:
             state: "on"
         sequence:
           - action: timer.start
-            metadata: {}
             data: # Расчет времени до автоотключение  
               duration: | 
                 {% set watervalve_count = watervalve_switch | list | count %}
