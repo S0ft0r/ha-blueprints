@@ -362,7 +362,7 @@ triggers:
       {% set on_time_evening = set_on_time_evening %}
       {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(on_time_evening)) | timestamp_custom('%H:%M') }}
     id: on_evening_trigger
-    enabled: !input "{{ true if set_pump_evening_enable.active_choice == 'выбор' else states(set_pump_evening_enable.сенсор) }}"
+    enabled: "{{ true if set_pump_evening_enable.active_choice == 'выбор' else states(set_pump_evening_enable.сенсор) }}"
 
   - entity_id: !input pump_off_auto
     from: active
