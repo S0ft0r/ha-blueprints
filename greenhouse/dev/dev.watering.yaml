@@ -678,8 +678,8 @@ actions:
                         {{ set_nc_no_type_valve == 'type_no' }}
 
                   then:
-                   - action: "{{ 'valve.open_valve' if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.turn_on' }}" #  Закрытие клапана потока
-                     target:
+                    - action: "{{ 'valve.open_valve' if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.turn_on' }}" #  Закрытие клапана потока
+                      target:
                         entity_id: "{{ repeat.item }}"
 
                   else:
@@ -751,8 +751,8 @@ actions:
                         {{ set_nc_no_type_valve == 'type_no' }}
 
                   then:
-                   - action: "{{ 'valve.open_valve' if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.turn_on' }}" #  Закрытие клапана потока
-                     target:
+                    - action: "{{ 'valve.open_valve' if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.turn_on' }}" #  Закрытие клапана потока
+                      target:
                         entity_id: "{{ repeat.item }}"
 
                   else:
