@@ -405,8 +405,8 @@ variables:
   selected_days_evening: |
     {{ now().strftime('%a') | lower in set_select_days_evening }}
 
-  set_on_time_morning: !input set_on_time_morning
-  set_on_time_evening: !input set_on_time_evening
+  set_time_work_morning: !input set_time_work_morning
+  set_time_work_evening: !input set_time_work_evening
 
 
 triggers:
@@ -680,7 +680,7 @@ actions:
                 
                 - delay: "{{ '%02d:%02d:%02d' | format(set_watervalve_open_delay // 3600, (set_watervalve_open_delay % 3600) // 60, set_watervalve_open_delay % 60) }}"
 
-                - delay: "{{ set_on_time_morning.время if set_on_time_morning.active_choice == 'время' else states(set_on_time_morning.сенсор) }}"
+                - delay: "{{ set_time_work_morning.время if set_time_work_morning.active_choice == 'время' else states(set_time_work_morning.сенсор) }}"
 
                 - if:
                     - condition: template
@@ -753,7 +753,7 @@ actions:
                 
                 - delay: "{{ '%02d:%02d:%02d' | format(set_watervalve_open_delay // 3600, (set_watervalve_open_delay % 3600) // 60, set_watervalve_open_delay % 60) }}"
 
-                - delay: "{{ set_on_time_evening.время if set_on_time_evening.active_choice == 'время' else states(set_on_time_evening.сенсор) }}"
+                - delay: "{{ set_time_work_evening.время if set_time_work_evening.active_choice == 'время' else states(set_time_work_evening.сенсор) }}"
 
                 - if:
                     - condition: template
@@ -864,14 +864,14 @@ actions:
           - action: timer.start
             data: # Расчет времени до автоотключение  
               duration: | 
-                {% set on_time_morning = set_on_time_morning.время if set_on_time_morning.active_choice == 'время' else states(set_on_time_morning.сенсор) %}
-                {% set on_time_evening = set_on_time_evening.время if set_on_time_evening.active_choice == 'время' else states(set_on_time_evening.сенсор) %}
+                {% set work_time_morning = set_time_work_morning.время if set_time_work_morning.active_choice == 'время' else states(set_time_work_morning.сенсор) %}
+                {% set work_time_evening = set_time_work_evening.время if set_time_work_evening.active_choice == 'время' else states(set_time_work_evening.сенсор) %}
                 {% set watervalve_count = watervalve_switch | list | count %}
-                {% set on_time_morning_in_seconds = on_time_morning.split(':')[0] | int * 3600 + on_time_morning.split(':')[1] | int * 60 + on_time_morning.split(':')[2] | int %}
-                {% set on_time_evening_in_seconds = on_time_evening.split(':')[0] | int * 3600 + on_time_evening.split(':')[1] | int * 60 + on_time_evening.split(':')[2] | int %}
+                {% set work_time_morning_in_seconds = work_time_morning.split(':')[0] | int * 3600 + work_time_morning.split(':')[1] | int * 60 + work_time_morning.split(':')[2] | int %}
+                {% set work_time_evening_in_seconds = work_time_evening.split(':')[0] | int * 3600 + work_time_evening.split(':')[1] | int * 60 + work_time_evening.split(':')[2] | int %}
                 {% set auto_off_pump_time_in_seconds = set_auto_off_pump_time.split(':')[0] | int * 3600 + set_auto_off_pump_time.split(':')[1] | int * 60 + set_auto_off_pump_time.split(':')[2] | int %}
-                {% set max_seconds = max(((set_watervalve_open_delay + on_time_morning_in_seconds + set_watervalve_close_delay) * watervalve_count + 60), 
-                  ((set_watervalve_open_delay + on_time_evening_in_seconds + set_watervalve_close_delay) * watervalve_count + 60), 
+                {% set max_seconds = max(((set_watervalve_open_delay + work_time_morning_in_seconds + set_watervalve_close_delay) * watervalve_count + 60), 
+                  ((set_watervalve_open_delay + work_time_evening_in_seconds + set_watervalve_close_delay) * watervalve_count + 60), 
                   auto_off_pump_time_in_seconds) %}
                 {{ '%02d:%02d:%02d' | format(max_seconds // 3600, (max_seconds % 3600) // 60, max_seconds % 60) }}
             target:
