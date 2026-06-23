@@ -45,7 +45,10 @@ blueprint:
       input:
         set_pump_morning_enable:
           name: Включение полива утром
-          default: false
+          default:
+            active_choice: время
+            время: "08:00:00"
+            сенсор: []
           selector:
             choose:
               choices:
@@ -109,7 +112,6 @@ blueprint:
                   value: every_over_day_morning
                 - label: Выбор дней
                   value: select_morning
-#              mode: dropdown
               mode: list
               multiple: false
 
@@ -149,7 +151,10 @@ blueprint:
       input:
         set_pump_evening_enable:
           name: Включение вечером
-          default: false
+          default:
+            active_choice: выбор
+            выбор: false
+            сенсор: []
           selector:
             choose:
               choices:
@@ -166,12 +171,14 @@ blueprint:
 
         set_on_time_evening:
           name: Включить вечером в
-          default: "20:00:00"
+          default:
+            active_choice: время
+            время: "20:00:00"
+            сенсор: []
           selector:
             choose:
               choices:
                 'время':
-                  # default: "00:01:00"
                   selector:
                     time: {}
                 'сенсор':
@@ -187,12 +194,14 @@ blueprint:
           description: |
             Время, на которое включается полив 
             <small>* На каждое направление</small>
-          default: "00:10:00"
+          default:
+            active_choice: время
+            время: "00:10:00"
+            сенсор: []
           selector:
             choose:
               choices:
                 'время':
-                  # default: "00:01:00"
                   selector:
                     time: {}
                 'сенсор':
@@ -272,12 +281,14 @@ blueprint:
           description: | 
             Время, на которое включается насос перед и после полива
             <small>* При отсутствии людей в доме</small> 
-          default: "00:01:00"
+          default:
+            active_choice: время
+            время: "00:01:00"
+            сенсор: []
           selector:
             choose:
               choices:
                 'время':
-                  # default: "00:01:00"
                   selector:
                     time: {}
                 'сенсор':
@@ -393,6 +404,10 @@ variables:
 
   selected_days_evening: |
     {{ now().strftime('%a') | lower in set_select_days_evening }}
+
+  set_on_time_morning: !input set_on_time_morning
+  set_on_time_evening: !input set_on_time_evening
+
 
 triggers:
   - trigger: state # Ручное выключение направления
@@ -665,7 +680,7 @@ actions:
                 
                 - delay: "{{ '%02d:%02d:%02d' | format(set_watervalve_open_delay // 3600, (set_watervalve_open_delay % 3600) // 60, set_watervalve_open_delay % 60) }}"
 
-                - delay: !input set_time_work_morning
+                - delay: "{{ set_on_time_morning.время if set_on_time_morning.active_choice == 'время' else states(set_on_time_morning.сенсор) }}"
 
                 - if:
                     - condition: template
@@ -738,7 +753,7 @@ actions:
                 
                 - delay: "{{ '%02d:%02d:%02d' | format(set_watervalve_open_delay // 3600, (set_watervalve_open_delay % 3600) // 60, set_watervalve_open_delay % 60) }}"
 
-                - delay: !input set_time_work_evening
+                - delay: "{{ set_on_time_evening.время if set_on_time_evening.active_choice == 'время' else states(set_on_time_evening.сенсор) }}"
 
                 - if:
                     - condition: template
@@ -849,13 +864,15 @@ actions:
           - action: timer.start
             data: # Расчет времени до автоотключение  
               duration: | 
-                {% set on_time_morning = set_on_time_morning.value if set_on_time_morning.active_choice == 'время' else states(set_on_time_morning.value) %}
-                {% set on_time_evening = set_on_time_morning.value if set_on_time_evening.active_choice == 'время' else states(set_on_time_evening.value) %}
+                {% set on_time_morning = set_on_time_morning.время if set_on_time_morning.active_choice == 'время' else states(set_on_time_morning.сенсор) %}
+                {% set on_time_evening = set_on_time_evening.время if set_on_time_evening.active_choice == 'время' else states(set_on_time_evening.сенсор) %}
                 {% set watervalve_count = watervalve_switch | list | count %}
                 {% set on_time_morning_in_seconds = on_time_morning.split(':')[0] | int * 3600 + on_time_morning.split(':')[1] | int * 60 + on_time_morning.split(':')[2] | int %}
                 {% set on_time_evening_in_seconds = on_time_evening.split(':')[0] | int * 3600 + on_time_evening.split(':')[1] | int * 60 + on_time_evening.split(':')[2] | int %}
                 {% set auto_off_pump_time_in_seconds = set_auto_off_pump_time.split(':')[0] | int * 3600 + set_auto_off_pump_time.split(':')[1] | int * 60 + set_auto_off_pump_time.split(':')[2] | int %}
-                {% set max_seconds = max(((set_watervalve_open_delay + on_time_morning_in_seconds + set_watervalve_close_delay) * watervalve_count + 60), ((set_watervalve_open_delay + on_time_evening_in_seconds + set_watervalve_close_delay) * watervalve_count + 60), auto_off_pump_time_in_seconds) %}
+                {% set max_seconds = max(((set_watervalve_open_delay + on_time_morning_in_seconds + set_watervalve_close_delay) * watervalve_count + 60), 
+                  ((set_watervalve_open_delay + on_time_evening_in_seconds + set_watervalve_close_delay) * watervalve_count + 60), 
+                  auto_off_pump_time_in_seconds) %}
                 {{ '%02d:%02d:%02d' | format(max_seconds // 3600, (max_seconds % 3600) // 60, max_seconds % 60) }}
             target:
               entity_id: !input pump_off_auto
