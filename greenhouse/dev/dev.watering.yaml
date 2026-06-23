@@ -408,6 +408,9 @@ variables:
   set_time_work_morning: !input set_time_work_morning
   set_time_work_evening: !input set_time_work_evening
 
+  work_time_morning: "{{ set_time_work_morning.время if set_time_work_morning.active_choice == 'время' else states(set_time_work_morning.сенсор) }}"
+  work_time_evening: "{{ set_time_work_evening.время if set_time_work_evening.active_choice == 'время' else states(set_time_work_evening.сенсор) }}"
+
 
 triggers:
   - trigger: state # Ручное выключение направления
@@ -517,7 +520,7 @@ actions:
                         entity_id: "{{ repeat.item }}"
 
                     - delay:
-                        seconds: 5
+                        seconds: 1
 
           - delay: "{{ '%02d:%02d:%02d' | format(set_watervalve_close_delay // 3600, (set_watervalve_close_delay % 3600) // 60, set_watervalve_close_delay % 60) }}"
 
@@ -578,7 +581,7 @@ actions:
                         entity_id: "{{ repeat.item }}"
 
                     - delay:
-                        seconds: 5
+                        seconds: 1
       
 #######################################################################################
 # Включение насоса и закрытие клапанов направления до включения системы вечером
@@ -611,7 +614,7 @@ actions:
             action: "{{ 'valve.open_valve' if waterpump_switch.split('.')[0] == 'valve' else 'homeassistant.turn_on' }}"
 
           - delay:
-              seconds: 5
+              seconds: 1
 
           - if:
               - condition: template
@@ -628,7 +631,7 @@ actions:
                         entity_id: "{{ repeat.item }}"
 
                     - delay:
-                        seconds: 5
+                        seconds: 1
       
 #######################################################################################
 # Включение системы утром
@@ -864,8 +867,6 @@ actions:
           - action: timer.start
             data: # Расчет времени до автоотключение  
               duration: | 
-                {% set work_time_morning = set_time_work_morning.время if set_time_work_morning.active_choice == 'время' else states(set_time_work_morning.сенсор) %}
-                {% set work_time_evening = set_time_work_evening.время if set_time_work_evening.active_choice == 'время' else states(set_time_work_evening.сенсор) %}
                 {% set watervalve_count = watervalve_switch | list | count %}
                 {% set work_time_morning_in_seconds = work_time_morning.split(':')[0] | int * 3600 + work_time_morning.split(':')[1] | int * 60 + work_time_morning.split(':')[2] | int %}
                 {% set work_time_evening_in_seconds = work_time_evening.split(':')[0] | int * 3600 + work_time_evening.split(':')[1] | int * 60 + work_time_evening.split(':')[2] | int %}
