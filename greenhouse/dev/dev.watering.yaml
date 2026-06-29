@@ -70,19 +70,19 @@ blueprint:
           name: Включить утром в
           default: "08:00:00"
           selector:
-            time: {}
-            # choose:
-            #   choices:
-            #     'время':
-            #       selector:
-            #         time: {}
-            #     'сенсор':
-            #       selector:
-            #         entity:
-            #           filter:
-            #             - domain:
-            #                 - input_datetime
-            #           multiple: false
+            # time: {}
+            choose:
+              choices:
+                'время':
+                  selector:
+                    time: {}
+                'сенсор':
+                  selector:
+                    entity:
+                      filter:
+                        - domain:
+                            - input_datetime
+                      multiple: false
 
         set_time_work_morning:
           name: Включать на
@@ -91,19 +91,19 @@ blueprint:
             <small>* На каждое направление</small>
           default: "00:10:00"
           selector:
-            time: {}
-            # choose:
-            #   choices:
-            #     'время':
-            #       selector:
-            #         time: {}
-            #     'сенсор':
-            #       selector:
-            #         entity:
-            #           filter:
-            #             - domain:
-            #                 - input_datetime
-            #           multiple: false
+            # time: {}
+            choose:
+              choices:
+                'время':
+                  selector:
+                    time: {}
+                'сенсор':
+                  selector:
+                    entity:
+                      filter:
+                        - domain:
+                            - input_datetime
+                      multiple: false
 
         set_working_day_morning:
           name: Режим работы полива
@@ -184,19 +184,19 @@ blueprint:
           #   сенсор: []
           default: "20:00:00"
           selector:
-            time: {}
-            # choose:
-            #   choices:
-            #     'время':
-            #       selector:
-            #         time: {}
-            #     'сенсор':
-            #       selector:
-            #         entity:
-            #           filter:
-            #             - domain:
-            #                 - input_datetime
-            #           multiple: false
+            # time: {}
+            choose:
+              choices:
+                'время':
+                  selector:
+                    time: {}
+                'сенсор':
+                  selector:
+                    entity:
+                      filter:
+                        - domain:
+                            - input_datetime
+                      multiple: false
 
         set_time_work_evening:
           name: Включать на
