@@ -501,7 +501,7 @@ triggers:
 
   - trigger: template # Включение системы вечером
     value_template: >-
-      {% set on_time_evening = set_on_tset_on_time_evening.время if set_on_time_evening.active_choice == 'время' else states(set_on_time_evening.сенсор)ime_evening %}
+      {% set on_time_evening = set_on_time_evening.время if set_on_time_evening.active_choice == 'время' else states(set_on_time_evening.сенсор) %}
       {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(on_time_evening)) | timestamp_custom('%H:%M') }}
     id: on_evening_trigger
 
