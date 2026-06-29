@@ -881,15 +881,21 @@ actions:
             target:
               entity_id: !input watering_switch
 
-          - repeat:
-              for_each: !input watervalve_switch
-              sequence:
-                - action: "{{ 'valve.' ~ action_valve_close if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_close }}" #  Выключение клапана потока
-                  target:
-                    entity_id: "{{ repeat.item }}"
+          - if:
+              - condition: template
+                value_template: |
+                  {{ no_type_valve }}
 
-                - delay:
-                    seconds: 5
+            then:
+              - repeat:
+                  for_each: !input watervalve_switch
+                  sequence:
+                    - action: "{{ 'valve.' ~ action_valve_close if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_close }}" #  Выключение клапана потока
+                      target:
+                        entity_id: "{{ repeat.item }}"
+
+                    - delay:
+                        seconds: 1
 
           - if:
               - condition: template
