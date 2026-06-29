@@ -298,19 +298,19 @@ blueprint:
           #   сенсор: []
           default: "00:01:00"
           selector:
-            time: {}
-            # choose:
-            #   choices:
-            #     'время':
-            #       selector:
-            #         time: {}
-            #     'сенсор':
-            #       selector:
-            #         entity:
-            #           filter:
-            #             - domain:
-            #                 - input_datetime
-            #           multiple: false
+            # time: {}
+            choose:
+              choices:
+                'время':
+                  selector:
+                    time: {}
+                'сенсор':
+                  selector:
+                    entity:
+                      filter:
+                        - domain:
+                            - input_datetime
+                      multiple: false
 
         watervalve_switch:
           name: Клапаны направления
