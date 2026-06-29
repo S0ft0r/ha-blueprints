@@ -659,9 +659,9 @@ actions:
             value_template: |
               {{ states(waterpump_switch) in open_states }}
 
-          # - condition: template
-          #   value_template: |
-          #     {{ set_pump_morning_enable.выбор if set_pump_morning_enable.active_choice == 'выбор' else states(set_pump_morning_enable.сенсор) }}
+          - condition: template
+            value_template: |
+              {{ set_pump_morning_enable.выбор if set_pump_morning_enable.active_choice == 'выбор' else states(set_pump_morning_enable.сенсор) }}
 
         sequence:
           - action: "{{ 'valve.open_valve' if watering_switch.split('.')[0] == 'valve' else 'homeassistant.turn_on' }}" #            Клапан на воду включен
@@ -732,9 +732,9 @@ actions:
             value_template: |
               {{ states(waterpump_switch) in open_states }}
 
-          # - condition: template
-          #   value_template: |
-          #     {{ set_pump_evening_enable.выбор if set_pump_evening_enable.active_choice == 'выбор' else states(set_pump_evening_enable.сенсор) }}
+          - condition: template
+            value_template: |
+              {{ set_pump_evening_enable.выбор if set_pump_evening_enable.active_choice == 'выбор' else states(set_pump_evening_enable.сенсор) }}
 
         sequence:
           - action: "{{ 'valve.open_valve' if watering_switch.split('.')[0] == 'valve' else 'homeassistant.turn_on' }}" #            Клапан на воду включен
