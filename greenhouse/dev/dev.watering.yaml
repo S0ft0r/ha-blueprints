@@ -790,7 +790,7 @@ actions:
               {{ set_pump_evening_enable.выбор if set_pump_evening_enable.active_choice == 'выбор' else states(set_pump_evening_enable.сенсор) }}
 
         sequence: 
-          - action: "{{ 'watering_open_action }}"  # Открытие клапана на воду
+          - action: "{{ watering_open_action }}"  # Открытие клапана на воду
             target:
               entity_id: !input watering_switch
 
