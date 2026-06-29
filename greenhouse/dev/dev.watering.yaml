@@ -421,6 +421,12 @@ variables:
   time_waterpump_work: |
     {{ set_time_waterpump_work.время if set_time_waterpump_work.active_choice == 'время' else states(set_time_waterpump_work.сенсор) }}
 
+  close_delay: |
+    {{ '%02d:%02d:%02d' | format(set_watervalve_close_delay // 3600, (set_watervalve_close_delay % 3600) // 60, set_watervalve_close_delay % 60) }}
+
+  open_delay: |
+    {{ '%02d:%02d:%02d' | format(set_watervalve_open_delay // 3600, (set_watervalve_open_delay % 3600) // 60, set_watervalve_open_delay % 60) }}
+
 triggers:
   - trigger: state # Ручное выключение направления
     entity_id: !input watervalve_switch
@@ -530,7 +536,7 @@ actions:
                     - delay:
                         seconds: 1
 
-          - delay: "{{ '%02d:%02d:%02d' | format(set_watervalve_close_delay // 3600, (set_watervalve_close_delay % 3600) // 60, set_watervalve_close_delay % 60) }}"
+          - delay: "{{ close_delay }}"
 
           - if:
               - condition: state
@@ -689,7 +695,7 @@ actions:
                       target:
                         entity_id: "{{ repeat.item }}"
 
-                - delay: "{{ '%02d:%02d:%02d' | format(set_watervalve_open_delay // 3600, (set_watervalve_open_delay % 3600) // 60, set_watervalve_open_delay % 60) }}"
+                - delay: "{{ open_delay }}"
 
                 - delay: !input set_time_work_morning
 
@@ -708,7 +714,7 @@ actions:
                       target:
                         entity_id: "{{ repeat.item }}"
 
-                - delay: "{{ '%02d:%02d:%02d' | format(set_watervalve_close_delay // 3600, (set_watervalve_close_delay % 3600) // 60, set_watervalve_close_delay % 60) }}"
+                - delay: "{{ close_delay }}"
 
           - target:
               entity_id: !input watering_switch
@@ -762,7 +768,7 @@ actions:
                       target:
                         entity_id: "{{ repeat.item }}"
 
-                - delay: "{{ '%02d:%02d:%02d' | format(set_watervalve_open_delay // 3600, (set_watervalve_open_delay % 3600) // 60, set_watervalve_open_delay % 60) }}"
+                - delay: "{{ open_delay }}"
 
                 - delay: !input set_time_work_evening
 
@@ -781,7 +787,7 @@ actions:
                       target:
                         entity_id: "{{ repeat.item }}"
 
-                - delay: "{{ '%02d:%02d:%02d' | format(set_watervalve_close_delay // 3600, (set_watervalve_close_delay % 3600) // 60, set_watervalve_close_delay % 60) }}"
+                - delay: "{{ close_delay }}"
 
           - target:
               entity_id: !input watering_switch
