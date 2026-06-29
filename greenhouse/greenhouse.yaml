@@ -2,11 +2,11 @@ blueprint:
   name: Управление поливом теплицы
   description: |
     ### Управление поливом теплицы.
-    <small>Версия 2026.05.01 Сборка 2</small> 
+    <small>Версия 2026.05.01 Сборка 3</small> 
 
     <small><a href="https://github.com/S0ft0r/ha-blueprints/blob/main/as-is.md">Отказ от ответственности</a></small>
   domain: automation
-  source_url: https://raw.githubusercontent.com/S0ft0r/ha-blueprints/main/greenhouse/dev/dev.watering.yaml
+  source_url: https://raw.githubusercontent.com/S0ft0r/ha-blueprints/main/greenhouse/greenhouse.yaml
   author: Softor
 
   input:
@@ -21,7 +21,6 @@ blueprint:
             - domain:
                 - switch
                 - valve
-                - input_boolean
           reorder: false
           multiple: false
 
@@ -300,7 +299,6 @@ blueprint:
                 - domain:
                     - switch
                     - valve
-                    - input_boolean
               reorder: false
               multiple: false
 
@@ -314,7 +312,6 @@ blueprint:
             active_choice: время
             сенсор: [] 
           selector:
-            # time: {}
             choose:
               choices:
                 'время':
@@ -338,7 +335,6 @@ blueprint:
                 - domain:
                     - switch
                     - valve
-                    - input_boolean
               reorder: false
               multiple: true
 
@@ -714,7 +710,7 @@ actions:
               {{ set_pump_morning_enable.выбор if set_pump_morning_enable.active_choice == 'выбор' else states(set_pump_morning_enable.сенсор) }}
 
         sequence:
-          - action: "{{ watering_open_action }}" #            Клапан на воду включен
+          - action: "{{ watering_open_action }}" # Клапан на воду включен
             target:
               entity_id: !input watering_switch
 
@@ -849,7 +845,6 @@ actions:
                   {{ i.item == 0 }}
 
             then:
-              # - delay: !input set_time_waterpump_work
               - delay: "{{ time_waterpump_work }}"
 
               - action: "{{ waterpump_close_action }}"
