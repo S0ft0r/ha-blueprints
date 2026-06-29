@@ -927,9 +927,9 @@ actions:
             value_template: |
               {{ trigger.from_state.state in closed_states and trigger.to_state.state in open_states }}
 
-          - condition: state
-            entity_id: !input waterpump_switch
-            state: "on"
+              - condition: template
+                value_template: |
+                  {{ states(waterpump_switch) in open_states }}
 
         sequence:
           - action: timer.start
