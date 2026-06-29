@@ -481,27 +481,27 @@ triggers:
 
   - trigger: template # Включение насоса и закрытие клапанов направления до включения системы утром
     value_template: >-
-      {% set on_time_morning = set_on_time_morning %}
+      {% set on_time_morning = set_on_time_morning.время if set_on_time_morning.active_choice == 'время' else states(set_on_time_morning.сенсор) %}
       {% set time_waterpump_work = set_time_waterpump_work.время if set_time_waterpump_work.active_choice == 'время' else states(set_time_waterpump_work.сенсор) %}
       {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(on_time_morning) - time_waterpump_work | as_timedelta) | timestamp_custom('%H:%M') }}
     id: time_before_morning_trigger
 
   - trigger: template # Включение насоса и закрытие клапанов направления до включения системы вечером
     value_template: >-
-      {% set on_time_evening = set_on_time_evening %}
+      {% set on_time_evening = set_on_time_evening.время if set_on_time_evening.active_choice == 'время' else states(set_on_time_evening.сенсор) %}
       {% set time_waterpump_work = set_time_waterpump_work.время if set_time_waterpump_work.active_choice == 'время' else states(set_time_waterpump_work.сенсор) %}
       {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(on_time_evening) - time_waterpump_work | as_timedelta) | timestamp_custom('%H:%M') }}
     id: time_before_evening_trigger
 
   - trigger: template # Включение системы утром
     value_template: >-
-      {% set on_time_morning = set_on_time_morning %}
+      {% set on_time_morning = set_on_time_morning.время if set_on_time_morning.active_choice == 'время' else states(set_on_time_morning.сенсор) %}
       {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(on_time_morning)) | timestamp_custom('%H:%M') }}
     id: on_morning_trigger
 
   - trigger: template # Включение системы вечером
     value_template: >-
-      {% set on_time_evening = set_on_time_evening %}
+      {% set on_time_evening = set_on_tset_on_time_evening.время if set_on_time_evening.active_choice == 'время' else states(set_on_time_evening.сенсор)ime_evening %}
       {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(on_time_evening)) | timestamp_custom('%H:%M') }}
     id: on_evening_trigger
 
