@@ -68,7 +68,10 @@ blueprint:
 
         set_on_time_morning:
           name: Включить утром в
-          default: "08:00:00"
+          default: 
+            время: "08:00:00"
+            active_choice: время
+            сенсор: [] 
           selector:
             # time: {}
             choose:
@@ -89,7 +92,10 @@ blueprint:
           description: |
             Время, на которое включается полив 
             <small>* На каждое направление</small>
-          default: "00:10:00"
+          default: 
+            время: "00:10:00"
+            active_choice: время
+            сенсор: [] 
           selector:
             # time: {}
             choose:
@@ -178,11 +184,10 @@ blueprint:
 
         set_on_time_evening:
           name: Включить вечером в
-          # default:
-          #   active_choice: время
-          #   время: "20:00:00"
-          #   сенсор: []
-          default: "20:00:00"
+          default: 
+            время: "20:00:00"
+            active_choice: время
+            сенсор: [] 
           selector:
             # time: {}
             choose:
@@ -203,11 +208,10 @@ blueprint:
           description: |
             Время, на которое включается полив 
             <small>* На каждое направление</small>
-          # default:
-          #   active_choice: время
-          #   время: "00:10:00"
-          #   сенсор: []
-          default: "00:10:00"
+          default: 
+            время: "00:10:00"
+            active_choice: время
+            сенсор: [] 
           selector:
             # time: {}
             choose:
@@ -314,11 +318,10 @@ blueprint:
           description: |
             Время, на которое включается насос перед и после полива
             <small>* При отсутствии людей в доме</small>
-          # default:
-          #   active_choice: время
-          #   время: "00:01:00"
-          #   сенсор: []
-          default: "00:01:00"
+          default: 
+            время: "00:01:00"
+            active_choice: время
+            сенсор: [] 
           selector:
             # time: {}
             choose:
@@ -570,7 +573,7 @@ actions:
                         {{ repeat.item != trigger.from_state.entity_id }}
 
                   then:
-                    - action: "{{ watervalve_close_action }}"
+                    - action: "{{ 'valve.close_valve' if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.turn_off' }}"
                       target:
                         entity_id: "{{ repeat.item }}"
 
