@@ -513,9 +513,9 @@ triggers:
 
 actions:
   - choose:
-      #######################################################################################
-      # Ручное выключение направления
-      #######################################################################################
+#######################################################################################
+# Ручное выключение направления
+#######################################################################################
 
       - conditions:
           - condition: trigger
@@ -527,13 +527,13 @@ actions:
               {{ trigger.to_state.context.user_id is not none }}
 
         sequence:
-          - action: "{{ 'valve.close_valve' if watering_switch.split('.')[0] == 'valve' else 'homeassistant.turn_off' }}"
+          - action: "{{ watering_close_action }}"
             target:
               entity_id: !input watering_switch
 
-      #######################################################################################
-      # Ручное включение направления
-      #######################################################################################
+#######################################################################################
+# Ручное включение направления
+#######################################################################################
 
       - conditions:
           - condition: trigger
@@ -546,14 +546,19 @@ actions:
 
         sequence:
           - if:
-              - condition: state
-                entity_id: !input waterpump_switch
-                state: "off"
+              # - condition: state
+              #   entity_id: !input waterpump_switch
+              #   state: "off"
+              - condition: template
+                value_template: |
+                  {{ states(waterpump_switch) in closed_states }}
 
             then:
-              - action: "{{ 'valve.open_valve' if waterpump_switch.split('.')[0] == 'valve' else 'homeassistant.turn_on' }}"
+              - action: "{{ waterpump_open_action }}"
                 target:
                   entity_id: !input waterpump_switch
+
+              - delay: "{{ time_waterpump_work }}"
 
           - repeat:
               for_each: !input watervalve_switch
@@ -564,7 +569,7 @@ actions:
                         {{ repeat.item != trigger.from_state.entity_id }}
 
                   then:
-                    - action: "{{ 'valve.close_valve' if watering_switch.split('.')[0] == 'valve' else 'homeassistant.turn_off' }}"
+                    - action: "{{ watervalve_close_action }}"
                       target:
                         entity_id: "{{ repeat.item }}"
 
@@ -574,20 +579,21 @@ actions:
           - delay: "{{ watervalve_close_delay }}"
 
           - if:
-              - condition: state
-                entity_id: !input watering_switch
-                state: "off"
+              - condition: template
+                value_template: |
+                  {{ states(watering_switch) in closed_states }}
 
             then:
-              - delay: "{{ watervalve_open_delay }}"
-
-              - action: "{{ 'valve.open_valve' if watering_switch.split('.')[0] == 'valve' else 'homeassistant.turn_on' }}"
+              - action: "{{ watering_open_action }}"
                 target:
                   entity_id: !input watering_switch
 
-      #######################################################################################
-      # Включение насоса и закрытие клапанов направления до включения системы утром
-      #######################################################################################
+              - delay: "{{ watering_open_delay }}"
+
+
+#######################################################################################
+# Включение насоса и закрытие клапанов направления до включения системы утром
+#######################################################################################
 
       - conditions:
           - condition: trigger
@@ -613,7 +619,7 @@ actions:
         sequence:
           - target:
               entity_id: !input waterpump_switch
-            action: "{{ 'valve.open_valve' if waterpump_switch.split('.')[0] == 'valve' else 'homeassistant.turn_on' }}"
+            action: "{{ waterpump_open_action }}"
 
           - if:
               - condition: template
@@ -632,9 +638,9 @@ actions:
                     - delay:
                         seconds: 1
 
-      #######################################################################################
-      # Включение насоса и закрытие клапанов направления до включения системы вечером
-      #######################################################################################
+#######################################################################################
+# Включение насоса и закрытие клапанов направления до включения системы вечером
+#######################################################################################
 
       - conditions:
           - condition: trigger
@@ -660,7 +666,7 @@ actions:
         sequence:
           - target:
               entity_id: !input waterpump_switch
-            action: "{{ 'valve.open_valve' if waterpump_switch.split('.')[0] == 'valve' else 'homeassistant.turn_on' }}"
+            action: "{{ waterpump_open_action }}"
 
           - delay:
               seconds: 1
@@ -674,17 +680,16 @@ actions:
               - repeat:
                   for_each: !input watervalve_switch
                   sequence:
-                    - action: |
-                        {{ 'valve.open_valve' if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.turn_on' }}
+                    - action: "{{ 'valve.open_valve' if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.turn_on' }}"
                       target:
                         entity_id: "{{ repeat.item }}"
 
                     - delay:
                         seconds: 1
 
-      #######################################################################################
-      # Включение системы утром
-      #######################################################################################
+#######################################################################################
+# Включение системы утром
+#######################################################################################
 
       - conditions:
           - condition: trigger
@@ -708,7 +713,7 @@ actions:
               {{ set_pump_morning_enable.выбор if set_pump_morning_enable.active_choice == 'выбор' else states(set_pump_morning_enable.сенсор) }}
 
         sequence:
-          - action: "{{ 'valve.open_valve' if watering_switch.split('.')[0] == 'valve' else 'homeassistant.turn_on' }}" #            Клапан на воду включен
+          - action: "{{ watering_open_action }}" #            Клапан на воду включен
             target:
               entity_id: !input watering_switch
 
@@ -755,13 +760,13 @@ actions:
 
           - target:
               entity_id: !input watering_switch
-            action: "{{ 'valve.close_valve' if watering_switch.split('.')[0] == 'valve' else 'homeassistant.turn_off' }}"
+            action: "{{ watering_close_action }}"
 
           - delay: "{{ watering_close_delay }}"
 
-      #######################################################################################
-      # Включение системы вечером
-      #######################################################################################
+#######################################################################################
+# Включение системы вечером
+#######################################################################################
 
       - conditions:
           - condition: trigger
@@ -784,23 +789,23 @@ actions:
             value_template: |
               {{ set_pump_evening_enable.выбор if set_pump_evening_enable.active_choice == 'выбор' else states(set_pump_evening_enable.сенсор) }}
 
-        sequence:
-          - action: "{{ 'valve.open_valve' if watering_switch.split('.')[0] == 'valve' else 'homeassistant.turn_on' }}" #            Клапан на воду включен
+        sequence: 
+          - action: "{{ 'watering_open_action }}"  # Открытие клапана на воду
             target:
               entity_id: !input watering_switch
 
-          - delay: "{{ watering_open_delay }}"
+          - delay: "{{ watering_open_delay }}" # Задержка открытия клапана на воду
 
           - repeat:
               for_each: !input watervalve_switch
               sequence:
                 - if:
-                    - condition: template
+                    - condition: template # Тип клапана (NC/NO)
                       value_template: |
-                        {{ set_nc_no_type_valve == 'type_no' }}
+                        {{ set_nc_no_type_valve == 'type_no' }}  
 
                   then:
-                    - action: "{{ 'valve.close_valve' if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.turn_off' }}" #  Открытие клапана потока
+                    - action: "{{ 'valve.close_valve' if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.turn_off' }}" #  Закрытие клапана потока
                       target:
                         entity_id: "{{ repeat.item }}"
 
@@ -832,13 +837,13 @@ actions:
 
           - target:
               entity_id: !input watering_switch
-            action: "{{ 'valve.close_valve' if watering_switch.split('.')[0] == 'valve' else 'homeassistant.turn_off' }}"
+            action: "{{ watering_close_action }}"
 
           - delay: "{{ watering_close_delay }}"
 
-      #######################################################################################
-      # Аварийное выключение системы
-      #######################################################################################
+#######################################################################################
+# Аварийное выключение системы
+#######################################################################################
 
       - conditions:
           - condition: trigger
@@ -846,7 +851,7 @@ actions:
               - pump_off_auto_trigger
 
         sequence:
-          - action: "{{ 'valve.close_valve' if watering_switch.split('.')[0] == 'valve' else 'homeassistant.turn_off' }}"
+          - action: "{{ watering_close_action }}"
             target:
               entity_id: !input watering_switch
 
@@ -859,6 +864,7 @@ actions:
 
                 - delay:
                     seconds: 5
+
           - if:
               - condition: template
                 value_template: |
@@ -882,13 +888,13 @@ actions:
               # - delay: !input set_time_waterpump_work
               - delay: "{{ time_waterpump_work }}"
 
-              - action: "{{ 'valve.close_valve' if waterpump_switch.split('.')[0] == 'valve' else 'homeassistant.turn_off' }}"
+              - action: "{{ waterpump_close_action }}"
                 target:
                   entity_id: !input waterpump_switch
 
-      #######################################################################################
-      # Выключение таймера для варийного выключение системы
-      #######################################################################################
+#######################################################################################
+# Выключение таймера для варийного выключение системы
+#######################################################################################
 
       - conditions:
           - condition: trigger
@@ -904,9 +910,9 @@ actions:
             target:
               entity_id: !input pump_off_auto
 
-      #######################################################################################
-      # Влючение таймера для варийного выключение системы
-      #######################################################################################
+#######################################################################################
+# Влючение таймера для варийного выключение системы
+#######################################################################################
 
       - conditions:
           - condition: trigger
