@@ -209,19 +209,19 @@ blueprint:
           #   сенсор: []
           default: "00:10:00"
           selector:
-            time: {}
-            # choose:
-            #   choices:
-            #     'время':
-            #       selector:
-            #         time: {}
-            #     'сенсор':
-            #       selector:
-            #         entity:
-            #           filter:
-            #             - domain:
-            #                 - input_datetime
-            #           multiple: false
+            # time: {}
+            choose:
+              choices:
+                'время':
+                  selector:
+                    time: {}
+                'сенсор':
+                  selector:
+                    entity:
+                      filter:
+                        - domain:
+                            - input_datetime
+                      multiple: false
 
         set_working_day_evening:
           name: Режим включения вечером
@@ -443,8 +443,9 @@ variables:
   selected_days_evening: |
     {{ now().strftime('%a') | lower in set_select_days_evening }}
 
-  time_waterpump_work: |
-    {{ set_time_waterpump_work.время if set_time_waterpump_work.active_choice == 'время' else states(set_time_waterpump_work.сенсор) }}
+  time_waterpump_work: "{{ set_time_waterpump_work.время if set_time_waterpump_work.active_choice == 'время' else states(set_time_waterpump_work.сенсор) }}"
+  time_work_morning: "{{ set_time_work_morning.время if set_time_work_morning.active_choice == 'время' else states(set_time_work_morning.сенсор) }}"
+  time_work_evening: "{{ set_time_work_evening.время if set_time_work_evening.active_choice == 'время' else states(set_time_work_evening.сенсор) }}"
 
   # Задержки открытия клапана на воду
   watering_close_delay: "{{ '%02d:%02d:%02d' | format(set_watering_close_delay // 3600, (set_watering_close_delay % 3600) // 60, set_watering_close_delay % 60) }}"
@@ -461,6 +462,9 @@ variables:
   # Действия на открытие/закрытия клапана на воду
   watering_open_action: "{{ 'valve.open_valve' if watering_switch.split('.')[0] == 'valve' else 'homeassistant.turn_on' }}"
   watering_close_action: "{{ 'valve.close_valve' if watering_switch.split('.')[0] == 'valve' else 'homeassistant.turn_off' }}"
+
+  pump_morning_enable: "{{ set_pump_morning_enable.выбор if set_pump_morning_enable.active_choice == 'выбор' else states(set_pump_morning_enable.сенсор) }}"
+  pump_evening_enable: "{{ set_pump_evening_enable.выбор if set_pump_evening_enable.active_choice == 'выбор' else states(set_pump_evening_enable.сенсор) }}"
 
 triggers:
   - trigger: state # Ручное выключение направления
@@ -614,7 +618,7 @@ actions:
 
           - condition: template
             value_template: |
-              {{ set_pump_morning_enable.выбор if set_pump_morning_enable.active_choice == 'выбор' else states(set_pump_morning_enable.сенсор) }}
+              {{ pump_morning_enable }}
 
         sequence:
           - target:
@@ -661,7 +665,7 @@ actions:
 
           - condition: template
             value_template: |
-              {{ set_pump_evening_enable.выбор if set_pump_evening_enable.active_choice == 'выбор' else states(set_pump_evening_enable.сенсор) }}
+              {{ pump_evening_enable }}
 
         sequence:
           - target:
@@ -710,7 +714,7 @@ actions:
 
           - condition: template
             value_template: |
-              {{ set_pump_morning_enable.выбор if set_pump_morning_enable.active_choice == 'выбор' else states(set_pump_morning_enable.сенсор) }}
+              {{ pump_morning_enable }}
 
         sequence:
           - action: "{{ watering_open_action }}" #            Клапан на воду включен
@@ -739,7 +743,7 @@ actions:
 
                 - delay: "{{ watervalve_open_delay }}"
 
-                - delay: !input set_time_work_morning
+                - delay: "{{ time_work_morning }}"
 
                 - if:
                     - condition: template
@@ -787,7 +791,7 @@ actions:
 
           - condition: template
             value_template: |
-              {{ set_pump_evening_enable.выбор if set_pump_evening_enable.active_choice == 'выбор' else states(set_pump_evening_enable.сенсор) }}
+              {{ pump_evening_enable }}
 
         sequence: 
           - action: "{{ watering_open_action }}"  # Открытие клапана на воду
@@ -814,9 +818,9 @@ actions:
                       target:
                         entity_id: "{{ repeat.item }}"
 
-                - delay: "{{ watervalve_open_delay }}"
+                - delay: "{{ watervalve_open_delay }}" # Ожидание открытия калапана направления
 
-                - delay: !input set_time_work_evening
+                - delay: "{{ time_work_evening }}" # Время работы полива
 
                 - if:
                     - condition: template
@@ -893,7 +897,7 @@ actions:
                   entity_id: !input waterpump_switch
 
 #######################################################################################
-# Выключение таймера для варийного выключение системы
+# Выключение таймера для аварийного выключение системы
 #######################################################################################
 
       - conditions:
@@ -911,7 +915,7 @@ actions:
               entity_id: !input pump_off_auto
 
 #######################################################################################
-# Влючение таймера для варийного выключение системы
+# Влючение таймера для аварийного выключение системы
 #######################################################################################
 
       - conditions:
@@ -932,8 +936,8 @@ actions:
             data: # Расчет времени до автоотключение
               duration: |
                 {% set watervalve_count = watervalve_switch | list | count %}
-                {% set work_time_morning_in_seconds = set_time_work_morning.split(':')[0] | int * 3600 + set_time_work_morning.split(':')[1] | int * 60 + set_time_work_morning.split(':')[2] | int %}
-                {% set work_time_evening_in_seconds = set_time_work_evening.split(':')[0] | int * 3600 + set_time_work_evening.split(':')[1] | int * 60 + set_time_work_evening.split(':')[2] | int %}
+                {% set work_time_morning_in_seconds = time_work_morning.split(':')[0] | int * 3600 + time_work_morning.split(':')[1] | int * 60 + time_work_morning.split(':')[2] | int %}
+                {% set work_time_evening_in_seconds = time_work_evening.split(':')[0] | int * 3600 + time_work_evening.split(':')[1] | int * 60 + time_work_evening.split(':')[2] | int %}
                 {% set auto_off_pump_time_in_seconds = set_auto_off_pump_time.split(':')[0] | int * 3600 + set_auto_off_pump_time.split(':')[1] | int * 60 + set_auto_off_pump_time.split(':')[2] | int %}
                 {% set max_seconds = max(((set_watervalve_open_delay + work_time_morning_in_seconds + set_watervalve_close_delay) * watervalve_count + 60), 
                   ((set_watervalve_open_delay + work_time_evening_in_seconds + set_watervalve_close_delay) * watervalve_count + 60), 
