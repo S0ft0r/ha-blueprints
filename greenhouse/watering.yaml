@@ -307,7 +307,7 @@ triggers:
       {{ states('sensor.time') not in invalid_states and 
         states('sensor.time') == as_timestamp(today_at(on_time_evening) - time_waterpump_work | as_timedelta) | timestamp_custom('%H:%M') }}
     id: time_before_evening_trigger
-    enabled: !input pump_morning_enable
+    enabled: !input pump_evening_enable
 
 actions:
   - choose:
