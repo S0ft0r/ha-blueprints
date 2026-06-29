@@ -562,9 +562,9 @@ actions:
             value_template: |
               {{ true if ('select_morning' not in set_working_day_morning) else selected_days_morning }}
 
-          # - condition: template
-          #   value_template: |
-          #     {{ set_pump_morning_enable.выбор if set_pump_morning_enable.active_choice == 'выбор' else states(set_pump_morning_enable.сенсор) }}
+          - condition: template
+            value_template: |
+              {{ set_pump_morning_enable.выбор if set_pump_morning_enable.active_choice == 'выбор' else states(set_pump_morning_enable.сенсор) }}
 
         sequence:
           - target:
@@ -609,9 +609,9 @@ actions:
             value_template: |
               {{ true if ('select_evening' not in set_working_day_evening) else selected_days_evening }}
 
-          # - condition: template
-          #   value_template: |
-          #     {{ set_pump_evening_enable.выбор if set_pump_evening_enable.active_choice == 'выбор' else states(set_pump_evening_enable.сенсор) }}
+          - condition: template
+            value_template: |
+              {{ set_pump_evening_enable.выбор if set_pump_evening_enable.active_choice == 'выбор' else states(set_pump_evening_enable.сенсор) }}
 
         sequence:
           - target:
