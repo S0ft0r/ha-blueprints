@@ -466,8 +466,8 @@ variables:
   watering_open_action: "{{ 'valve.open_valve' if watering_switch.split('.')[0] == 'valve' else 'homeassistant.turn_on' }}"
   watering_close_action: "{{ 'valve.close_valve' if watering_switch.split('.')[0] == 'valve' else 'homeassistant.turn_off' }}"
 
-  pump_morning_enable: "{{ set_pump_morning_enable.выбор if set_pump_morning_enable.active_choice == 'выбор' else states(set_pump_morning_enable.сенсор) }}"
-  pump_evening_enable: "{{ set_pump_evening_enable.выбор if set_pump_evening_enable.active_choice == 'выбор' else states(set_pump_evening_enable.сенсор) }}"
+  # pump_morning_enable: "{{ set_pump_morning_enable.выбор if set_pump_morning_enable.active_choice == 'выбор' else states(set_pump_morning_enable.сенсор) }}"
+  # pump_evening_enable: "{{ set_pump_evening_enable.выбор if set_pump_evening_enable.active_choice == 'выбор' else states(set_pump_evening_enable.сенсор) }}"
 
 triggers:
   - trigger: state # Ручное выключение направления
@@ -618,7 +618,7 @@ actions:
 
           - condition: template
             value_template: |
-              {{ pump_morning_enable }}
+              {{ set_pump_morning_enable.выбор if set_pump_morning_enable.active_choice == 'выбор' else states(set_pump_morning_enable.сенсор) }}
 
         sequence:
           - target:
@@ -665,7 +665,7 @@ actions:
 
           - condition: template
             value_template: |
-              {{ pump_evening_enable }}
+              {{ set_pump_evening_enable.выбор if set_pump_evening_enable.active_choice == 'выбор' else states(set_pump_evening_enable.сенсор) }}
 
         sequence:
           - target:
@@ -714,7 +714,7 @@ actions:
 
           - condition: template
             value_template: |
-              {{ pump_morning_enable }}
+              {{ set_pump_morning_enable.выбор if set_pump_morning_enable.active_choice == 'выбор' else states(set_pump_morning_enable.сенсор) }}
 
         sequence:
           - action: "{{ watering_open_action }}" #            Клапан на воду включен
@@ -791,7 +791,7 @@ actions:
 
           - condition: template
             value_template: |
-              {{ pump_evening_enable }}
+              {{ set_pump_evening_enable.выбор if set_pump_evening_enable.active_choice == 'выбор' else states(set_pump_evening_enable.сенсор) }}
 
         sequence: 
           - action: "{{ watering_open_action }}"  # Открытие клапана на воду
