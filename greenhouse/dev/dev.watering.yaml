@@ -440,11 +440,9 @@ trigger_variables:
     - "null"
 
 variables:
-  selected_days_morning: |
-    {{ now().strftime('%a') | lower in set_select_days_morning }}
+  selected_days_morning: "{{ now().strftime('%a') | lower in set_select_days_morning }}"
+  selected_days_evening: "{{ now().strftime('%a') | lower in set_select_days_evening }}"
 
-  selected_days_evening: |
-    {{ now().strftime('%a') | lower in set_select_days_evening }}
 
   time_waterpump_work: "{{ set_time_waterpump_work.время if set_time_waterpump_work.active_choice == 'время' else states(set_time_waterpump_work.сенсор) }}"
   time_work_morning: "{{ set_time_work_morning.время if set_time_work_morning.active_choice == 'время' else states(set_time_work_morning.сенсор) }}"
@@ -465,6 +463,14 @@ variables:
   # Действия на открытие/закрытия клапана на воду
   watering_open_action: "{{ 'valve.open_valve' if watering_switch.split('.')[0] == 'valve' else 'homeassistant.turn_on' }}"
   watering_close_action: "{{ 'valve.close_valve' if watering_switch.split('.')[0] == 'valve' else 'homeassistant.turn_off' }}"
+
+  no_type_valve: "{{ set_nc_no_type_valve == 'type_no' }}"
+  nc_type_valve: "{{ set_nc_no_type_valve == 'type_nc' }}"
+
+  action_valve_open: "{{ 'open_valve' if set_nc_no_type_valve == 'type_no' else 'close_valve' }}"
+  action_valve_close: "{{ 'close_valve' if set_nc_no_type_valve == 'type_no' else 'open_valve' }}"
+  action_switch_open: "{{ 'turn_on' if set_nc_no_type_valve == 'type_no' else 'turn_off' }}"
+  action_switch_close: "{{ 'turn_off' if set_nc_no_type_valve == 'type_no' else 'turn_on' }}"
 
   # pump_morning_enable: "{{ set_pump_morning_enable.выбор if set_pump_morning_enable.active_choice == 'выбор' else states(set_pump_morning_enable.сенсор) }}"
   # pump_evening_enable: "{{ set_pump_evening_enable.выбор if set_pump_evening_enable.active_choice == 'выбор' else states(set_pump_evening_enable.сенсор) }}"
@@ -573,7 +579,7 @@ actions:
                         {{ repeat.item != trigger.from_state.entity_id }}
 
                   then:
-                    - action: "{{ 'valve.close_valve' if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.turn_off' }}"
+                    - action: "{{ 'valve.' ~ action_valve_close if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_close }}"
                       target:
                         entity_id: "{{ repeat.item }}"
 
@@ -628,14 +634,14 @@ actions:
           - if:
               - condition: template
                 value_template: |
-                  {{ set_nc_no_type_valve == 'type_no' }}
+                  {{ no_type_valve }}
 
             then:
               - repeat:
                   for_each: !input watervalve_switch
                   sequence:
                     - action: |
-                        {{ 'valve.open_valve' if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.turn_on' }}
+                        {{ 'valve.' ~ action_valve_open if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_open }}
                       target:
                         entity_id: "{{ repeat.item }}"
 
@@ -678,13 +684,13 @@ actions:
           - if:
               - condition: template
                 value_template: |
-                  {{ set_nc_no_type_valve == 'type_no' }}
+                  {{ no_type_valve }}
 
             then:
               - repeat:
                   for_each: !input watervalve_switch
                   sequence:
-                    - action: "{{ 'valve.open_valve' if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.turn_on' }}"
+                    - action: "{{ 'valve.' ~ action_valve_open if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_open }}"
                       target:
                         entity_id: "{{ repeat.item }}"
 
@@ -726,39 +732,47 @@ actions:
           - repeat:
               for_each: !input watervalve_switch
               sequence:
-                - if:
-                    - condition: template
-                      value_template: |
-                        {{ set_nc_no_type_valve == 'type_no' }}
+                # - if:
+                #     - condition: template
+                #       value_template: |
+                #         {{ no_type_valve }}
 
-                  then:
-                    - action: "{{ 'valve.close_valve' if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.turn_off' }}" #  Открытие клапана потока
-                      target:
-                        entity_id: "{{ repeat.item }}"
+                #   then:
+                #     - action: "{{ 'valve.close_valve' if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.turn_off' }}" #  Открытие клапана потока
+                #       target:
+                #         entity_id: "{{ repeat.item }}"
 
-                  else:
-                    - action: "{{ 'valve.open_valve' if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.turn_on' }}" #  Открытие клапана потока
-                      target:
-                        entity_id: "{{ repeat.item }}"
+                #   else:
+                #     - action: "{{ 'valve.open_valve' if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.turn_on' }}" #  Открытие клапана потока
+                #       target:
+                #         entity_id: "{{ repeat.item }}"
+
+                - action: "{{ 'valve.' ~ action_valve_close if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_close }}" #  Открытие клапана потока
+                  target:
+                    entity_id: "{{ repeat.item }}"
 
                 - delay: "{{ watervalve_open_delay }}"
 
                 - delay: "{{ time_work_morning }}"
 
-                - if:
-                    - condition: template
-                      value_template: |
-                        {{ set_nc_no_type_valve == 'type_no' }}
+                # - if:
+                #     - condition: template
+                #       value_template: |
+                #         {{ no_type_valve }}
 
-                  then:
-                    - action: "{{ 'valve.open_valve' if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.turn_on' }}" #  Закрытие клапана потока
-                      target:
-                        entity_id: "{{ repeat.item }}"
+                #   then:
+                #     - action: "{{ 'valve.' ~ action_valve_open if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_open }}" #  Закрытие клапана потока
+                #       target:
+                #         entity_id: "{{ repeat.item }}"
 
-                  else:
-                    - action: "{{ 'valve.close_valve' if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.turn_off' }}" #  Закрытие клапана потока
-                      target:
-                        entity_id: "{{ repeat.item }}"
+                #   else:
+                #     - action: "{{ 'valve.' ~ action_valve_close if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_close }}" #  Закрытие клапана потока
+                #       target:
+                #         entity_id: "{{ repeat.item }}"
+
+                - action: "{{ 'valve.' ~ action_valve_open if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_open }}" #  Закрытие клапана потока
+                  target:
+                    entity_id: "{{ repeat.item }}"
 
                 - delay: "{{ watervalve_close_delay }}"
 
@@ -803,39 +817,47 @@ actions:
           - repeat:
               for_each: !input watervalve_switch
               sequence:
-                - if:
-                    - condition: template # Тип клапана (NC/NO)
-                      value_template: |
-                        {{ set_nc_no_type_valve == 'type_no' }}  
+                # - if:
+                #     - condition: template # Тип клапана (NC/NO)
+                #       value_template: |
+                #         {{ set_nc_no_type_valve == 'type_no' }}  
 
-                  then:
-                    - action: "{{ 'valve.close_valve' if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.turn_off' }}" #  Закрытие клапана потока
-                      target:
-                        entity_id: "{{ repeat.item }}"
+                #   then:
+                #     - action: "{{ 'valve.close_valve' if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.turn_off' }}" #  Закрытие клапана потока
+                #       target:
+                #         entity_id: "{{ repeat.item }}"
 
-                  else:
-                    - action: "{{ 'valve.open_valve' if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.turn_on' }}" #  Открытие клапана потока
-                      target:
-                        entity_id: "{{ repeat.item }}"
+                #   else:
+                #     - action: "{{ 'valve.open_valve' if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.turn_on' }}" #  Открытие клапана потока
+                #       target:
+                #         entity_id: "{{ repeat.item }}"
+
+                - action: "{{ 'valve.' ~ action_valve_close if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_close }}" #  Закрытие клапана потока
+                  target:
+                    entity_id: "{{ repeat.item }}"
 
                 - delay: "{{ watervalve_open_delay }}" # Ожидание открытия калапана направления
 
                 - delay: "{{ time_work_evening }}" # Время работы полива
 
-                - if:
-                    - condition: template
-                      value_template: |
-                        {{ set_nc_no_type_valve == 'type_no' }}
+                # - if:
+                #     - condition: template
+                #       value_template: |
+                #         {{ set_nc_no_type_valve == 'type_no' }}
 
-                  then:
-                    - action: "{{ 'valve.open_valve' if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.turn_on' }}" #  Закрытие клапана потока
-                      target:
-                        entity_id: "{{ repeat.item }}"
+                #   then:
+                #     - action: "{{ 'valve.' ~ action_valve_open if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_open }}" #  Закрытие клапана потока
+                #       target:
+                #         entity_id: "{{ repeat.item }}"
 
-                  else:
-                    - action: "{{ 'valve.close_valve' if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.turn_off' }}" #  Закрытие клапана потока
-                      target:
-                        entity_id: "{{ repeat.item }}"
+                #   else:
+                #     - action: "{{ 'valve.' ~ action_valve_close if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_close }}" #  Закрытие клапана потока
+                #       target:
+                #         entity_id: "{{ repeat.item }}"
+
+                - action: "{{ 'valve.' ~ action_valve_open if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_open }}" #  Открытие клапана потока
+                  target:
+                    entity_id: "{{ repeat.item }}"
 
                 - delay: "{{ watervalve_close_delay }}"
 
@@ -862,7 +884,7 @@ actions:
           - repeat:
               for_each: !input watervalve_switch
               sequence:
-                - action: "{{ 'valve.close_valve' if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.turn_off' }}" #  Выключение клапана потока
+                - action: "{{ 'valve.' ~ action_valve_close if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_close }}" #  Выключение клапана потока
                   target:
                     entity_id: "{{ repeat.item }}"
 
@@ -881,8 +903,8 @@ actions:
                     {% set ila = 0 if state_attr(item, 'latitude') is none else state_attr(item, 'latitude') | round(3) %}
                     {% set ilo = 0 if state_attr(item, 'longitude') is none else state_attr(item, 'longitude') | round(3) %}
 
-                    {% set la = (zla - ila) | abs | round (2) | float < 0.03 %}
-                    {% set lo = (zlo - ilo) | abs | round (2) | float < 0.03 %}
+                    {% set la = (zla - ila) | abs | round (3) | float < 0.003 %}
+                    {% set lo = (zlo - ilo) | abs | round (3) | float < 0.003 %}
                     
                     {% set i.item = i.item + (1 if (la and lo) else 0) %}
                   {% endfor %}
