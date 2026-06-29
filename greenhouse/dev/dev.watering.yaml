@@ -274,6 +274,28 @@ blueprint:
         Устанавливается дополнительные настройки.
       icon: mdi:cog
       input:
+        set_watering_open_delay:
+          name: Задержка открытия клапана на воду
+          description: Время ожидания полного открытия клапана направления
+          default: 5
+          selector:
+            number:
+              min: 1
+              max: 300
+              mode: slider
+              unit_of_measurement: "сек"
+
+        set_watering_close_delay:
+          name: Задержка закрытия клапана на воду
+          description: Время ожидания полного закрытия клапана направления
+          default: 5
+          selector:
+            number:
+              min: 1
+              max: 300
+              mode: slider
+              unit_of_measurement: "сек"
+
         waterpump_switch:
           name: Реле насоса
           description: ""
@@ -391,6 +413,9 @@ trigger_variables:
 
   set_auto_off_pump_time: !input set_auto_off_pump_time
 
+  set_watering_open_delay: !input set_watering_open_delay
+  set_watering_close_delay: !input set_watering_close_delay
+
   set_watervalve_open_delay: !input set_watervalve_open_delay
   set_watervalve_close_delay: !input set_watervalve_close_delay
   set_nc_no_type_valve: !input set_nc_no_type_valve
@@ -421,11 +446,21 @@ variables:
   time_waterpump_work: |
     {{ set_time_waterpump_work.время if set_time_waterpump_work.active_choice == 'время' else states(set_time_waterpump_work.сенсор) }}
 
-  close_delay: |
-    {{ '%02d:%02d:%02d' | format(set_watervalve_close_delay // 3600, (set_watervalve_close_delay % 3600) // 60, set_watervalve_close_delay % 60) }}
+  # Задержки открытия клапана на воду
+  watering_close_delay: "{{ '%02d:%02d:%02d' | format(set_watering_close_delay // 3600, (set_watering_close_delay % 3600) // 60, set_watering_close_delay % 60) }}"
+  watering_open_delay: "{{ '%02d:%02d:%02d' | format(set_watering_open_delay // 3600, (set_watering_open_delay % 3600) // 60, set_watering_open_delay % 60) }}"
 
-  open_delay: |
-    {{ '%02d:%02d:%02d' | format(set_watervalve_open_delay // 3600, (set_watervalve_open_delay % 3600) // 60, set_watervalve_open_delay % 60) }}
+  # Задержки открытия клапанов направления
+  watervalve_close_delay: "{{ '%02d:%02d:%02d' | format(set_watervalve_close_delay // 3600, (set_watervalve_close_delay % 3600) // 60, set_watervalve_close_delay % 60) }}"
+  watervalve_open_delay: "{{ '%02d:%02d:%02d' | format(set_watervalve_open_delay // 3600, (set_watervalve_open_delay % 3600) // 60, set_watervalve_open_delay % 60) }}"
+
+  # Действия на открытие/закрытия насоса
+  waterpump_open_action: "{{ 'valve.open_valve' if waterpump_switch.split('.')[0] == 'valve' else 'homeassistant.turn_on' }}"
+  waterpump_close_action: "{{ 'valve.close_valve' if waterpump_switch.split('.')[0] == 'valve' else 'homeassistant.turn_off' }}"
+
+  # Действия на открытие/закрытия клапана на воду
+  watering_open_action: "{{ 'valve.open_valve' if watering_switch.split('.')[0] == 'valve' else 'homeassistant.turn_on' }}"
+  watering_close_action: "{{ 'valve.close_valve' if watering_switch.split('.')[0] == 'valve' else 'homeassistant.turn_off' }}"
 
 triggers:
   - trigger: state # Ручное выключение направления
@@ -536,7 +571,7 @@ actions:
                     - delay:
                         seconds: 1
 
-          - delay: "{{ close_delay }}"
+          - delay: "{{ watervalve_close_delay }}"
 
           - if:
               - condition: state
@@ -544,7 +579,7 @@ actions:
                 state: "off"
 
             then:
-              - delay: "{{ '%02d:%02d:%02d' | format(set_watervalve_open_delay // 3600, (set_watervalve_open_delay % 3600) // 60, set_watervalve_open_delay % 60) }}"
+              - delay: "{{ watervalve_open_delay }}"
 
               - action: "{{ 'valve.open_valve' if watering_switch.split('.')[0] == 'valve' else 'homeassistant.turn_on' }}"
                 target:
@@ -677,6 +712,8 @@ actions:
             target:
               entity_id: !input watering_switch
 
+          - delay: "{{ watering_open_delay }}"
+
           - repeat:
               for_each: !input watervalve_switch
               sequence:
@@ -695,7 +732,7 @@ actions:
                       target:
                         entity_id: "{{ repeat.item }}"
 
-                - delay: "{{ open_delay }}"
+                - delay: "{{ watervalve_open_delay }}"
 
                 - delay: !input set_time_work_morning
 
@@ -714,11 +751,13 @@ actions:
                       target:
                         entity_id: "{{ repeat.item }}"
 
-                - delay: "{{ close_delay }}"
+                - delay: "{{ watervalve_close_delay }}"
 
           - target:
               entity_id: !input watering_switch
             action: "{{ 'valve.close_valve' if watering_switch.split('.')[0] == 'valve' else 'homeassistant.turn_off' }}"
+
+          - delay: "{{ watering_close_delay }}"
 
       #######################################################################################
       # Включение системы вечером
@@ -750,6 +789,8 @@ actions:
             target:
               entity_id: !input watering_switch
 
+          - delay: "{{ watering_open_delay }}"
+
           - repeat:
               for_each: !input watervalve_switch
               sequence:
@@ -768,7 +809,7 @@ actions:
                       target:
                         entity_id: "{{ repeat.item }}"
 
-                - delay: "{{ open_delay }}"
+                - delay: "{{ watervalve_open_delay }}"
 
                 - delay: !input set_time_work_evening
 
@@ -787,11 +828,13 @@ actions:
                       target:
                         entity_id: "{{ repeat.item }}"
 
-                - delay: "{{ close_delay }}"
+                - delay: "{{ watervalve_close_delay }}"
 
           - target:
               entity_id: !input watering_switch
             action: "{{ 'valve.close_valve' if watering_switch.split('.')[0] == 'valve' else 'homeassistant.turn_off' }}"
+
+          - delay: "{{ watering_close_delay }}"
 
       #######################################################################################
       # Аварийное выключение системы
