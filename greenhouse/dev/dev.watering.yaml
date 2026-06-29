@@ -550,9 +550,6 @@ actions:
 
         sequence:
           - if:
-              # - condition: state
-              #   entity_id: !input waterpump_switch
-              #   state: "off"
               - condition: template
                 value_template: |
                   {{ states(waterpump_switch) in closed_states }}
