@@ -21,7 +21,6 @@ blueprint:
             - domain:
                 - switch
                 - valve
-                - input_boolean
           reorder: false
           multiple: false
 
@@ -301,7 +300,6 @@ blueprint:
                 - domain:
                     - switch
                     - valve
-                    - input_boolean
               reorder: false
               multiple: false
 
@@ -338,7 +336,6 @@ blueprint:
                 - domain:
                     - switch
                     - valve
-                    - input_boolean
               reorder: false
               multiple: true
 
