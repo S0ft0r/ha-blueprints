@@ -21,6 +21,7 @@ blueprint:
             - domain:
                 - switch
                 - valve
+                - input_boolean
           reorder: false
           multiple: false
 
@@ -300,6 +301,7 @@ blueprint:
                 - domain:
                     - switch
                     - valve
+                    - input_boolean
               reorder: false
               multiple: false
 
@@ -336,6 +338,7 @@ blueprint:
                 - domain:
                     - switch
                     - valve
+                    - input_boolean
               reorder: false
               multiple: true
 
@@ -464,17 +467,9 @@ variables:
   action_switch_close: "{{ 'turn_off' if set_nc_no_type_valve == 'type_no' else 'turn_on' }}"
 
 triggers:
-  - trigger: state # Ручное выключение направления
+  - trigger: state # Ручное включение/выключение направления
     entity_id: !input watervalve_switch
-    id: watervalve_switch_off_trigger
-    to: "off"
-    from: "on"
-
-  - trigger: state # Ручное включение направления
-    entity_id: !input watervalve_switch
-    id: watervalve_switch_on_trigger
-    to: "on"
-    from: "off"
+    id: watervalve_toggle_trigger
 
   - trigger: template # Включение насоса и закрытие клапанов направления до включения системы утром
     value_template: >-
@@ -502,7 +497,7 @@ triggers:
       {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(on_time_evening)) | timestamp_custom('%H:%M') }}
     id: on_evening_trigger
 
-  - entity_id: !input pump_off_auto # Аварийное выключение системы
+  - entity_id: !input pump_off_auto # Завершение работы по таймеру
     from: active
     to: idle
     trigger: state
@@ -512,8 +507,30 @@ triggers:
     trigger: state
     id: watering_toggle_trigger
 
+  - entity_id: !input waterpump_switch # Аварийное (ручное, случайное) отключение насоса
+    trigger: state
+    id: pump_off_trigger
+
 actions:
   - choose:
+#######################################################################################
+# Действие при отключение насоса (например, при протечке)
+#######################################################################################
+
+      - conditions:
+          - condition: trigger
+            id:
+              - pump_off_trigger
+
+          - condition: template
+            value_template: |
+              {{ trigger.from_state.state in open_states and trigger.to_state.state in closed_states }}
+
+        sequence:
+          - action: timer.finish
+            target:
+              entity_id: !input pump_off_auto
+
 #######################################################################################
 # Ручное выключение направления
 #######################################################################################
@@ -521,11 +538,15 @@ actions:
       - conditions:
           - condition: trigger
             id:
-              - watervalve_switch_off_trigger
+              - watervalve_toggle_trigger
 
           - condition: template
             value_template: >
               {{ trigger.to_state.context.user_id is not none }}
+
+          - condition: template
+            value_template: >
+              {{ trigger.to_state.state in closed_states and trigger.from_state.state in open_states }}
 
         sequence:
           - action: "{{ watering_close_action }}"
@@ -539,11 +560,15 @@ actions:
       - conditions:
           - condition: trigger
             id:
-              - watervalve_switch_on_trigger
+              - watervalve_toggle_trigger
 
           - condition: template
             value_template: >
               {{ trigger.to_state.context.user_id is not none }}
+
+          - condition: template
+            value_template: >
+              {{ trigger.from_state.state in closed_states and trigger.to_state.state in open_states }}
 
         sequence:
           - if:
@@ -711,7 +736,7 @@ actions:
               {{ set_pump_morning_enable.выбор if set_pump_morning_enable.active_choice == 'выбор' else states(set_pump_morning_enable.сенсор) }}
 
         sequence:
-          - action: "{{ watering_open_action }}" # Клапан на воду включен
+          - action: "{{ watering_open_action }}" #            Клапан на воду включен
             target:
               entity_id: !input watering_switch
 
@@ -797,7 +822,7 @@ actions:
           - delay: "{{ watering_close_delay }}"
 
 #######################################################################################
-# Аварийное выключение системы
+# Выключение системы по таймеру
 #######################################################################################
 
       - conditions:
@@ -845,7 +870,11 @@ actions:
                   {% endfor %}
                   {{ i.item == 0 }}
 
+              - condition: template
+                value_template: |
+                  {{ states(waterpump_switch) in open_states }}
             then:
+              # - delay: !input set_time_waterpump_work
               - delay: "{{ time_waterpump_work }}"
 
               - action: "{{ waterpump_close_action }}"
@@ -853,7 +882,7 @@ actions:
                   entity_id: !input waterpump_switch
 
 #######################################################################################
-# Выключение таймера для аварийного выключение системы
+# Выключение таймера работы системы
 #######################################################################################
 
       - conditions:
@@ -871,7 +900,7 @@ actions:
               entity_id: !input pump_off_auto
 
 #######################################################################################
-# Влючение таймера для аварийного выключение системы
+# Влючение таймера работы системы
 #######################################################################################
 
       - conditions:
