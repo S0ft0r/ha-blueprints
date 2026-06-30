@@ -2,7 +2,7 @@ blueprint:
   name: Управление поливом теплицы
   description: |
     ### Управление поливом теплицы.
-    <small>Версия 2026.05.01 Сборка 2</small> 
+    <small>Версия 2026.07.01 Сборка 4</small> 
 
     <small><a href="https://github.com/S0ft0r/ha-blueprints/blob/main/as-is.md">Отказ от ответственности</a></small>
   domain: automation
@@ -37,6 +37,28 @@ blueprint:
                 - timer
           reorder: false
           multiple: false
+
+    set_use_forecast_enable:
+      name: Учитывать прогноз погоды для включения полива
+      default:
+        active_choice: выбор
+        выбор: false
+        сенсор: []
+      selector:
+        choose:
+          choices:
+            "выбор":
+              selector:
+                boolean: {}
+            "сенсор":
+              selector:
+                entity:
+                  filter:
+                    - domain:
+                        - input_boolean
+                  multiple: false
+
+         
 
     morning_section:
       name: Настройки системы для работы утром
@@ -385,11 +407,65 @@ blueprint:
           selector:
             time: {}
 
+        forecast_sensor:
+          name: Прогнозный сенсор
+          description: |
+            Сенсор, определяющий прогноз погоды.
+             + <small>Параметр обязателен только при выборе параметра <em>"Учитывать прогноз погоды"</em>. Если ничего не выбрано, то дополнительный параметр учитываться не будет.</small>
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - weather
+              multiple: false
+
+        set_rain_conditions:
+          name: Прогноз погоды
+          description: |
+            Прогноз погоды, при котором полив включатся не будет
+          default:
+            - rainy
+            - pouring
+            - lightning-rainy
+          selector:
+            select:
+              options:
+                - label: Дождь
+                  value: rainy
+                - label: Проливной дождь
+                  value: pouring
+                - label: Гроза
+                  value: lightning-rainy
+                - label: Переменная облачность
+                  value: partlycloudy
+                - label: Облачно
+                  value: cloudy
+                - label: Туман
+                  value: fog
+              sort: false
+              multiple: true
+              custom_value: false
+              mode: list
+
+        set_rain_number_forecast_hours:
+          name: Количество часов
+          description: Прогноз погоды на определенное количество часов
+          default: 3
+          selector:
+            number:
+              min: 1
+              max: 24
+              mode: slider
+              step: 1
+            
+
 trigger_variables:
   watering_switch: !input watering_switch
   watervalve_switch: !input watervalve_switch
   waterpump_switch: !input waterpump_switch
   pump_off_auto: !input pump_off_auto
+  forecast_sensor: !input forecast_sensor
 
   set_pump_morning_enable: !input set_pump_morning_enable
   set_pump_evening_enable: !input set_pump_evening_enable
@@ -414,6 +490,10 @@ trigger_variables:
   set_watervalve_open_delay: !input set_watervalve_open_delay
   set_watervalve_close_delay: !input set_watervalve_close_delay
   set_nc_no_type_valve: !input set_nc_no_type_valve
+
+  set_rain_conditions: !input set_rain_conditions
+  set_use_forecast_enable: !input set_use_forecast_enable
+  set_rain_number_forecast_hours: !input set_rain_number_forecast_hours
 
   open_states:
     - "on"
@@ -466,6 +546,8 @@ variables:
   action_valve_close: "{{ 'close_valve' if set_nc_no_type_valve == 'type_no' else 'open_valve' }}"
   action_switch_open: "{{ 'turn_on' if set_nc_no_type_valve == 'type_no' else 'turn_off' }}"
   action_switch_close: "{{ 'turn_off' if set_nc_no_type_valve == 'type_no' else 'turn_on' }}"
+
+  use_forecast_enable: "{{ set_use_forecast_enable.выбор if set_use_forecast_enable.active_choice == 'выбор' else states(set_use_forecast_enable.сенсор) }}"
 
 triggers:
   # - trigger: state # Ручное выключение направления
@@ -525,6 +607,28 @@ triggers:
     id: pump_off_trigger
 
 actions:
+  - if:
+      - condition: template
+        value_template: |
+          {{ forecast_sensor != [] and states(forecast_sensor) not in invalid_states and use_forecast_enable }}
+
+    then: 
+      - action: weather.get_forecasts
+        data:
+          type: hourly
+        target:
+          entity_id: "{{ forecast_sensor }}"
+        response_variable: hourly
+
+  - variables:    
+      no_rain_next_hours: |
+        {% if forecast_sensor != [] and states(forecast_sensor) not in invalid_state and use_forecast_enable %}
+          {% set forecasts = hourly[forecast_sensor].forecast[:set_rain_number_forecast_hours] | map(attribute='condition') | list %}
+          {{ intersect(forecasts, set_rain_conditions) | count == 0 }}
+        {% else %}
+          {{ true }}
+        {% endif %}
+
   - choose:
 #######################################################################################
 # Действие при аварийном отключение насоса (например, при протечке)
@@ -543,8 +647,6 @@ actions:
           - action: timer.finish
             target:
               entity_id: !input pump_off_auto
-
-
 
 #######################################################################################
 # Ручное выключение направления
@@ -656,6 +758,10 @@ actions:
             value_template: |
               {{ set_pump_morning_enable.выбор if set_pump_morning_enable.active_choice == 'выбор' else states(set_pump_morning_enable.сенсор) }}
 
+          - condition: template
+            value_template: |
+              {{ no_rain_next_hours }}
+
         sequence:
           - target:
               entity_id: !input waterpump_switch
@@ -664,7 +770,7 @@ actions:
           - if:
               - condition: template
                 value_template: |
-                  {{ no_type_valve }}
+                  {{ true if no_type_valve }}
 
             then:
               - repeat:
@@ -702,6 +808,10 @@ actions:
           - condition: template
             value_template: |
               {{ set_pump_evening_enable.выбор if set_pump_evening_enable.active_choice == 'выбор' else states(set_pump_evening_enable.сенсор) }}
+
+          - condition: template
+            value_template: |
+              {{ no_rain_next_hours }}
 
         sequence:
           - target:
@@ -751,6 +861,10 @@ actions:
           - condition: template
             value_template: |
               {{ set_pump_morning_enable.выбор if set_pump_morning_enable.active_choice == 'выбор' else states(set_pump_morning_enable.сенсор) }}
+
+          - condition: template
+            value_template: |
+              {{ no_rain_next_hours }}
 
         sequence:
           - action: "{{ watering_open_action }}" #            Клапан на воду включен
@@ -806,6 +920,10 @@ actions:
           - condition: template
             value_template: |
               {{ set_pump_evening_enable.выбор if set_pump_evening_enable.active_choice == 'выбор' else states(set_pump_evening_enable.сенсор) }}
+
+          - condition: template
+            value_template: |
+              {{ no_rain_next_hours }}
 
         sequence: 
           - action: "{{ watering_open_action }}"  # Открытие клапана на воду
