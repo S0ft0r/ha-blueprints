@@ -562,7 +562,7 @@ actions:
 
           - condition: template
             value_template: >
-              {{ trigger.to_state.state is closed_states and trigger.from_state.state is open_states }}
+              {{ trigger.to_state.state in closed_states and trigger.from_state.state in open_states }}
 
         sequence:
           - action: "{{ watering_close_action }}"
@@ -585,7 +585,7 @@ actions:
 
           - condition: template
             value_template: >
-              {{ trigger.from_state.state is closed_states and trigger.to_state.state is open_states }}
+              {{ trigger.from_state.state in closed_states and trigger.to_state.state in open_states }}
 
         sequence:
           - if:
