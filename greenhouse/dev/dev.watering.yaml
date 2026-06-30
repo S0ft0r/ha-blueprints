@@ -468,17 +468,21 @@ variables:
   action_switch_close: "{{ 'turn_off' if set_nc_no_type_valve == 'type_no' else 'turn_on' }}"
 
 triggers:
-  - trigger: state # Ручное выключение направления
-    entity_id: !input watervalve_switch
-    id: watervalve_switch_off_trigger
-    to: "off"
-    from: "on"
+  # - trigger: state # Ручное выключение направления
+  #   entity_id: !input watervalve_switch
+  #   id: watervalve_switch_off_trigger
+  #   to: "off"
+  #   from: "on"
+
+  # - trigger: state # Ручное включение направления
+  #   entity_id: !input watervalve_switch
+  #   id: watervalve_switch_on_trigger
+  #   to: "on"
+  #   from: "off"
 
   - trigger: state # Ручное включение направления
     entity_id: !input watervalve_switch
-    id: watervalve_switch_on_trigger
-    to: "on"
-    from: "off"
+    id: watervalve_toggle_trigger
 
   - trigger: template # Включение насоса и закрытие клапанов направления до включения системы утром
     value_template: >-
@@ -549,11 +553,16 @@ actions:
       - conditions:
           - condition: trigger
             id:
-              - watervalve_switch_off_trigger
+              - watervalve_toggle_trigger
+              # - watervalve_switch_off_trigger
 
           - condition: template
             value_template: >
               {{ trigger.to_state.context.user_id is not none }}
+
+          - condition: template
+            value_template: >
+              {{ trigger.to_state.state is closed_states and trigger.from_state.state is open_states }}
 
         sequence:
           - action: "{{ watering_close_action }}"
@@ -567,11 +576,16 @@ actions:
       - conditions:
           - condition: trigger
             id:
-              - watervalve_switch_on_trigger
+              - watervalve_toggle_trigger
+              # - watervalve_switch_on_trigger
 
           - condition: template
             value_template: >
               {{ trigger.to_state.context.user_id is not none }}
+
+          - condition: template
+            value_template: >
+              {{ trigger.from_state.state is closed_states and trigger.to_state.state is open_states }}
 
         sequence:
           - if:
