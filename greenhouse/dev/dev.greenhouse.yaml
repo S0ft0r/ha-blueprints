@@ -1,7 +1,7 @@
 blueprint:
   name: Управление поливом теплицы
   description: |
-    ### Управление поливом теплицы.
+    ### Управление поливом теплицы. Dev версия
     <small>Версия 2026.07.01 Сборка 4</small> 
 
     <small><a href="https://github.com/S0ft0r/ha-blueprints/blob/main/as-is.md">Отказ от ответственности</a></small>
@@ -363,9 +363,15 @@ blueprint:
                 - domain:
                     - switch
                     - valve
-                    - input_boolean
               reorder: false
               multiple: false
+
+        set_person_check:
+          name: Учитывать присутствие людей дома
+          description: При выключенной опции насос будет отключен принудительно после завершения работы системы полива
+          default: true
+          selector:
+            boolean: {}
 
         set_time_waterpump_work: 
           name: Включать насос на
@@ -377,7 +383,6 @@ blueprint:
             active_choice: время
             сенсор: [] 
           selector:
-            # time: {}
             choose:
               choices:
                 'время':
@@ -523,7 +528,11 @@ trigger_variables:
   set_use_forecast_enable: !input set_use_forecast_enable
   set_rain_number_forecast_hours: !input set_rain_number_forecast_hours
 
+  set_person_check: !input set_person_check
+
   is_watervale_defined: "{{ watervalve_switch != [] }}"
+  is_waterpump_defined: "{{ waterpump_switch is defined and states(waterpump_switch) not in invalid_states }}"
+  is_watering_defined: "{{ watering_switch is defined and states(watering_switch) not in invalid_states }}"
 
   open_states:
     - "on"
@@ -546,6 +555,9 @@ variables:
   selected_days_morning: "{{ now().strftime('%a') | lower in set_select_days_morning }}"
   selected_days_evening: "{{ now().strftime('%a') | lower in set_select_days_evening }}"
 
+  waterpump_entities: "{{ expand(waterpump_switch) | map(attribute='entity_id') | list }}" 
+  watering_entities: "{{ expand(watering_switch) | map(attribute='entity_id') | list }}" 
+
   # Определение времени работы насоса 
   time_waterpump_work: "{{ set_time_waterpump_work.время if set_time_waterpump_work.active_choice == 'время' else states(set_time_waterpump_work.сенсор) }}"
 
@@ -554,12 +566,12 @@ variables:
   time_work_evening: "{{ set_time_work_evening.время if set_time_work_evening.active_choice == 'время' else states(set_time_work_evening.сенсор) }}"
 
   # Задержки открытия клапана на воду
-  watering_close_delay: "{{ '%02d:%02d:%02d' | format(set_watering_close_delay // 3600, (set_watering_close_delay % 3600) // 60, set_watering_close_delay % 60) }}"
-  watering_open_delay: "{{ '%02d:%02d:%02d' | format(set_watering_open_delay // 3600, (set_watering_open_delay % 3600) // 60, set_watering_open_delay % 60) }}"
+  watering_close_delay: "{{ '%02d:%02d:%02d' | format(set_watering_close_delay | int // 3600, (set_watering_close_delay | int % 3600) // 60, set_watering_close_delay | int % 60) }}"
+  watering_open_delay: "{{ '%02d:%02d:%02d' | format(set_watering_open_delay | int // 3600, (set_watering_open_delay | int % 3600) // 60, set_watering_open_delay | int % 60) }}"
 
   # Задержки открытия клапанов направления
-  watervalve_close_delay: "{{ '%02d:%02d:%02d' | format(set_watervalve_close_delay // 3600, (set_watervalve_close_delay % 3600) // 60, set_watervalve_close_delay % 60) }}"
-  watervalve_open_delay: "{{ '%02d:%02d:%02d' | format(set_watervalve_open_delay // 3600, (set_watervalve_open_delay % 3600) // 60, set_watervalve_open_delay % 60) }}"
+  watervalve_close_delay: "{{ '%02d:%02d:%02d' | format(set_watervalve_close_delay | int // 3600, (set_watervalve_close_delay | int % 3600) // 60, set_watervalve_close_delay | int % 60) }}"
+  watervalve_open_delay: "{{ '%02d:%02d:%02d' | format(set_watervalve_open_delay | int // 3600, (set_watervalve_open_delay | int % 3600) // 60, set_watervalve_open_delay | int % 60) }}"
 
   # Действия на открытие/закрытия насоса
   waterpump_open_action: "{{ 'valve.open_valve' if waterpump_switch.split('.')[0] == 'valve' else 'homeassistant.turn_on' }}"
@@ -582,18 +594,6 @@ variables:
   use_forecast_enable: "{{ set_use_forecast_enable.выбор if set_use_forecast_enable.active_choice == 'выбор' else states(set_use_forecast_enable.сенсор) in open_states }}"
 
 triggers:
-  # - trigger: state # Ручное выключение направления
-  #   entity_id: !input watervalve_switch
-  #   id: watervalve_switch_off_trigger
-  #   to: "off"
-  #   from: "on"
-
-  # - trigger: state # Ручное включение направления
-  #   entity_id: !input watervalve_switch
-  #   id: watervalve_switch_on_trigger
-  #   to: "on"
-  #   from: "off"
-
   - trigger: state # Ручное включение направления
     entity_id: !input watervalve_switch
     id: watervalve_toggle_trigger
@@ -634,10 +634,12 @@ triggers:
   - entity_id: !input watering_switch # Влючение таймера для варийного выключение системы
     trigger: state
     id: watering_toggle_trigger
+    enabled: "{{ is_watering_defined }}"
 
   - entity_id: !input waterpump_switch
     trigger: state
     id: pump_off_trigger
+    enabled: "{{ is_waterpump_defined }}"
 
 actions:
   - if:
@@ -655,8 +657,9 @@ actions:
 
   - variables:    
       no_rain_next_hours: |
-        {% if forecast_sensor != [] and states(forecast_sensor) not in invalid_states and use_forecast_enable %}
-          {% set forecasts = hourly[forecast_sensor].forecast[:set_rain_number_forecast_hours] | map(attribute='condition') | list %}
+        {% if forecast_sensor != [] and states(forecast_sensor) not in invalid_states and use_forecast_enable and hourly is defined and hourly.get(forecast_sensor) is not none  %}
+          {% set hours = set_rain_number_forecast_hours | int %}
+          {% set forecasts = hourly[forecast_sensor].forecast[:hours] | map(attribute='condition') | list %}
           {{ intersect(forecasts, set_rain_conditions) | count == 0 }}
         {% else %}
           {{ true }}
@@ -699,7 +702,6 @@ actions:
           - condition: trigger
             id:
               - watervalve_toggle_trigger
-              # - watervalve_switch_off_trigger
 
           - condition: template
             value_template: >
@@ -712,7 +714,8 @@ actions:
         sequence:
           - action: "{{ watering_close_action }}"
             target:
-              entity_id: !input watering_switch
+              entity_id: >
+                "{{ watering_entities }}"
 
 #######################################################################################
 # Ручное включение направления
@@ -722,7 +725,6 @@ actions:
           - condition: trigger
             id:
               - watervalve_toggle_trigger
-              # - watervalve_switch_on_trigger
 
           - condition: template
             value_template: >
@@ -1048,13 +1050,12 @@ actions:
                     
                     {% set i.item = i.item + (1 if (la and lo) else 0) %}
                   {% endfor %}
-                  {{ i.item == 0 }}
+                  {{ true if not set_person_check else i.item == 0 }}
 
               - condition: template
                 value_template: |
                   {{ states(waterpump_switch) in open_states }}
             then:
-              # - delay: !input set_time_waterpump_work
               - delay: "{{ time_waterpump_work }}"
 
               - action: "{{ waterpump_close_action }}"
@@ -1104,8 +1105,8 @@ actions:
                 {% set work_time_morning_in_seconds = (time_work_morning.split(':')[0] | int * 3600 + time_work_morning.split(':')[1] | int * 60 + time_work_morning.split(':')[2] | int) if watering_morning_enable else 0 %}
                 {% set work_time_evening_in_seconds = (time_work_evening.split(':')[0] | int * 3600 + time_work_evening.split(':')[1] | int * 60 + time_work_evening.split(':')[2] | int) if watering_evening_enable else 0 %}
                 {% set auto_off_pump_time_in_seconds = set_auto_off_pump_time.split(':')[0] | int * 3600 + set_auto_off_pump_time.split(':')[1] | int * 60 + set_auto_off_pump_time.split(':')[2] | int %}
-                {% set max_seconds = max(((set_watervalve_open_delay + work_time_morning_in_seconds + set_watervalve_close_delay) * watervalve_count + 60), 
-                  ((set_watervalve_open_delay + work_time_evening_in_seconds + set_watervalve_close_delay) * watervalve_count + 60), 
+                {% set max_seconds = max(((set_watervalve_open_delay | int + work_time_morning_in_seconds | int + set_watervalve_close_delay | int) * watervalve_count + 60), 
+                  ((set_watervalve_open_delay | int + work_time_evening_in_seconds | int + set_watervalve_close_delay | int) * watervalve_count + 60), 
                   auto_off_pump_time_in_seconds) %}
                 {{ '%02d:%02d:%02d' | format(max_seconds // 3600, (max_seconds % 3600) // 60, max_seconds % 60) }}
             target:

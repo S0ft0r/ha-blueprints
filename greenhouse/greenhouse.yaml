@@ -527,8 +527,6 @@ trigger_variables:
   set_person_check: !input set_person_check
 
   is_watervale_defined: "{{ watervalve_switch != [] }}"
-  is_waterpump_defined: "{{ waterpump_switch is defined and states(waterpump_switch) not in invalid_states }}"
-  is_watering_defined: "{{ watering_switch is defined and states(watering_switch) not in invalid_states }}"
 
   open_states:
     - "on"
@@ -630,12 +628,10 @@ triggers:
   - entity_id: !input watering_switch # Влючение таймера для варийного выключение системы
     trigger: state
     id: watering_toggle_trigger
-    enabled: "{{ is_watering_defined }}"
 
   - entity_id: !input waterpump_switch
     trigger: state
     id: pump_off_trigger
-    enabled: "{{ is_waterpump_defined }}"
 
 actions:
   - if:
@@ -710,8 +706,7 @@ actions:
         sequence:
           - action: "{{ watering_close_action }}"
             target:
-              entity_id: >
-                "{{ watering_entities }}"
+              entity_id: !input watering_switch
 
 #######################################################################################
 # Ручное включение направления
