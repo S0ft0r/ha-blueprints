@@ -531,8 +531,6 @@ trigger_variables:
   set_person_check: !input set_person_check
 
   is_watervale_defined: "{{ watervalve_switch != [] }}"
-  is_waterpump_defined: "{{ waterpump_switch is defined and states(waterpump_switch) not in invalid_states }}"
-  is_watering_defined: "{{ watering_switch is defined and states(watering_switch) not in invalid_states }}"
 
   open_states:
     - "on"
@@ -555,8 +553,8 @@ variables:
   selected_days_morning: "{{ now().strftime('%a') | lower in set_select_days_morning }}"
   selected_days_evening: "{{ now().strftime('%a') | lower in set_select_days_evening }}"
 
-  waterpump_entities: "{{ expand(waterpump_switch) | map(attribute='entity_id') | list }}" 
-  watering_entities: "{{ expand(watering_switch) | map(attribute='entity_id') | list }}" 
+  # waterpump_entities: "{{ expand(waterpump_switch) | map(attribute='entity_id') | list }}" 
+  # watering_entities: "{{ expand(watering_switch) | map(attribute='entity_id') | list }}" 
 
   # Определение времени работы насоса 
   time_waterpump_work: "{{ set_time_waterpump_work.время if set_time_waterpump_work.active_choice == 'время' else states(set_time_waterpump_work.сенсор) }}"
@@ -597,7 +595,7 @@ triggers:
   - trigger: state # Ручное включение направления
     entity_id: !input watervalve_switch
     id: watervalve_toggle_trigger
-    enabled: "{{ is_watervale_defined }}"
+    enabled: "{{ is_watervalve_defined }}"
 
   - trigger: template # Включение насоса и закрытие клапанов направления до включения системы утром
     value_template: >-
@@ -634,12 +632,10 @@ triggers:
   - entity_id: !input watering_switch # Влючение таймера для варийного выключение системы
     trigger: state
     id: watering_toggle_trigger
-    enabled: "{{ is_watering_defined }}"
 
   - entity_id: !input waterpump_switch
     trigger: state
     id: pump_off_trigger
-    enabled: "{{ is_waterpump_defined }}"
 
 actions:
   - if:
@@ -714,8 +710,7 @@ actions:
         sequence:
           - action: "{{ watering_close_action }}"
             target:
-              entity_id: >
-                "{{ watering_entities }}"
+              entity_id: !input watering_switch
 
 #######################################################################################
 # Ручное включение направления
@@ -789,7 +784,7 @@ actions:
 
           - condition: template
             value_template: |
-              {{ waterpump_switch != [] and states(waterpump_switch) not in invalid_states }}
+              {{ states(waterpump_switch) not in invalid_states }}
 
           - condition: template
             value_template: |
@@ -840,7 +835,7 @@ actions:
 
           - condition: template
             value_template: |
-              {{ waterpump_switch != [] and states(waterpump_switch) not in invalid_states }}
+              {{ states(waterpump_switch) not in invalid_states }}
 
           - condition: template
             value_template: |
