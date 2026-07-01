@@ -588,7 +588,7 @@ triggers:
   - trigger: state # Ручное включение направления
     entity_id: !input watervalve_switch
     id: watervalve_toggle_trigger
-    enabled: "{{ is_watervale_defined in open_states }}"
+    enabled: "{{ is_watervale_defined }}"
 
   - trigger: template # Включение насоса и закрытие клапанов направления до включения системы утром
     value_template: >-
