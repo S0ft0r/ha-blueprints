@@ -523,13 +523,17 @@ trigger_variables:
   set_use_forecast_enable: !input set_use_forecast_enable
   set_rain_number_forecast_hours: !input set_rain_number_forecast_hours
 
+  is_watervale_defined: "{{ watervalve_switch != [] }}"
+
   open_states:
     - "on"
     - "open"
+    - "true"
 
   closed_states:
     - "off"
     - "closed"
+    - "false"
 
   invalid_states:
     - ""
@@ -575,7 +579,7 @@ variables:
   action_switch_open: "{{ 'turn_on' if set_nc_no_type_valve == 'type_no' else 'turn_off' }}"
   action_switch_close: "{{ 'turn_off' if set_nc_no_type_valve == 'type_no' else 'turn_on' }}"
 
-  use_forecast_enable: "{{ set_use_forecast_enable.выбор if set_use_forecast_enable.active_choice == 'выбор' else states(set_use_forecast_enable.сенсор) }}"
+  use_forecast_enable: "{{ set_use_forecast_enable.выбор if set_use_forecast_enable.active_choice == 'выбор' else states(set_use_forecast_enable.сенсор) in open_states }}"
 
 triggers:
   # - trigger: state # Ручное выключение направления
@@ -593,6 +597,7 @@ triggers:
   - trigger: state # Ручное включение направления
     entity_id: !input watervalve_switch
     id: watervalve_toggle_trigger
+    enabled: "{{ is_watervale_defined }}"
 
   - trigger: template # Включение насоса и закрытие клапанов направления до включения системы утром
     value_template: >-
@@ -650,7 +655,7 @@ actions:
 
   - variables:    
       no_rain_next_hours: |
-        {% if forecast_sensor != [] and states(forecast_sensor) not in invalid_state and use_forecast_enable %}
+        {% if forecast_sensor != [] and states(forecast_sensor) not in invalid_states and use_forecast_enable %}
           {% set forecasts = hourly[forecast_sensor].forecast[:set_rain_number_forecast_hours] | map(attribute='condition') | list %}
           {{ intersect(forecasts, set_rain_conditions) | count == 0 }}
         {% else %}
@@ -658,12 +663,12 @@ actions:
         {% endif %}
 
       watering_morning_enable: |
-        {% set from_sensor = set_pump_morning_enable.сенсор | bool(default=false) if set_pump_morning_enable.active_choice == 'сенсор' else true %}
+        {% set from_sensor = (states(set_pump_morning_enable.сенсор) in open_states) | bool(default=false) if set_pump_morning_enable.active_choice == 'сенсор' else true %}
         {% set from_choice = set_pump_morning_enable.выбор | bool(default=false) if set_pump_morning_enable.active_choice == 'выбор' else true %}
         {{ from_sensor and from_choice }}
 
       watering_evening_enable: |
-        {% set from_sensor = set_pump_evening_enable.сенсор | bool(default=false) if set_pump_evening_enable.active_choice == 'сенсор' else true %}
+        {% set from_sensor = (states(set_pump_evening_enable.сенсор) in open_states) | bool(default=false) if set_pump_evening_enable.active_choice == 'сенсор' else true %}
         {% set from_choice = set_pump_evening_enable.выбор | bool(default=false) if set_pump_evening_enable.active_choice == 'выбор' else true %}
         {{ from_sensor and from_choice }}
 
@@ -808,12 +813,11 @@ actions:
           - if:
               - condition: template
                 value_template: |
-                  {{ true if no_type_valve }}
+                  {{ no_type_valve }}
 
             then:
               - repeat:
-                  for_each: >
-                      {{ (watervalve_switch if morning_watervalve_switch == [] else morning_watervalve_switch) | list }} 
+                  for_each: !input watervalve_switch 
                   sequence:
                     - action: |
                         {{ 'valve.' ~ action_valve_open if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_open }}
@@ -846,7 +850,7 @@ actions:
 
           - condition: template
             value_template: |
-              {{ watering_eveining_enable }}
+              {{ watering_evening_enable }}
 
           - condition: template
             value_template: |
@@ -867,8 +871,7 @@ actions:
 
             then:
               - repeat:
-                  for_each: >
-                      {{ (watervalve_switch if evening_watervalve_switch == [] else evening_watervalve_switch) | list }} 
+                  for_each: !input watervalve_switch 
                   sequence:
                     - action: "{{ 'valve.' ~ action_valve_open if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_open }}"
                       target:
@@ -914,7 +917,8 @@ actions:
           - delay: "{{ watering_open_delay }}"
 
           - repeat:
-              for_each: !input watervalve_switch
+              for_each: >
+                {{ (watervalve_switch if morning_watervalve_switch == [] else morning_watervalve_switch) | list }} 
               sequence:
                 - action: "{{ 'valve.' ~ action_valve_close if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_close }}" #  Открытие клапана потока
                   target:
@@ -973,7 +977,8 @@ actions:
           - delay: "{{ watering_open_delay }}" # Задержка открытия клапана на воду
 
           - repeat:
-              for_each: !input watervalve_switch
+              for_each: >
+                      {{ (watervalve_switch if evening_watervalve_switch == [] else evening_watervalve_switch) | list }} 
               sequence:
                 - action: "{{ 'valve.' ~ action_valve_close if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_close }}" #  Закрытие клапана потока
                   target:
