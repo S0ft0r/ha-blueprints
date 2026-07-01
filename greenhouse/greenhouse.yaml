@@ -362,6 +362,13 @@ blueprint:
               reorder: false
               multiple: false
 
+        set_person_check:
+          name: Учитывать присутствие людей дома
+          description: При выключенной опции насос будет отключен принудительно после завершения работы системы полива
+          default: true
+          selector:
+            boolean: {}
+
         set_time_waterpump_work: 
           name: Включать насос на
           description: |
@@ -517,6 +524,8 @@ trigger_variables:
   set_use_forecast_enable: !input set_use_forecast_enable
   set_rain_number_forecast_hours: !input set_rain_number_forecast_hours
 
+  set_person_check: !input set_person_check
+
   is_watervale_defined: "{{ watervalve_switch != [] }}"
 
   open_states:
@@ -576,22 +585,10 @@ variables:
   use_forecast_enable: "{{ set_use_forecast_enable.выбор if set_use_forecast_enable.active_choice == 'выбор' else states(set_use_forecast_enable.сенсор) in open_states }}"
 
 triggers:
-  # - trigger: state # Ручное выключение направления
-  #   entity_id: !input watervalve_switch
-  #   id: watervalve_switch_off_trigger
-  #   to: "off"
-  #   from: "on"
-
-  # - trigger: state # Ручное включение направления
-  #   entity_id: !input watervalve_switch
-  #   id: watervalve_switch_on_trigger
-  #   to: "on"
-  #   from: "off"
-
   - trigger: state # Ручное включение направления
     entity_id: !input watervalve_switch
     id: watervalve_toggle_trigger
-    enabled: "{{ is_watervale_defined }}"
+    enabled: "{{ is_watervale_defined in open_states }}"
 
   - trigger: template # Включение насоса и закрытие клапанов направления до включения системы утром
     value_template: >-
@@ -1040,7 +1037,7 @@ actions:
                     
                     {% set i.item = i.item + (1 if (la and lo) else 0) %}
                   {% endfor %}
-                  {{ i.item == 0 }}
+                  {{ true if not set_person_check else i.item == 0 }}
 
               - condition: template
                 value_template: |
