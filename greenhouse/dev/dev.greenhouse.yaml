@@ -58,7 +58,19 @@ blueprint:
                         - input_boolean
                   multiple: false
 
-         
+    watervalve_switch:
+      name: Клапаны направления
+      description: ""
+      default: []
+      selector:
+        entity:
+          filter:
+            - domain:
+                - switch
+                - valve
+                - input_boolean
+          reorder: false
+          multiple: true
 
     morning_section:
       name: Настройки системы для работы утром
@@ -171,6 +183,20 @@ blueprint:
               multiple: true
               custom_value: false
               mode: list
+
+        morning_watervalve_switch:
+          name: Клапаны направления, используемые только утром
+          description: Если ничего не выбрано, то используются все клапана
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - switch
+                    - valve
+                    - input_boolean
+              reorder: false
+              multiple: true
 
     evening_section:
       name: Настройки системы для работы вечером
@@ -286,6 +312,20 @@ blueprint:
               custom_value: false
               mode: list
 
+        evening_watervalve_switch:
+          name: Клапаны направления, используемые только вечером
+          description: Если ничего не выбрано, то используются все клапана
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - switch
+                    - valve
+                    - input_boolean
+              reorder: false
+              multiple: true
+
     extra_section:
       name: Дополнительные настройки системы
       description: |
@@ -350,20 +390,6 @@ blueprint:
                         - domain:
                             - input_datetime
                       multiple: false
-
-        watervalve_switch:
-          name: Клапаны направления
-          description: ""
-          default: []
-          selector:
-            entity:
-              filter:
-                - domain:
-                    - switch
-                    - valve
-                    - input_boolean
-              reorder: false
-              multiple: true
 
         set_nc_no_type_valve:
           name: Тип клапанов направления
@@ -463,6 +489,8 @@ blueprint:
 trigger_variables:
   watering_switch: !input watering_switch
   watervalve_switch: !input watervalve_switch
+  morning_watervalve_switch: !input morning_watervalve_switch
+  evening_watervalve_switch: !input evening_watervalve_switch
   waterpump_switch: !input waterpump_switch
   pump_off_auto: !input pump_off_auto
   forecast_sensor: !input forecast_sensor
@@ -629,6 +657,16 @@ actions:
           {{ true }}
         {% endif %}
 
+      watering_morning_enable: |
+        {% set from_sensor = set_pump_morning_enable.сенсор | bool(default=false) if set_pump_morning_enable.active_choice == 'сенсор' else true %}
+        {% set from_choice = set_pump_morning_enable.выбор | bool(default=false) if set_pump_morning_enable.active_choice == 'выбор' else true %}
+        {{ from_sensor and from_choice }}
+
+      watering_evening_enable: |
+        {% set from_sensor = set_pump_evening_enable.сенсор | bool(default=false) if set_pump_evening_enable.active_choice == 'сенсор' else true %}
+        {% set from_choice = set_pump_evening_enable.выбор | bool(default=false) if set_pump_evening_enable.active_choice == 'выбор' else true %}
+        {{ from_sensor and from_choice }}
+
   - choose:
 #######################################################################################
 # Действие при аварийном отключение насоса (например, при протечке)
@@ -756,7 +794,7 @@ actions:
 
           - condition: template
             value_template: |
-              {{ set_pump_morning_enable.выбор if set_pump_morning_enable.active_choice == 'выбор' else states(set_pump_morning_enable.сенсор) }}
+              {{ watering_morning_enable }}
 
           - condition: template
             value_template: |
@@ -774,7 +812,8 @@ actions:
 
             then:
               - repeat:
-                  for_each: !input watervalve_switch
+                  for_each: >
+                      {{ (watervalve_switch if morning_watervalve_switch == [] else morning_watervalve_switch) | list }} 
                   sequence:
                     - action: |
                         {{ 'valve.' ~ action_valve_open if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_open }}
@@ -807,7 +846,7 @@ actions:
 
           - condition: template
             value_template: |
-              {{ set_pump_evening_enable.выбор if set_pump_evening_enable.active_choice == 'выбор' else states(set_pump_evening_enable.сенсор) }}
+              {{ watering_eveining_enable }}
 
           - condition: template
             value_template: |
@@ -828,7 +867,8 @@ actions:
 
             then:
               - repeat:
-                  for_each: !input watervalve_switch
+                  for_each: >
+                      {{ (watervalve_switch if evening_watervalve_switch == [] else evening_watervalve_switch) | list }} 
                   sequence:
                     - action: "{{ 'valve.' ~ action_valve_open if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_open }}"
                       target:
@@ -860,7 +900,7 @@ actions:
 
           - condition: template
             value_template: |
-              {{ set_pump_morning_enable.выбор if set_pump_morning_enable.active_choice == 'выбор' else states(set_pump_morning_enable.сенсор) }}
+              {{ watering_morning_enable }}
 
           - condition: template
             value_template: |
@@ -919,7 +959,7 @@ actions:
 
           - condition: template
             value_template: |
-              {{ set_pump_evening_enable.выбор if set_pump_evening_enable.active_choice == 'выбор' else states(set_pump_evening_enable.сенсор) }}
+              {{ watering_evening_enable }}
 
           - condition: template
             value_template: |
@@ -1056,8 +1096,8 @@ actions:
             data: # Расчет времени до автоотключение
               duration: |
                 {% set watervalve_count = watervalve_switch | list | count %}
-                {% set work_time_morning_in_seconds = time_work_morning.split(':')[0] | int * 3600 + time_work_morning.split(':')[1] | int * 60 + time_work_morning.split(':')[2] | int %}
-                {% set work_time_evening_in_seconds = time_work_evening.split(':')[0] | int * 3600 + time_work_evening.split(':')[1] | int * 60 + time_work_evening.split(':')[2] | int %}
+                {% set work_time_morning_in_seconds = (time_work_morning.split(':')[0] | int * 3600 + time_work_morning.split(':')[1] | int * 60 + time_work_morning.split(':')[2] | int) if watering_morning_enable else 0 %}
+                {% set work_time_evening_in_seconds = (time_work_evening.split(':')[0] | int * 3600 + time_work_evening.split(':')[1] | int * 60 + time_work_evening.split(':')[2] | int) if watering_evening_enable else 0 %}
                 {% set auto_off_pump_time_in_seconds = set_auto_off_pump_time.split(':')[0] | int * 3600 + set_auto_off_pump_time.split(':')[1] | int * 60 + set_auto_off_pump_time.split(':')[2] | int %}
                 {% set max_seconds = max(((set_watervalve_open_delay + work_time_morning_in_seconds + set_watervalve_close_delay) * watervalve_count + 60), 
                   ((set_watervalve_open_delay + work_time_evening_in_seconds + set_watervalve_close_delay) * watervalve_count + 60), 
