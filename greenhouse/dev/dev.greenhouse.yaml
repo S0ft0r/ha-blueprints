@@ -363,6 +363,7 @@ blueprint:
                 - domain:
                     - switch
                     - valve
+                    - input_boolean
               reorder: false
               multiple: false
 
@@ -581,7 +582,7 @@ variables:
 
   # Тип клапанов направления - НО/НЗ
   no_type_valve: "{{ set_nc_no_type_valve == 'type_no' }}"
-  nc_type_valve: "{{ set_nc_no_type_valve == 'type_nc' }}"
+#  nc_type_valve: "{{ set_nc_no_type_valve == 'type_nc' }}"
 
   # Определение действия в соответствие с типом клапана направления
   action_valve_open: "{{ 'open_valve' if set_nc_no_type_valve == 'type_no' else 'close_valve' }}"
