@@ -729,6 +729,30 @@ actions:
 
           - delay: "{{ watering_close_delay }}"
 
+      open_watering: &open_watering
+        sequence: 
+          - action: "{{ watering_open_action }}" 
+            target: 
+              entity_id: !input watering_switch
+
+          - delay: "{{ watering_open_delay }}"
+
+      watervalve_action: &watervalve_action
+        sequence: 
+          - action: "{{ 'valve.' ~ action_valve_close if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_close }}" #  Открытие клапана потока
+            target:
+              entity_id: "{{ repeat.item }}"
+
+          - delay: "{{ watervalve_open_delay }}"
+
+          - delay: "{{ time_work_morning }}"
+
+          - action: "{{ 'valve.' ~ action_valve_open if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_open }}" #  Закрытие клапана потока
+            target:
+              entity_id: "{{ repeat.item }}"
+
+          - delay: "{{ watervalve_close_delay }}"
+
   - choose:
 #######################################################################################
 # Действие при аварийном отключение насоса (например, при протечке)
@@ -829,11 +853,12 @@ actions:
                   {{ states(watering_switch) in closed_states }}
 
             then:
-              - action: "{{ watering_open_action }}"
-                target:
-                  entity_id: !input watering_switch
+              - *open_watering
+              # - action: "{{ watering_open_action }}"
+              #   target:
+              #     entity_id: !input watering_switch
 
-              - delay: "{{ watering_open_delay }}" # Ожидание открытия клапана
+              # - delay: "{{ watering_open_delay }}" # Ожидание открытия клапана
 
 
 #######################################################################################
@@ -970,11 +995,13 @@ actions:
               {{ no_rain_next_hours }}
 
         sequence:
-          - action: "{{ watering_open_action }}" #            Клапан на воду включен
-            target:
-              entity_id: !input watering_switch
+          - *open_watering
 
-          - delay: "{{ watering_open_delay }}"
+          # - action: "{{ watering_open_action }}" #            Клапан на воду включен
+          #   target:
+          #     entity_id: !input watering_switch
+
+          # - delay: "{{ watering_open_delay }}"
 
           - repeat:
               for_each: >
@@ -983,19 +1010,20 @@ actions:
                     | list %}
                 {{ (watervalve_switch if morning_valves == [] else morning_valves) | list }}                
               sequence:
-                - action: "{{ 'valve.' ~ action_valve_close if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_close }}" #  Открытие клапана потока
-                  target:
-                    entity_id: "{{ repeat.item }}"
+                - *watervalve_action
+                # - action: "{{ 'valve.' ~ action_valve_close if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_close }}" #  Открытие клапана потока
+                #   target:
+                #     entity_id: "{{ repeat.item }}"
 
-                - delay: "{{ watervalve_open_delay }}"
+                # - delay: "{{ watervalve_open_delay }}"
 
-                - delay: "{{ time_work_morning }}"
+                # - delay: "{{ time_work_morning }}"
 
-                - action: "{{ 'valve.' ~ action_valve_open if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_open }}" #  Закрытие клапана потока
-                  target:
-                    entity_id: "{{ repeat.item }}"
+                # - action: "{{ 'valve.' ~ action_valve_open if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_open }}" #  Закрытие клапана потока
+                #   target:
+                #     entity_id: "{{ repeat.item }}"
 
-                - delay: "{{ watervalve_close_delay }}"
+                # - delay: "{{ watervalve_close_delay }}"
 
           - *close_watering
 #          - sequence: *close_watering
@@ -1041,11 +1069,12 @@ actions:
               {{ no_rain_next_hours }}
 
         sequence: 
-          - action: "{{ watering_open_action }}"  # Открытие клапана на воду
-            target:
-              entity_id: !input watering_switch
+          - *open_watering
+          # - action: "{{ watering_open_action }}"  # Открытие клапана на воду
+          #   target:
+          #     entity_id: !input watering_switch
 
-          - delay: "{{ watering_open_delay }}" # Задержка открытия клапана на воду
+          # - delay: "{{ watering_open_delay }}" # Задержка открытия клапана на воду
 
           - repeat:
               for_each: >
@@ -1054,20 +1083,21 @@ actions:
                     | list %}
                 {{ (watervalve_switch if evening_valves == [] else evening_valves) | list }}                
               sequence:
-                - action: "{{ 'valve.' ~ action_valve_close if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_close }}" #  Закрытие клапана потока
-                  target:
-                    entity_id: "{{ repeat.item }}"
+                - *watervalve_action
+                # - action: "{{ 'valve.' ~ action_valve_close if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_close }}" #  Закрытие клапана потока
+                #   target:
+                #     entity_id: "{{ repeat.item }}"
 
-                - delay: "{{ watervalve_open_delay }}" # Ожидание открытия калапана направления
+                # - delay: "{{ watervalve_open_delay }}" # Ожидание открытия калапана направления
 
-                - delay: "{{ time_work_evening }}" # Время работы полива
+                # - delay: "{{ time_work_evening }}" # Время работы полива
 
 
-                - action: "{{ 'valve.' ~ action_valve_open if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_open }}" #  Открытие клапана потока
-                  target:
-                    entity_id: "{{ repeat.item }}"
+                # - action: "{{ 'valve.' ~ action_valve_open if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_open }}" #  Открытие клапана потока
+                #   target:
+                #     entity_id: "{{ repeat.item }}"
 
-                - delay: "{{ watervalve_close_delay }}"
+                # - delay: "{{ watervalve_close_delay }}"
 
           - *close_watering
             # target:
