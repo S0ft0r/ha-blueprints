@@ -1069,11 +1069,12 @@ actions:
 
                 - delay: "{{ watervalve_close_delay }}"
 
-          - target: *close_watering
+          - *close_watering
+            # target:
             #   entity_id: !input watering_switch
             # action: "{{ watering_close_action }}"
 
-          - delay: "{{ watering_close_delay }}"
+            # - delay: "{{ watering_close_delay }}"
 
 #######################################################################################
 # Выключение системы по таймеру
