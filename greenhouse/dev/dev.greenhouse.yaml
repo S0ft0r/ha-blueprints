@@ -17,7 +17,6 @@ blueprint:
 
     watering_switch:
       name: Реле/клапан включения полива
-#      icon: mdi:valve
       description: |
         Реле/клапан включения полива
         <small>* Поддерживается домены switch и valve</small>
@@ -33,7 +32,6 @@ blueprint:
 
     pump_off_auto:
       name: Таймер автоматического отключения
-#      icon: mdi:timer-alert-outline
       description: |
         <strong>Обязательный параметр</strong> - вспомогательный элемент [timer](https://my.home-assistant.io/redirect/helpers/)
         <small>* для отсчета автоматического отключения электромагнитного клапана / защита от перегрева (перелива)</small>
@@ -58,7 +56,6 @@ blueprint:
 
         watervalve_switch:
           name: Клапаны направления
-#          icon: mdi:valve
           description: ""
           default: []
           selector:
@@ -106,8 +103,8 @@ blueprint:
               unit_of_measurement: "сек"
 
    ####################################################################
-    # Секция: Утро 
-    ####################################################################
+   # Секция: Утро 
+   ####################################################################
 
     morning_section:
       name: Настройки системы для работы утром
@@ -319,7 +316,7 @@ blueprint:
                   value: every_day_evening
                 - label: Через день
                   value: every_over_day_evening
-                - label: Выбор
+                - label: Выбор дней
                   value: select_evening
               mode: list
               multiple: false
@@ -421,7 +418,7 @@ blueprint:
           selector:
             boolean: {}
 
-     ####################################################################
+    ####################################################################
     # Секция: Прогноз погоды (второстепенная)
     ####################################################################
 
@@ -455,7 +452,6 @@ blueprint:
 
         forecast_sensor:
           name: Прогнозный сенсор
-#          icon: mdi:weather-cloudy
           description: |
             Сенсор, определяющий прогноз погоды.
              + <small>Параметр обязателен только при выборе параметра <em>"Учитывать прогноз погоды"</em>. Если ничего не выбрано, то дополнительный параметр учитываться не будет.</small>
@@ -549,133 +545,6 @@ blueprint:
           selector:
             time: {}
 
-########################################################################################################################
-
-    # pump_off_auto:
-    #   name: Таймер автоматического отключения
-    #   description: |
-    #     <strong>Обязательный параметр</strong> - вспомогательный элемент timer
-    #     <small>* для отсчета автоматического отключения электромагнитного калпана / Защита от перегрева (перелива)</small>
-    #   selector:
-
-    # set_use_forecast_enable:
-    #   name: Учитывать прогноз погоды для включения полива
-    #   default:
-    #     active_choice: выбор
-    #     выбор: false
-    #     сенсор: []
-    #   selector:
-
-    # watervalve_switch:
-    #   name: Клапаны направления
-    #   description: ""
-    #   default: []
-    #   selector:
-
-    # morning_section:
-    #   name: Настройки системы для работы утром
-    #   description: |
-    #     Устанавливается время включения, режим работы полива.
-    #   icon: mdi:clock-time-four-outline
-    #   input:
-
-    # evening_section:
-    #   name: Настройки системы для работы вечером
-    #   description: |
-    #     Устанавливается время включения, режим работы системы полива.
-    #   icon: mdi:clock-time-eight-outline
-    #   input:
-
-    # extra_section:
-    #   name: Дополнительные настройки системы
-    #   description: |
-    #     Устанавливается дополнительные настройки.
-    #   icon: mdi:cog
-    #   input:
-    #     set_watering_open_delay:
-    #       name: Задержка открытия клапана на воду
-    #       description: Время ожидания полного открытия клапана направления
-    #       default: 5
-    #       selector:
-
-    #     set_watering_close_delay:
-    #       name: Задержка закрытия клапана на воду
-    #       description: Время ожидания полного закрытия клапана направления
-    #       default: 5
-    #       selector:
-
-    #     waterpump_switch:
-    #       name: Реле насоса
-    #       description: ""
-    #       selector:
-
-    #     set_person_check:
-    #       name: Учитывать присутствие людей дома
-    #       description: При выключенной опции насос будет отключен принудительно после завершения работы системы полива
-    #       default: true
-    #       selector:
-    #         boolean: {}
-
-    #     set_time_waterpump_work: 
-    #       name: Включать насос на
-    #       description: |
-    #         Время, на которое включается насос перед и после полива
-    #         <small>* При отсутствии людей в доме</small>
-    #       default: 
-    #         время: "00:01:00"
-    #         active_choice: время
-    #         сенсор: [] 
-    #       selector:
-
-    #     set_nc_no_type_valve:
-    #       name: Тип клапанов направления
-    #       default: type_no
-    #       selector:
-
-    #     set_watervalve_open_delay:
-    #       name: Задержка открытия клапана направления
-    #       description: Время ожидания полного открытия клапана направления
-    #       default: 5
-    #       selector:
-
-    #     set_watervalve_close_delay:
-    #       name: Задержка закрытия клапана направления
-    #       description: Время ожидания полного закрытия клапана направления
-    #       default: 5
-    #       selector:
-
-    #     set_auto_off_pump_time:
-    #       name: Время работы до автоотключения
-    #       description: |
-    #         * Минимальное время. Если сумма времени работы каждого направление больше, то будет произведен персчет.
-    #       default: "00:30:00"
-    #       selector:
-    #         time: {}
-
-    #     forecast_sensor:
-    #       name: Прогнозный сенсор
-    #       description: |
-    #         Сенсор, определяющий прогноз погоды.
-    #          + <small>Параметр обязателен только при выборе параметра <em>"Учитывать прогноз погоды"</em>. Если ничего не выбрано, то дополнительный параметр учитываться не будет.</small>
-    #       default: []
-    #       selector:
-
-    #     set_rain_conditions:
-    #       name: Прогноз погоды
-    #       description: |
-    #         Прогноз погоды, при котором полив включатся не будет
-    #       default:
-    #         - rainy
-    #         - pouring
-    #         - lightning-rainy
-    #       selector:
-
-    #     set_rain_number_forecast_hours:
-    #       name: Количество часов
-    #       description: Прогноз погоды на определенное количество часов
-    #       default: 3
-    #       selector:
-
 trigger_variables:
   watering_switch: !input watering_switch
   watervalve_switch: !input watervalve_switch
@@ -715,7 +584,7 @@ trigger_variables:
 
   set_person_check: !input set_person_check
 
-  is_watervale_defined: "{{ watervalve_switch != [] }}"
+  is_watervalve_defined: "{{ watervalve_switch != [] }}"
 
   open_states:
     - "on"
@@ -737,9 +606,6 @@ variables:
   # Выбранные дни работы полива
   selected_days_morning: "{{ now().strftime('%a') | lower in set_select_days_morning }}"
   selected_days_evening: "{{ now().strftime('%a') | lower in set_select_days_evening }}"
-
-  # waterpump_entities: "{{ expand(waterpump_switch) | map(attribute='entity_id') | list }}" 
-  # watering_entities: "{{ expand(watering_switch) | map(attribute='entity_id') | list }}" 
 
   # Определение времени работы насоса 
   time_waterpump_work: "{{ set_time_waterpump_work.время if set_time_waterpump_work.active_choice == 'время' else states(set_time_waterpump_work.сенсор) }}"
@@ -766,7 +632,6 @@ variables:
 
   # Тип клапанов направления - НО/НЗ
   no_type_valve: "{{ set_nc_no_type_valve == 'type_no' }}"
-#  nc_type_valve: "{{ set_nc_no_type_valve == 'type_nc' }}"
 
   # Определение действия в соответствие с типом клапана направления
   action_valve_open: "{{ 'open_valve' if set_nc_no_type_valve == 'type_no' else 'close_valve' }}"
