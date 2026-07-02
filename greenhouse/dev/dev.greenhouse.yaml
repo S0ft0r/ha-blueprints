@@ -835,28 +835,30 @@ actions:
                       message: "{{ log_message }}"
 
       check_pump: &check_pump
-        - if:
-            - condition: template
-              value_template: |
-                {{ states(waterpump_switch) in closed_states or states(waterpump_switch) in invalid_states }}
-          then:
-            - variables:
-                log_message: >-
-                  Насос не включился после команды.
-                  Текущее состояние: {{ states(waterpump_switch) }}
-            - *log_pump_error
+        sequence:
+          - if:
+              - condition: template
+                value_template: |
+                  {{ states(waterpump_switch) in closed_states or states(waterpump_switch) in invalid_states }}
+            then:
+              - variables:
+                  log_message: >-
+                    Насос не включился после команды.
+                    Текущее состояние: {{ states(waterpump_switch) }}
+              - *log_pump_error
 
       check_watering: &check_watering
-        - if:
-            - condition: template
-              value_template: |
-                {{ states(watering_switch) in closed_states or states(watering_switch) in invalid_states }}
-          then:
-            - variables:
-                log_message: >-
-                  Клапан не открылся после команды.
-                  Текущее состояние: {{ states(watering_switch) }}
-            - *log_watering_error
+        sequence:
+          - if:
+              - condition: template
+                value_template: |
+                  {{ states(watering_switch) in closed_states or states(watering_switch) in invalid_states }}
+            then:
+              - variables:
+                  log_message: >-
+                    Клапан не открылся после команды.
+                    Текущее состояние: {{ states(watering_switch) }}
+              - *log_watering_error
 
 
   - choose:
