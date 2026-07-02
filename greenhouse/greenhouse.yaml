@@ -809,12 +809,24 @@ actions:
               entity_id: !input watering_switch
           - delay: "{{ watering_close_delay }}"
 
+      close_watepump: &waterpump_off
+        sequence: 
+          - action: "{{ waterpump_close_action }}" 
+            target: 
+              entity_id: !input waterpump_switch
+
       open_watering: &open_watering
         sequence: 
           - action: "{{ watering_open_action }}" 
             target: 
               entity_id: !input watering_switch
           - delay: "{{ watering_open_delay }}"
+
+      open_watepump: &waterpump_on
+        sequence: 
+          - action: "{{ waterpump_open_action }}" 
+            target: 
+              entity_id: !input waterpump_switch
 
       watervalve_action: &watervalve_action
         sequence: 
@@ -845,7 +857,7 @@ actions:
                 then:
                   - action: notify.send_message
                     target:
-                      entity_id: "{{ notify_target }}"
+                      entity_id: !input notify_target
                     data:
                       title: "Полив теплицы: {{ notification_title | default('Проблема') }}"
                       message: "{{ log_message }}"
@@ -884,6 +896,7 @@ actions:
                   log_entity_id: !input watering_switch
                   notification_title: "Ошибка клапана полива"
               - *log_error
+              - *waterpump_off
               - stop: "watering error"
 
       check_forecast: &check_forecast
@@ -963,9 +976,7 @@ actions:
                 value_template: |
                   {{ states(waterpump_switch) in closed_states }}
             then:
-              - action: "{{ waterpump_open_action }}" # Включение насоса 
-                target:
-                  entity_id: !input waterpump_switch
+              - *waterpump_on
               - *check_pump
               - delay: "{{ time_waterpump_work }}" # Задержка (для набора давления в систему)
           - repeat:
@@ -1017,9 +1028,7 @@ actions:
 
         sequence:
           - *check_forecast
-          - target:
-              entity_id: !input waterpump_switch
-            action: "{{ waterpump_open_action }}"
+          - *waterpump_on
           - *check_pump
           - if:
               - condition: template
@@ -1063,9 +1072,7 @@ actions:
 
         sequence:
           - *check_forecast
-          - target:
-              entity_id: !input waterpump_switch
-            action: "{{ waterpump_open_action }}"
+          - *waterpump_on
           - *check_pump
           - delay:
               seconds: 1
@@ -1219,9 +1226,7 @@ actions:
                   {{ states(waterpump_switch) in open_states }}
             then:
               - delay: "{{ time_waterpump_work }}"
-              - action: "{{ waterpump_close_action }}"
-                target:
-                  entity_id: !input waterpump_switch
+              - *waterpump_off
 
 #######################################################################################
 # Выключение таймера работы системы
