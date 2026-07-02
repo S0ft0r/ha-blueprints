@@ -440,18 +440,18 @@ blueprint:
             выбор: false
             сенсор: []
           selector:
-        choose:
-          choices:
-            "выбор":
-              selector:
-                boolean: {}
-            "сенсор":
-              selector:
-                entity:
-                  filter:
-                    - domain:
-                        - input_boolean
-                  multiple: false
+            choose:
+              choices:
+                "выбор":
+                  selector:
+                    boolean: {}
+                "сенсор":
+                  selector:
+                    entity:
+                      filter:
+                        - domain:
+                            - input_boolean
+                      multiple: false
 
         forecast_sensor:
           name: Прогнозный сенсор
