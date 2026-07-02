@@ -1108,10 +1108,13 @@ actions:
             value_template: |
               {{ watering_morning_enable }}
 
+          - condition: template
+            value_template: |
+              {{ no_rain_next_hours }}
+
         sequence:
           - variables:
               time_work_current: "{{ time_work_morning }}"
-          - *check_forecast
           - *open_watering
           - *check_watering
           - repeat:
@@ -1149,10 +1152,13 @@ actions:
             value_template: |
               {{ watering_evening_enable }}
 
+          - condition: template
+            value_template: |
+              {{ no_rain_next_hours }}
+
         sequence: 
           - variables:
               time_work_current: "{{ time_work_evening }}"
-          - *check_forecast
           - *open_watering
           - *check_watering
           - repeat:
