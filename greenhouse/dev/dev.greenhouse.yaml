@@ -813,30 +813,34 @@ actions:
 
       check_pump: &check_pump
         sequence:
+          - delay: 
+            seconds: 2
           - if:
               - condition: template
                 value_template: |
                   {{ states(waterpump_switch) in closed_states or states(waterpump_switch) in invalid_states }}
             then:
               - variables:
-                  context_info: "Ошибка: насос не включился после команды"
-                  extra_info: "Текущее состояние: {{ states(watering_switch) }}"
-                  log_message: "{{ context_info }}"
-                  log_entity_id: !input watering_switch
+                  log_message: |
+                    Ошибка: насос не включился.
+                    Текущее состояние: {{ states(waterpump_switch) }}
+                  log_entity_id: !input waterpump_switch
                   notification_title: "Ошибка насоса"
               - *log_error
 
       check_watering: &check_watering
         sequence:
+          - delay: 
+            seconds: 2
           - if:
               - condition: template
                 value_template: |
                   {{ states(watering_switch) in closed_states or states(watering_switch) in invalid_states }}
             then:
               - variables:
-                  context_info: "Ошибка: главный клапан не открылся"
-                  extra_info: "Текущее состояние: {{ states(watering_switch) }}"
-                  log_message: "{{ context_info }}"
+                  log_message: |
+                    Ошибка: главный клапан не открылся.
+                    Текущее состояние: {{ states(watering_switch) }}
                   log_entity_id: !input watering_switch
                   notification_title: "Ошибка клапана полива"
               - *log_error
@@ -909,9 +913,10 @@ actions:
                 target:
                   entity_id: !input waterpump_switch
 
+              - *check_pump
+     
               - delay: "{{ time_waterpump_work }}" # Задержка (для набора давления в систему)
 
-              - *check_pump
 
           - repeat:
               for_each: !input watervalve_switch # Закрытие всех клапанов направления (кроме выбранного)
@@ -975,6 +980,8 @@ actions:
               entity_id: !input waterpump_switch
             action: "{{ waterpump_open_action }}"
 
+          - *check_pump
+
           - if:
               - condition: template
                 value_template: |
@@ -1025,6 +1032,8 @@ actions:
           - target:
               entity_id: !input waterpump_switch
             action: "{{ waterpump_open_action }}"
+
+          - *check_pump
 
           - delay:
               seconds: 1
@@ -1080,6 +1089,8 @@ actions:
 
           - *open_watering
 
+          - *check_watering
+
           - repeat:
               for_each: >
                 {% set morning_valves = morning_watervalve_switch 
@@ -1125,6 +1136,8 @@ actions:
               time_work_current: "{{ time_work_evening }}"
 
           - *open_watering
+
+          - *check_watering
 
           - repeat:
               for_each: >
