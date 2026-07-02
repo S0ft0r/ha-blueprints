@@ -758,12 +758,12 @@ actions:
               {{ trigger.to_state.state in closed_states and trigger.from_state.state in open_states }}
 
         sequence: 
-          - sequence: &close_watering
-            - action: "{{ watering_close_action }}" 
-              target: 
-                entity_id: !input watering_switch
+          - sequence: #&close_watering
+              - action: "{{ watering_close_action }}" 
+                target: 
+                  entity_id: !input watering_switch
 
-            - delay: "{{ watering_close_delay }}"
+              - delay: "{{ watering_close_delay }}"
 
 
 #######################################################################################
@@ -988,7 +988,13 @@ actions:
 
                 - delay: "{{ watervalve_close_delay }}"
 
-          - sequence: *close_watering
+#          - sequence: *close_watering
+          - sequence: #&close_watering
+              - action: "{{ watering_close_action }}" 
+                target: 
+                  entity_id: !input watering_switch
+
+              - delay: "{{ watering_close_delay }}"
           # - target: *close_watering
             #   entity_id: !input watering_switch
             # action: "{{ watering_close_action }}"
