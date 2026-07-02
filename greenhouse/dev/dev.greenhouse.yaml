@@ -377,7 +377,8 @@ blueprint:
       
         waterpump_switch:
           name: Реле насоса
-          description: ""
+          description: Реле насоса
+          default: []
           selector:
             entity:
               filter:
@@ -620,6 +621,7 @@ trigger_variables:
   notify_target: !input notify_target
 
   is_watervalve_defined: "{{ watervalve_switch != [] }}"
+  is_waterpump_defined: "{{ waterpump_switch != [] }}"
 
   open_states:
     - "on"
