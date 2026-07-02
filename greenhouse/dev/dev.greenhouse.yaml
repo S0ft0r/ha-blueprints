@@ -788,7 +788,7 @@ actions:
 
           - delay: "{{ watervalve_close_delay }}"
 
-      log_pump_error: &log_pump_error
+      log_error: &log_error
         sequence:
           - if:
               - condition: template
@@ -798,7 +798,7 @@ actions:
                 data:
                   name: "Полив теплицы"
                   message: "{{ log_message }}"
-                  entity_id: !input waterpump_switch
+                  entity_id: "{{ log_entity_id | default('') }}"
 
               - if:
                   - condition: template
@@ -808,30 +808,7 @@ actions:
                     target:
                       entity_id: "{{ notify_target }}"
                     data:
-                      title: "Полив теплицы: ошибка насоса"
-                      message: "{{ log_message }}"
-
-      log_watering_error: &log_watering_error
-        sequence:
-          - if:
-              - condition: template
-                value_template: "{{ set_logging_enable }}"
-            then:
-              - action: logbook.log
-                data:
-                  name: "Полив теплицы"
-                  message: "{{ log_message }}"
-                  entity_id: !input watering_switch
-
-              - if:
-                  - condition: template
-                    value_template: "{{ notify_target != [] }}"
-                then:
-                  - action: notify.send_message
-                    target:
-                      entity_id: "{{ notify_target }}"
-                    data:
-                      title: "Полив теплицы: ошибка клапана"
+                      title: "Полив теплицы: {{ notification_title | default('Проблема') }}"
                       message: "{{ log_message }}"
 
       check_pump: &check_pump
@@ -842,10 +819,12 @@ actions:
                   {{ states(waterpump_switch) in closed_states or states(waterpump_switch) in invalid_states }}
             then:
               - variables:
-                  log_message: >-
-                    Насос не включился после команды.
-                    Текущее состояние: {{ states(waterpump_switch) }}
-              - *log_pump_error
+                  context_info: "Ошибка: насос не включился после команды"
+                  extra_info: "Текущее состояние: {{ states(watering_switch) }}"
+                  log_message: "{{ context_info }}"
+                  log_entity_id: !input watering_switch
+                  notification_title: "Ошибка насоса"
+              - *log_error
 
       check_watering: &check_watering
         sequence:
@@ -855,10 +834,12 @@ actions:
                   {{ states(watering_switch) in closed_states or states(watering_switch) in invalid_states }}
             then:
               - variables:
-                  log_message: >-
-                    Клапан не открылся после команды.
-                    Текущее состояние: {{ states(watering_switch) }}
-              - *log_watering_error
+                  context_info: "Ошибка: главный клапан не открылся"
+                  extra_info: "Текущее состояние: {{ states(watering_switch) }}"
+                  log_message: "{{ context_info }}"
+                  log_entity_id: !input watering_switch
+                  notification_title: "Ошибка клапана полива"
+              - *log_error
 
 
   - choose:
