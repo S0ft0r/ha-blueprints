@@ -105,62 +105,7 @@ blueprint:
               mode: slider
               unit_of_measurement: "сек"
 
-    ####################################################################
-    # Секция: Насос (второстепенная)
-    ####################################################################
-
-    pump_section:
-      name: Насос
-      description: |
-        Настройки реле насоса и его поведения относительно присутствия людей дома.
-      icon: mdi:water-pump
-      collapsed: true
-      input:
-
-        waterpump_switch:
-          name: Реле насоса
-          description: ""
-          selector:
-            entity:
-              filter:
-                - domain:
-                    - switch
-                    - valve
-                    - input_boolean
-              reorder: false
-              multiple: false
-
-        set_time_waterpump_work:
-          name: Включать насос на
-          description: |
-            Время, на которое включается насос перед и после полива
-            <small>* При отсутствии людей в доме</small>
-          default:
-            время: "00:01:00"
-            active_choice: время
-            сенсор: []
-          selector:
-            choose:
-              choices:
-                'время':
-                  selector:
-                    time: {}
-                'сенсор':
-                  selector:
-                    entity:
-                      filter:
-                        - domain:
-                            - input_datetime
-                      multiple: false
-
-        set_person_check:
-          name: Учитывать присутствие людей дома
-          description: При выключенной опции насос будет отключен принудительно после завершения работы системы полива
-          default: true
-          selector:
-            boolean: {}
-
-    ####################################################################
+   ####################################################################
     # Секция: Утро 
     ####################################################################
 
@@ -422,6 +367,61 @@ blueprint:
               multiple: true
 
     ####################################################################
+    # Секция: Насос (второстепенная)
+    ####################################################################
+
+    pump_section:
+      name: Насос
+      description: |
+        Настройки реле насоса и его поведения относительно присутствия людей дома.
+      icon: mdi:water-pump
+      collapsed: true
+      input:
+      
+        waterpump_switch:
+          name: Реле насоса
+          description: ""
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - switch
+                    - valve
+                    - input_boolean
+              reorder: false
+              multiple: false
+
+        set_time_waterpump_work:
+          name: Включать насос на
+          description: |
+            Время, на которое включается насос перед и после полива
+            <small>* При отсутствии людей в доме</small>
+          default:
+            время: "00:01:00"
+            active_choice: время
+            сенсор: []
+          selector:
+            choose:
+              choices:
+                'время':
+                  selector:
+                    time: {}
+                'сенсор':
+                  selector:
+                    entity:
+                      filter:
+                        - domain:
+                            - input_datetime
+                      multiple: false
+
+        set_person_check:
+          name: Учитывать присутствие людей дома
+          description: При выключенной опции насос будет отключен принудительно после завершения работы системы полива
+          default: true
+          selector:
+            boolean: {}
+
+     ####################################################################
     # Секция: Прогноз погоды (второстепенная)
     ####################################################################
 
