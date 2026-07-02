@@ -58,7 +58,7 @@ blueprint:
 
         watervalve_switch:
           name: Клапаны направления
-          icon: mdi:valve
+#          icon: mdi:valve
           description: ""
           default: []
           selector:
@@ -455,7 +455,7 @@ blueprint:
 
         forecast_sensor:
           name: Прогнозный сенсор
-          icon: mdi:weather-cloudy
+#          icon: mdi:weather-cloudy
           description: |
             Сенсор, определяющий прогноз погоды.
              + <small>Параметр обязателен только при выборе параметра <em>"Учитывать прогноз погоды"</em>. Если ничего не выбрано, то дополнительный параметр учитываться не будет.</small>
