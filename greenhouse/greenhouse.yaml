@@ -774,7 +774,6 @@ actions:
       - condition: template
         value_template: |
           {{ forecast_sensor != [] and states(forecast_sensor) not in invalid_states and use_forecast_enable }}
-
     then: 
       - action: weather.get_forecasts
         data:
@@ -782,7 +781,7 @@ actions:
         target:
           entity_id: "{{ forecast_sensor }}"
         response_variable: hourly
-
+  
   - variables:    
       no_rain_next_hours: |
         {% if forecast_sensor != [] and states(forecast_sensor) not in invalid_states and use_forecast_enable and hourly is defined and hourly.get(forecast_sensor) is not none  %}
@@ -808,7 +807,6 @@ actions:
           - action: "{{ watering_close_action }}" 
             target: 
               entity_id: !input watering_switch
-
           - delay: "{{ watering_close_delay }}"
 
       open_watering: &open_watering
@@ -816,7 +814,6 @@ actions:
           - action: "{{ watering_open_action }}" 
             target: 
               entity_id: !input watering_switch
-
           - delay: "{{ watering_open_delay }}"
 
       watervalve_action: &watervalve_action
@@ -824,15 +821,11 @@ actions:
           - action: "{{ 'valve.' ~ action_valve_close if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_off }}" #  Закрытие клапана потока
             target:
               entity_id: "{{ repeat.item }}"
-
           - delay: "{{ watervalve_open_delay }}"
-
           - delay: "{{ time_work_current }}"
-
           - action: "{{ 'valve.' ~ action_valve_open if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_on }}" #  Закрытие клапана потока
             target:
               entity_id: "{{ repeat.item }}"
-
           - delay: "{{ watervalve_close_delay }}"
 
       log_error: &log_error
@@ -846,7 +839,6 @@ actions:
                   name: "Полив теплицы"
                   message: "{{ log_message }}"
                   entity_id: "{{ log_entity_id | default('') }}"
-
               - if:
                   - condition: template
                     value_template: "{{ notify_target != [] }}"
@@ -874,6 +866,7 @@ actions:
                   log_entity_id: !input waterpump_switch
                   notification_title: "Ошибка насоса"
               - *log_error
+              - stop: "waterpump error"
 
       check_watering: &check_watering
         sequence:
@@ -891,7 +884,22 @@ actions:
                   log_entity_id: !input watering_switch
                   notification_title: "Ошибка клапана полива"
               - *log_error
+              - stop: "watering error"
 
+      check_forecast: &check_forecast
+        sequence:
+          - if:
+              - condition: template
+                value_template: |
+                  {{ not no_rain_next_hours }}
+            then:
+              - variables:
+                  log_message: |
+                    Внимание: полив отменен из-за прогноза погоды.
+                  log_entity_id: !input forecast_sensor
+                  notification_title: "Отмена полива"
+              - *log_error
+              - stop: "forecast delay"
 
   - choose:
 #######################################################################################
@@ -954,17 +962,12 @@ actions:
               - condition: template # Проверка состояния реле насоса
                 value_template: |
                   {{ states(waterpump_switch) in closed_states }}
-
             then:
               - action: "{{ waterpump_open_action }}" # Включение насоса 
                 target:
                   entity_id: !input waterpump_switch
-
               - *check_pump
-     
               - delay: "{{ time_waterpump_work }}" # Задержка (для набора давления в систему)
-
-
           - repeat:
               for_each: !input watervalve_switch # Закрытие всех клапанов направления (кроме выбранного)
               sequence:
@@ -972,25 +975,19 @@ actions:
                     - condition: template
                       value_template: |
                         {{ repeat.item != trigger.from_state.entity_id }}
-
                   then:
                     - action: "{{ 'valve.' ~ action_valve_close if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_off }}"
                       target:
                         entity_id: "{{ repeat.item }}"
-
                     - delay:
                         seconds: 1
-
           - delay: "{{ watervalve_close_delay }}" # Ожидание закрытия клапанов
-
           - if:
               - condition: template # Проверка состояния клапана на полив
                 value_template: |
                   {{ states(watering_switch) in closed_states }}
-
             then:
               - *open_watering
-
               - *check_watering
 
 #######################################################################################
@@ -1018,22 +1015,16 @@ actions:
             value_template: |
               {{ watering_morning_enable }}
 
-          - condition: template
-            value_template: |
-              {{ no_rain_next_hours }}
-
         sequence:
+          - *check_forecast
           - target:
               entity_id: !input waterpump_switch
             action: "{{ waterpump_open_action }}"
-
           - *check_pump
-
           - if:
               - condition: template
                 value_template: |
                   {{ no_type_valve }}
-
             then:
               - repeat:
                   for_each: !input watervalve_switch 
@@ -1042,7 +1033,6 @@ actions:
                         {{ 'valve.' ~ action_valve_open if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_on }}
                       target:
                         entity_id: "{{ repeat.item }}"
-
                     - delay:
                         seconds: 1
 
@@ -1071,25 +1061,18 @@ actions:
             value_template: |
               {{ watering_evening_enable }}
 
-          - condition: template
-            value_template: |
-              {{ no_rain_next_hours }}
-
         sequence:
+          - *check_forecast
           - target:
               entity_id: !input waterpump_switch
             action: "{{ waterpump_open_action }}"
-
           - *check_pump
-
           - delay:
               seconds: 1
-
           - if:
               - condition: template
                 value_template: |
                   {{ no_type_valve }}
-
             then:
               - repeat:
                   for_each: !input watervalve_switch 
@@ -1097,7 +1080,6 @@ actions:
                     - action: "{{ 'valve.' ~ action_valve_open if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_on }}"
                       target:
                         entity_id: "{{ repeat.item }}"
-
                     - delay:
                         seconds: 1
 
@@ -1126,18 +1108,12 @@ actions:
             value_template: |
               {{ watering_morning_enable }}
 
-          - condition: template
-            value_template: |
-              {{ no_rain_next_hours }}
-
         sequence:
           - variables:
               time_work_current: "{{ time_work_morning }}"
-
+          - *check_forecast
           - *open_watering
-
           - *check_watering
-
           - repeat:
               for_each: >
                 {% set morning_valves = morning_watervalve_switch 
@@ -1146,7 +1122,6 @@ actions:
                 {{ (watervalve_switch if morning_valves == [] else morning_valves) | list }}                
               sequence:
                 - *watervalve_action
-
           - *close_watering
 
 #######################################################################################
@@ -1174,18 +1149,12 @@ actions:
             value_template: |
               {{ watering_evening_enable }}
 
-          - condition: template
-            value_template: |
-              {{ no_rain_next_hours }}
-
         sequence: 
           - variables:
               time_work_current: "{{ time_work_evening }}"
-
+          - *check_forecast
           - *open_watering
-
           - *check_watering
-
           - repeat:
               for_each: >
                 {% set evening_valves = evening_watervalve_switch 
@@ -1194,7 +1163,6 @@ actions:
                 {{ (watervalve_switch if evening_valves == [] else evening_valves) | list }}                
               sequence:
                 - *watervalve_action
-
           - *close_watering
 
 #######################################################################################
@@ -1208,12 +1176,10 @@ actions:
 
         sequence:
           - *close_watering
-
           - if:
               - condition: template
                 value_template: |
                   {{ no_type_valve }}
-
             then:
               - repeat:
                   for_each: !input watervalve_switch
@@ -1221,10 +1187,8 @@ actions:
                     - action: "{{ 'valve.' ~ action_valve_close if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_off }}" #  Выключение клапана потока
                       target:
                         entity_id: "{{ repeat.item }}"
-
                     - delay:
                         seconds: 1
-
           - if:
               - condition: template
                 value_template: |
@@ -1249,7 +1213,6 @@ actions:
                   {{ states(waterpump_switch) in open_states }}
             then:
               - delay: "{{ time_waterpump_work }}"
-
               - action: "{{ waterpump_close_action }}"
                 target:
                   entity_id: !input waterpump_switch
