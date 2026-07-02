@@ -2,7 +2,108 @@ blueprint:
   name: Управление поливом теплицы
   description: |
     ### Управление поливом теплицы.
-    <small>Версия 2026.07.01 Сборка 5</small> 
+    <small>Версия 2026.07.01, сборка 5</small>
+
+    Автоматизация для управления системой полива теплицы в Home Assistant.
+
+    #### Возможности
+
+    - Управление главным клапаном / реле подачи воды.
+    - Поддержка сущностей доменов `switch` и `valve`.
+    - Поддержка нескольких клапанов направлений полива.
+    - Настройка типа клапанов направлений:
+      - нормально-открытые;
+      - нормально-закрытые.
+    - Раздельные сценарии полива утром и вечером.
+    - Настройка времени запуска:
+      - фиксированное время;
+      - время из `input_datetime`.
+    - Настройка длительности полива на каждое направление:
+      - фиксированное время;
+      - значение из `input_datetime`.
+    - Включение или отключение утреннего и вечернего полива:
+      - вручную через параметр;
+      - через `input_boolean`.
+    - Режимы работы по дням:
+      - ежедневно;
+      - через день;
+      - выбор конкретных дней недели.
+    - Возможность выбрать отдельные клапаны направлений только для утреннего или вечернего полива.
+    - Управление насосом перед началом и после завершения полива.
+    - Задержка работы насоса для набора давления в системе.
+    - Учет присутствия людей дома при отключении насоса.
+    - Учет прогноза погоды для отмены полива.
+    - Настройка погодных условий, при которых полив отменяется.
+    - Проверка прогноза на заданное количество часов вперед.
+    - Таймер аварийного автоматического отключения системы.
+    - Автоматический расчет времени защитного таймера с учетом количества направлений и длительности полива.
+    - Настройка задержек открытия и закрытия главного клапана.
+    - Настройка задержек открытия и закрытия клапанов направлений.
+    - Поддержка ручного включения направления полива.
+    - Автоматическое закрытие остальных направлений при ручном запуске одного направления.
+    - Логирование ошибок в Logbook.
+    - Отправка уведомлений через выбранные `notify`-сущности.
+    - Логируются только ошибки, штатные события в журнал не записываются.
+
+    #### Контроль ошибок
+
+    В текущей версии предусмотрена базовая диагностика критичных узлов:
+
+    - насос не включился после команды;
+    - главный клапан не открылся после команды;
+    - ошибки записываются в Logbook;
+    - при выбранных получателях отправляется уведомление через `notify`.
+
+    #### История изменений
+
+    **Версия 1**
+
+    - Добавлена базовая логика автоматического полива теплицы.
+    - Реализовано управление главным реле / клапаном подачи воды.
+    - Добавлен запуск полива по времени.
+    - Добавлен таймер автоматического отключения для защиты от перелива и перегрева оборудования.
+
+    **Версия 2**
+
+    - Добавлена поддержка нескольких клапанов направлений полива.
+    - Добавлена последовательная обработка направлений.
+    - Добавлены задержки открытия и закрытия клапанов.
+    - Добавлена поддержка разных типов исполнительных устройств: `switch` и `valve``.
+
+    **Версия 3**
+
+    - Добавлены отдельные настройки для утреннего и вечернего полива.
+    - Добавлена настройка длительности полива на каждое направление.
+    - Добавлены режимы работы:
+      - каждый день;
+      - через день;
+      - выбор дней недели.
+    - Добавлена возможность использовать отдельные направления только утром или только вечером.
+    - Добавлена поддержка значений из вспомогательных сущностей `input_datetime` и `input_boolean`.
+
+    **Версия 4**
+
+    - Добавлена поддержка насоса.
+    - Добавлен предварительный запуск насоса перед началом полива.
+    - Добавлена задержка для набора давления в системе.
+    - Добавлена логика отключения насоса после завершения полива.
+    - Добавлен учет присутствия людей дома при отключении насоса.
+    - Добавлена обработка ручного включения направления полива.
+    - Добавлено автоматическое закрытие остальных направлений при ручном выборе одного направления.
+
+    **Версия 5**
+
+    - Добавлен учет прогноза погоды.
+    - Добавлена отмена полива при выбранных погодных условиях.
+    - Добавлена настройка глубины прогноза в часах.
+    - Добавлен автоматический расчет времени защитного таймера с учетом количества направлений.
+    - Добавлена поддержка нормально-открытых и нормально-закрытых клапанов направлений.
+    - Добавлены YAML-якоря для повторяющихся действий открытия и закрытия.
+    - Улучшена структура blueprint: настройки разделены на логические секции.
+    - Добавлена секция логирования ошибок.
+    - Добавлена запись ошибок в Logbook.
+    - Добавлена отправка уведомлений через выбранные `notify`-сущности.
+    - Начата интеграция диагностических проверок насоса и главного клапана.
 
     <small><a href="https://github.com/S0ft0r/ha-blueprints/blob/main/as-is.md">Отказ от ответственности</a></small>
   domain: automation
@@ -63,7 +164,6 @@ blueprint:
                 - domain:
                     - switch
                     - valve
-                    - input_boolean
               reorder: false
               multiple: true
 
@@ -101,9 +201,9 @@ blueprint:
               mode: slider
               unit_of_measurement: "сек"
 
-   ####################################################################
-   # Секция: Утро 
-   ####################################################################
+    ####################################################################
+    # Секция: Утро 
+    ####################################################################
 
     morning_section:
       name: Настройки системы для работы утром
@@ -541,6 +641,38 @@ blueprint:
           selector:
             time: {}
 
+    ####################################################################
+    # Секция: Логирование ошибок
+    ####################################################################
+
+    logging_section:
+      name: Логирование ошибок
+      description: |
+        Запись в Ленту событий (Logbook) и уведомление при ошибках работы главного клапана полива.
+      icon: mdi:alert-circle-outline
+      collapsed: true
+      input:
+
+        set_logging_enable:
+          name: Логировать ошибки
+          description: Включает запись в Logbook и отправку уведомления при сбоях главного клапана
+          default: false
+          selector:
+            boolean: {}
+
+        notify_target:
+          name: Получатель уведомлений
+          description: |
+            Сущность notify (например, notify.mobile_app_iphone), на которую будет отправлено уведомление об ошибке.
+            <small>* Если не выбрано — уведомление отправляться не будет, запись в Logbook продолжит работать</small>
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - notify
+              multiple: true
+
 trigger_variables:
   watering_switch: !input watering_switch
   watervalve_switch: !input watervalve_switch
@@ -579,6 +711,9 @@ trigger_variables:
   set_rain_number_forecast_hours: !input set_rain_number_forecast_hours
 
   set_person_check: !input set_person_check
+
+  set_logging_enable: !input set_logging_enable
+  notify_target: !input notify_target
 
   is_watervalve_defined: "{{ watervalve_switch != [] }}"
 
@@ -632,8 +767,8 @@ variables:
   # Определение действия в соответствие с типом клапана направления
   action_valve_open: "{{ 'open_valve' if set_nc_no_type_valve == 'type_no' else 'close_valve' }}"
   action_valve_close: "{{ 'close_valve' if set_nc_no_type_valve == 'type_no' else 'open_valve' }}"
-  action_switch_open: "{{ 'turn_on' if set_nc_no_type_valve == 'type_no' else 'turn_off' }}"
-  action_switch_close: "{{ 'turn_off' if set_nc_no_type_valve == 'type_no' else 'turn_on' }}"
+  action_switch_on: "{{ 'turn_on' if set_nc_no_type_valve == 'type_no' else 'turn_off' }}"
+  action_switch_off: "{{ 'turn_off' if set_nc_no_type_valve == 'type_no' else 'turn_on' }}"
 
   use_forecast_enable: "{{ set_use_forecast_enable.выбор if set_use_forecast_enable.active_choice == 'выбор' else states(set_use_forecast_enable.сенсор) in open_states }}"
 
@@ -717,6 +852,96 @@ actions:
         {% set from_choice = set_pump_evening_enable.выбор | bool(default=false) if set_pump_evening_enable.active_choice == 'выбор' else true %}
         {{ from_sensor and from_choice }}
 
+      close_watering: &close_watering
+        sequence: 
+          - action: "{{ watering_close_action }}" 
+            target: 
+              entity_id: !input watering_switch
+
+          - delay: "{{ watering_close_delay }}"
+
+      open_watering: &open_watering
+        sequence: 
+          - action: "{{ watering_open_action }}" 
+            target: 
+              entity_id: !input watering_switch
+
+          - delay: "{{ watering_open_delay }}"
+
+      watervalve_action: &watervalve_action
+        sequence: 
+          - action: "{{ 'valve.' ~ action_valve_close if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_off }}" #  Закрытие клапана потока
+            target:
+              entity_id: "{{ repeat.item }}"
+
+          - delay: "{{ watervalve_open_delay }}"
+
+          - delay: "{{ time_work_current }}"
+
+          - action: "{{ 'valve.' ~ action_valve_open if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_on }}" #  Закрытие клапана потока
+            target:
+              entity_id: "{{ repeat.item }}"
+
+          - delay: "{{ watervalve_close_delay }}"
+
+      log_error: &log_error
+        sequence:
+          - if:
+              - condition: template
+                value_template: "{{ set_logging_enable }}"
+            then:
+              - action: logbook.log
+                data:
+                  name: "Полив теплицы"
+                  message: "{{ log_message }}"
+                  entity_id: "{{ log_entity_id | default('') }}"
+
+              - if:
+                  - condition: template
+                    value_template: "{{ notify_target != [] }}"
+                then:
+                  - action: notify.send_message
+                    target:
+                      entity_id: "{{ notify_target }}"
+                    data:
+                      title: "Полив теплицы: {{ notification_title | default('Проблема') }}"
+                      message: "{{ log_message }}"
+
+      check_pump: &check_pump
+        sequence:
+          - delay: 
+              seconds: 2
+          - if:
+              - condition: template
+                value_template: |
+                  {{ states(waterpump_switch) in closed_states or states(waterpump_switch) in invalid_states }}
+            then:
+              - variables:
+                  log_message: |
+                    Ошибка: насос не включился.
+                    Текущее состояние: {{ states(waterpump_switch) }}
+                  log_entity_id: !input waterpump_switch
+                  notification_title: "Ошибка насоса"
+              - *log_error
+
+      check_watering: &check_watering
+        sequence:
+          - delay: 
+              seconds: 2
+          - if:
+              - condition: template
+                value_template: |
+                  {{ states(watering_switch) in closed_states or states(watering_switch) in invalid_states }}
+            then:
+              - variables:
+                  log_message: |
+                    Ошибка: главный клапан не открылся.
+                    Текущее состояние: {{ states(watering_switch) }}
+                  log_entity_id: !input watering_switch
+                  notification_title: "Ошибка клапана полива"
+              - *log_error
+
+
   - choose:
 #######################################################################################
 # Действие при аварийном отключение насоса (например, при протечке)
@@ -753,10 +978,8 @@ actions:
             value_template: >
               {{ trigger.to_state.state in closed_states and trigger.from_state.state in open_states }}
 
-        sequence:
-          - action: "{{ watering_close_action }}"
-            target:
-              entity_id: !input watering_switch
+        sequence: 
+          - *close_watering
 
 #######################################################################################
 # Ручное включение направления
@@ -786,7 +1009,10 @@ actions:
                 target:
                   entity_id: !input waterpump_switch
 
+              - *check_pump
+     
               - delay: "{{ time_waterpump_work }}" # Задержка (для набора давления в систему)
+
 
           - repeat:
               for_each: !input watervalve_switch # Закрытие всех клапанов направления (кроме выбранного)
@@ -797,7 +1023,7 @@ actions:
                         {{ repeat.item != trigger.from_state.entity_id }}
 
                   then:
-                    - action: "{{ 'valve.' ~ action_valve_close if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_close }}"
+                    - action: "{{ 'valve.' ~ action_valve_close if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_off }}"
                       target:
                         entity_id: "{{ repeat.item }}"
 
@@ -812,12 +1038,9 @@ actions:
                   {{ states(watering_switch) in closed_states }}
 
             then:
-              - action: "{{ watering_open_action }}"
-                target:
-                  entity_id: !input watering_switch
+              - *open_watering
 
-              - delay: "{{ watering_open_delay }}" # Ожидание открытия клапана
-
+              - *check_watering
 
 #######################################################################################
 # Включение насоса и закрытие клапанов направления до включения системы утром
@@ -853,6 +1076,8 @@ actions:
               entity_id: !input waterpump_switch
             action: "{{ waterpump_open_action }}"
 
+          - *check_pump
+
           - if:
               - condition: template
                 value_template: |
@@ -863,7 +1088,7 @@ actions:
                   for_each: !input watervalve_switch 
                   sequence:
                     - action: |
-                        {{ 'valve.' ~ action_valve_open if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_open }}
+                        {{ 'valve.' ~ action_valve_open if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_on }}
                       target:
                         entity_id: "{{ repeat.item }}"
 
@@ -904,6 +1129,8 @@ actions:
               entity_id: !input waterpump_switch
             action: "{{ waterpump_open_action }}"
 
+          - *check_pump
+
           - delay:
               seconds: 1
 
@@ -916,7 +1143,7 @@ actions:
               - repeat:
                   for_each: !input watervalve_switch 
                   sequence:
-                    - action: "{{ 'valve.' ~ action_valve_open if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_open }}"
+                    - action: "{{ 'valve.' ~ action_valve_open if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_on }}"
                       target:
                         entity_id: "{{ repeat.item }}"
 
@@ -953,11 +1180,12 @@ actions:
               {{ no_rain_next_hours }}
 
         sequence:
-          - action: "{{ watering_open_action }}" #            Клапан на воду включен
-            target:
-              entity_id: !input watering_switch
+          - variables:
+              time_work_current: "{{ time_work_morning }}"
 
-          - delay: "{{ watering_open_delay }}"
+          - *open_watering
+
+          - *check_watering
 
           - repeat:
               for_each: >
@@ -966,25 +1194,9 @@ actions:
                     | list %}
                 {{ (watervalve_switch if morning_valves == [] else morning_valves) | list }}                
               sequence:
-                - action: "{{ 'valve.' ~ action_valve_close if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_close }}" #  Открытие клапана потока
-                  target:
-                    entity_id: "{{ repeat.item }}"
+                - *watervalve_action
 
-                - delay: "{{ watervalve_open_delay }}"
-
-                - delay: "{{ time_work_morning }}"
-
-                - action: "{{ 'valve.' ~ action_valve_open if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_open }}" #  Закрытие клапана потока
-                  target:
-                    entity_id: "{{ repeat.item }}"
-
-                - delay: "{{ watervalve_close_delay }}"
-
-          - target:
-              entity_id: !input watering_switch
-            action: "{{ watering_close_action }}"
-
-          - delay: "{{ watering_close_delay }}"
+          - *close_watering
 
 #######################################################################################
 # Включение системы вечером
@@ -1016,11 +1228,12 @@ actions:
               {{ no_rain_next_hours }}
 
         sequence: 
-          - action: "{{ watering_open_action }}"  # Открытие клапана на воду
-            target:
-              entity_id: !input watering_switch
+          - variables:
+              time_work_current: "{{ time_work_evening }}"
 
-          - delay: "{{ watering_open_delay }}" # Задержка открытия клапана на воду
+          - *open_watering
+
+          - *check_watering
 
           - repeat:
               for_each: >
@@ -1029,26 +1242,9 @@ actions:
                     | list %}
                 {{ (watervalve_switch if evening_valves == [] else evening_valves) | list }}                
               sequence:
-                - action: "{{ 'valve.' ~ action_valve_close if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_close }}" #  Закрытие клапана потока
-                  target:
-                    entity_id: "{{ repeat.item }}"
+                - *watervalve_action
 
-                - delay: "{{ watervalve_open_delay }}" # Ожидание открытия калапана направления
-
-                - delay: "{{ time_work_evening }}" # Время работы полива
-
-
-                - action: "{{ 'valve.' ~ action_valve_open if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_open }}" #  Открытие клапана потока
-                  target:
-                    entity_id: "{{ repeat.item }}"
-
-                - delay: "{{ watervalve_close_delay }}"
-
-          - target:
-              entity_id: !input watering_switch
-            action: "{{ watering_close_action }}"
-
-          - delay: "{{ watering_close_delay }}"
+          - *close_watering
 
 #######################################################################################
 # Выключение системы по таймеру
@@ -1060,9 +1256,7 @@ actions:
               - pump_off_auto_trigger
 
         sequence:
-          - action: "{{ watering_close_action }}"
-            target:
-              entity_id: !input watering_switch
+          - *close_watering
 
           - if:
               - condition: template
@@ -1073,7 +1267,7 @@ actions:
               - repeat:
                   for_each: !input watervalve_switch
                   sequence:
-                    - action: "{{ 'valve.' ~ action_valve_close if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_close }}" #  Выключение клапана потока
+                    - action: "{{ 'valve.' ~ action_valve_close if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_off }}" #  Выключение клапана потока
                       target:
                         entity_id: "{{ repeat.item }}"
 
