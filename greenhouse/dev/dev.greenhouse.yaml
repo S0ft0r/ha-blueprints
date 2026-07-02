@@ -17,7 +17,7 @@ blueprint:
 
     watering_switch:
       name: Реле/клапан включения полива
-      icon: mdi:valve
+#      icon: mdi:valve
       description: |
         Реле/клапан включения полива
         <small>* Поддерживается домены switch и valve</small>
@@ -33,7 +33,7 @@ blueprint:
 
     pump_off_auto:
       name: Таймер автоматического отключения
-      icon: mdi:timer-alert-outline
+#      icon: mdi:timer-alert-outline
       description: |
         <strong>Обязательный параметр</strong> - вспомогательный элемент [timer](https://my.home-assistant.io/redirect/helpers/)
         <small>* для отсчета автоматического отключения электромагнитного клапана / защита от перегрева (перелива)</small>
