@@ -547,6 +547,84 @@ blueprint:
             time: {}
 
     ####################################################################
+    # Секция: Влажность почвы
+    ####################################################################
+
+    soil_moisture_section:
+      name: Влажность почвы
+      description: |
+        Настройки учета влажности почвы по отдельным направлениям полива.
+
+        Если датчик есть не у каждого направления, выберите только те клапаны,
+        для которых датчики действительно установлены.
+
+        Порядок важен:
+        первый клапан из списка соответствует первому датчику,
+        второй клапан — второму датчику и так далее.
+      icon: mdi:water-percent
+      collapsed: true
+      input:
+
+        set_use_soil_moisture:
+          name: Учитывать влажность почвы
+          default: false
+          selector:
+            boolean: {}
+
+        soil_moisture_valves:
+          name: Клапаны направлений с датчиками влажности
+          description: |
+            Выберите только те направления, у которых есть датчик влажности почвы.
+            Порядок должен соответствовать списку датчиков ниже.
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - switch
+                    - valve
+              reorder: true
+              multiple: true
+
+        soil_moisture_sensors:
+          name: Датчики влажности почвы
+          description: |
+            Выберите датчики влажности в том же порядке, что и клапаны выше.
+
+            Пример:
+            1-й клапан → 1-й датчик,
+            2-й клапан → 2-й датчик.
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - sensor
+                  device_class: moisture
+              reorder: true
+              multiple: true
+
+        set_soil_block_schedule_enable:
+          name: Пропускать влажные направления
+          description: |
+            Если включено, направление будет пропущено,
+            когда влажность почвы выше заданного порога.
+          default: true
+          selector:
+            boolean: {}
+
+        set_soil_skip_threshold:
+          name: Не поливать направление, если влажность выше
+          default: 65
+          selector:
+            number:
+              min: 1
+              max: 100
+              step: 1
+              mode: slider
+              unit_of_measurement: "%"
+
+    ####################################################################
     # Секция: Логирование ошибок
     ####################################################################
 
@@ -619,7 +697,14 @@ trigger_variables:
 
   set_logging_enable: !input set_logging_enable
   notify_target: !input notify_target
+  
+  set_use_soil_moisture: !input set_use_soil_moisture
+  soil_moisture_valves: !input soil_moisture_valves
+  soil_moisture_sensors: !input soil_moisture_sensors
+  set_soil_block_schedule_enable: !input set_soil_block_schedule_enable
+  set_soil_skip_threshold: !input set_soil_skip_threshold
 
+  is_soil_moisture_defined: "{{ soil_moisture_valves != [] and soil_moisture_sensors != [] }}"
   is_watervalve_defined: "{{ watervalve_switch != [] }}"
   is_waterpump_defined: "{{ waterpump_switch != [] }}"
 
@@ -825,7 +910,7 @@ actions:
           - if:
               - condition: template
                 value_template: |
-                  {{ states(waterpump_switch) in closed_states or states(waterpump_switch) in invalid_states }}
+                  {{ waterpump is not none and (states(waterpump_switch) in closed_states or states(waterpump_switch) in invalid_states) }}
             then:
               - variables:
                   log_message: |
