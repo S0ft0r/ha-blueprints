@@ -872,7 +872,7 @@ actions:
               entity_id: !input watering_switch
           - delay: "{{ watering_close_delay }}"
 
-      close_watepump: &waterpump_off
+      waterpump_off: &waterpump_off
         sequence: 
           - action: "{{ waterpump_close_action }}" 
             target: 
@@ -885,7 +885,7 @@ actions:
               entity_id: !input watering_switch
           - delay: "{{ watering_open_delay }}"
 
-      open_watepump: &waterpump_on
+      waterpump_on: &waterpump_on
         sequence: 
           - action: "{{ waterpump_open_action }}" 
             target: 
@@ -896,7 +896,7 @@ actions:
           - variables:
               current_valve: "{{ repeat.item }}"
 
-              current_soil_sensor: >-
+              current_soil_sensor: |
                 {% set ns = namespace(idx=-1) %}
                 {% for valve in soil_moisture_valves | list %}
                   {% if valve == repeat.item and ns.idx == -1 %}
@@ -910,20 +910,20 @@ actions:
                   {{ '' }}
                 {% endif %}
 
-              current_soil_valid: >-
+              current_soil_valid: |
                 {{
                   current_soil_sensor != ''
                   and states(current_soil_sensor) not in invalid_states
                 }}
 
-              current_soil_value: >-
+              current_soil_value: |
                 {% if current_soil_sensor != '' and states(current_soil_sensor) not in invalid_states %}
                   {{ states(current_soil_sensor) | float(default=-1) }}
                 {% else %}
                   {{ -1 }}
                 {% endif %}
 
-              current_soil_blocked: >-
+              current_soil_blocked: |
                 {{
                   set_use_soil_moisture
                   and set_soil_block_schedule_enable
@@ -966,7 +966,7 @@ actions:
           - if:
               - condition: template
                 value_template: |
-                  {{ waterpump is not none and (states(waterpump_switch) in closed_states or states(waterpump_switch) in invalid_states) }}
+                  {{ waterpump_switch is not none and (states(waterpump_switch) in closed_states or states(waterpump_switch) in invalid_states) }}
             then:
               - variables:
                   log_message: |
