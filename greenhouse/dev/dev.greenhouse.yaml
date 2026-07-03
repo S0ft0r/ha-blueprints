@@ -420,6 +420,84 @@ blueprint:
             boolean: {}
 
     ####################################################################
+    # Секция: Влажность почвы (второстепенно)
+    ####################################################################
+
+    soil_moisture_section:
+      name: Влажность почвы
+      description: |
+        Настройки учета влажности почвы по отдельным направлениям полива.
+
+        Если датчик есть не у каждого направления, выберите только те клапаны,
+        для которых датчики действительно установлены.
+
+        <strong>Порядок важен:</strong>
+        первый клапан из списка соответствует первому датчику,
+        второй клапан — второму датчику и так далее.
+      icon: mdi:water-percent
+      collapsed: true
+      input:
+
+        set_use_soil_moisture:
+          name: Учитывать влажность почвы
+          default: false
+          selector:
+            boolean: {}
+
+        soil_moisture_valves:
+          name: Клапаны направлений с датчиками влажности
+          description: |
+            Выберите только те направления, у которых есть датчик влажности почвы.
+            Порядок должен соответствовать списку датчиков ниже.
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - switch
+                    - valve
+              reorder: true
+              multiple: true
+
+        soil_moisture_sensors:
+          name: Датчики влажности почвы
+          description: |
+            Выберите датчики влажности в том же порядке, что и клапаны выше.
+
+            Пример:
+            1-й клапан → 1-й датчик,
+            2-й клапан → 2-й датчик.
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - sensor
+                  device_class: moisture
+              reorder: true
+              multiple: true
+
+        set_soil_block_schedule_enable:
+          name: Пропускать влажные направления
+          description: |
+            Если включено, направление будет пропущено,
+            когда влажность почвы выше заданного порога.
+          default: true
+          selector:
+            boolean: {}
+
+        set_soil_skip_threshold:
+          name: Не поливать направление, если влажность выше
+          default: 65
+          selector:
+            number:
+              min: 1
+              max: 100
+              step: 1
+              mode: slider
+              unit_of_measurement: "%"
+
+    ####################################################################
     # Секция: Прогноз погоды (второстепенная)
     ####################################################################
 
@@ -547,84 +625,6 @@ blueprint:
             time: {}
 
     ####################################################################
-    # Секция: Влажность почвы
-    ####################################################################
-
-    soil_moisture_section:
-      name: Влажность почвы
-      description: |
-        Настройки учета влажности почвы по отдельным направлениям полива.
-
-        Если датчик есть не у каждого направления, выберите только те клапаны,
-        для которых датчики действительно установлены.
-
-        Порядок важен:
-        первый клапан из списка соответствует первому датчику,
-        второй клапан — второму датчику и так далее.
-      icon: mdi:water-percent
-      collapsed: true
-      input:
-
-        set_use_soil_moisture:
-          name: Учитывать влажность почвы
-          default: false
-          selector:
-            boolean: {}
-
-        soil_moisture_valves:
-          name: Клапаны направлений с датчиками влажности
-          description: |
-            Выберите только те направления, у которых есть датчик влажности почвы.
-            Порядок должен соответствовать списку датчиков ниже.
-          default: []
-          selector:
-            entity:
-              filter:
-                - domain:
-                    - switch
-                    - valve
-              reorder: true
-              multiple: true
-
-        soil_moisture_sensors:
-          name: Датчики влажности почвы
-          description: |
-            Выберите датчики влажности в том же порядке, что и клапаны выше.
-
-            Пример:
-            1-й клапан → 1-й датчик,
-            2-й клапан → 2-й датчик.
-          default: []
-          selector:
-            entity:
-              filter:
-                - domain:
-                    - sensor
-                  device_class: moisture
-              reorder: true
-              multiple: true
-
-        set_soil_block_schedule_enable:
-          name: Пропускать влажные направления
-          description: |
-            Если включено, направление будет пропущено,
-            когда влажность почвы выше заданного порога.
-          default: true
-          selector:
-            boolean: {}
-
-        set_soil_skip_threshold:
-          name: Не поливать направление, если влажность выше
-          default: 65
-          selector:
-            number:
-              min: 1
-              max: 100
-              step: 1
-              mode: slider
-              unit_of_measurement: "%"
-
-    ####################################################################
     # Секция: Логирование ошибок
     ####################################################################
 
@@ -697,7 +697,7 @@ trigger_variables:
 
   set_logging_enable: !input set_logging_enable
   notify_target: !input notify_target
-  
+
   set_use_soil_moisture: !input set_use_soil_moisture
   soil_moisture_valves: !input soil_moisture_valves
   soil_moisture_sensors: !input soil_moisture_sensors
@@ -843,6 +843,28 @@ actions:
         {% set from_choice = set_pump_evening_enable.выбор | bool(default=false) if set_pump_evening_enable.active_choice == 'выбор' else true %}
         {{ from_sensor and from_choice }}
 
+      log_error: &log_error
+        sequence:
+          - if:
+              - condition: template
+                value_template: "{{ set_logging_enable }}"
+            then:
+              - action: logbook.log
+                data:
+                  name: "Полив теплицы"
+                  message: "{{ log_message }}"
+                  entity_id: "{{ log_entity_id | default('') }}"
+              - if:
+                  - condition: template
+                    value_template: "{{ notify_target != [] }}"
+                then:
+                  - action: notify.send_message
+                    target:
+                      entity_id: !input notify_target
+                    data:
+                      title: "Полив теплицы: {{ notification_title | default('Проблема') }}"
+                      message: "{{ log_message }}"
+
       close_watering: &close_watering
         sequence: 
           - action: "{{ watering_close_action }}" 
@@ -871,37 +893,71 @@ actions:
 
       watervalve_action: &watervalve_action
         sequence: 
-          - action: "{{ 'valve.' ~ action_valve_close if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_off }}" #  Закрытие клапана потока
-            target:
-              entity_id: "{{ repeat.item }}"
-          - delay: "{{ watervalve_open_delay }}"
-          - delay: "{{ time_work_current }}"
-          - action: "{{ 'valve.' ~ action_valve_open if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_on }}" #  Закрытие клапана потока
-            target:
-              entity_id: "{{ repeat.item }}"
-          - delay: "{{ watervalve_close_delay }}"
+          - variables:
+              current_valve: "{{ repeat.item }}"
 
-      log_error: &log_error
-        sequence:
-          - if:
-              - condition: template
-                value_template: "{{ set_logging_enable }}"
-            then:
-              - action: logbook.log
-                data:
-                  name: "Полив теплицы"
-                  message: "{{ log_message }}"
-                  entity_id: "{{ log_entity_id | default('') }}"
-              - if:
+              current_soil_sensor: >-
+                {% set ns = namespace(idx=-1) %}
+                {% for valve in soil_moisture_valves | list %}
+                  {% if valve == repeat.item and ns.idx == -1 %}
+                    {% set ns.idx = loop.index0 %}
+                  {% endif %}
+                {% endfor %}
+
+                {% if ns.idx >= 0 and (soil_moisture_sensors | count) > ns.idx %}
+                  {{ soil_moisture_sensors[ns.idx] }}
+                {% else %}
+                  {{ '' }}
+                {% endif %}
+
+              current_soil_valid: >-
+                {{
+                  current_soil_sensor != ''
+                  and states(current_soil_sensor) not in invalid_states
+                }}
+
+              current_soil_value: >-
+                {% if current_soil_sensor != '' and states(current_soil_sensor) not in invalid_states %}
+                  {{ states(current_soil_sensor) | float(default=-1) }}
+                {% else %}
+                  {{ -1 }}
+                {% endif %}
+
+              current_soil_blocked: >-
+                {{
+                  set_use_soil_moisture
+                  and set_soil_block_schedule_enable
+                  and current_soil_valid
+                  and (current_soil_value | float) >= (set_soil_skip_threshold | float)
+                }}
+
+          - choose:
+              - conditions:
                   - condition: template
-                    value_template: "{{ notify_target != [] }}"
-                then:
-                  - action: notify.send_message
-                    target:
-                      entity_id: !input notify_target
-                    data:
-                      title: "Полив теплицы: {{ notification_title | default('Проблема') }}"
-                      message: "{{ log_message }}"
+                    value_template: |
+                      {{ current_soil_blocked }}
+                sequence:
+                  - variables:
+                      log_message: >-
+                        Внимание: направление {{ current_valve }} пропущено из-за высокой влажности почвы.
+                        Датчик: {{ current_soil_sensor }}.
+                        Влажность: {{ current_soil_value }}%.
+                        Порог запрета: {{ set_soil_skip_threshold }}%.
+                      log_entity_id: "{{ current_soil_sensor }}"
+                      notification_title: "Полив направления отменен"
+
+                  - *log_error
+
+            default:
+              - action: "{{ 'valve.' ~ action_valve_close if current_valve.split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_off }}"
+                target:
+                  entity_id: "{{ current_valve }}"
+              - delay: "{{ watervalve_open_delay }}"
+              - delay: "{{ time_work_current }}"
+              - action: "{{ 'valve.' ~ action_valve_open if current_valve.split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_on }}"
+                target:
+                  entity_id: "{{ current_valve }}"
+              - delay: "{{ watervalve_close_delay }}"
 
       check_pump: &check_pump
         sequence:
