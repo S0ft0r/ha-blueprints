@@ -587,6 +587,31 @@ blueprint:
               mode: slider
               unit_of_measurement: "%"
 
+        set_soil_night_block_enable:
+          name: Запрет внепланового полива в ночное время
+          description: |
+            Если включено, внеплановый полив по датчику влажности
+            не будет запускаться в заданный ночной период.
+          default: true
+          selector:
+            boolean: {}
+
+        set_soil_night_start:
+          name: Начало ночного периода
+          description: |
+            После этого времени внеплановый полив запрещён.
+          default: "22:00:00"
+          selector:
+            time: {}
+
+        set_soil_night_end:
+          name: Окончание ночного периода
+          description: |
+            После этого времени внеплановый полив снова разрешён.
+          default: "06:00:00"
+          selector:
+            time: {}
+
     ####################################################################
     # Секция: Прогноз погоды (второстепенная)
     ####################################################################
@@ -904,6 +929,9 @@ trigger_variables:
   set_soil_diag_enable: !input set_soil_diag_enable
   set_soil_diag_delay: !input set_soil_diag_delay
   set_soil_diag_min_delta: !input set_soil_diag_min_delta
+  set_soil_night_block_enable: !input set_soil_night_block_enable
+  set_soil_night_start: !input set_soil_night_start
+  set_soil_night_end: !input set_soil_night_end  
 
   set_weather_adapt_enable: !input set_weather_adapt_enable
   weather_temp_sensor: !input weather_temp_sensor
@@ -1013,6 +1041,20 @@ variables:
     {% set base_seconds = parts[0] | int * 3600 + parts[1] | int * 60 + parts[2] | int %}
     {% set adjusted = (base_seconds * (weather_multiplier | float)) | int %}
     {{ '%02d:%02d:%02d' | format(adjusted // 3600, (adjusted % 3600) // 60, adjusted % 60) }}
+
+  is_night_time: >
+    {% if not set_soil_night_block_enable %}
+      {{ false }}
+    {% else %}
+      {% set now_t = now().strftime('%H:%M:%S') %}
+      {% set start = set_soil_night_start %}
+      {% set end = set_soil_night_end %}
+      {% if start > end %}
+        {{ now_t >= start or now_t < end }}
+      {% else %}
+        {{ now_t >= start and now_t < end }}
+      {% endif %}
+    {% endif %}
 
 triggers:
   - trigger: state # Ручное переключение направления
@@ -1696,7 +1738,9 @@ actions:
           - condition: template
             value_template: |
               {{ states(pump_off_auto) == 'idle' }}
-
+          - condition: template
+            value_template: |
+              {{ not is_night_time }}
         sequence:
           - variables:
               triggered_sensor: "{{ trigger.entity_id }}"
