@@ -420,7 +420,7 @@ blueprint:
             boolean: {}
 
     ####################################################################
-    # Секция: Влажность почвы (второстепенно)
+    # Секция: Влажность почвы (второстепенная)
     ####################################################################
 
     soil_moisture_section:
@@ -496,6 +496,61 @@ blueprint:
               step: 1
               mode: slider
               unit_of_measurement: "%"
+
+        set_soil_watering_enable:
+          name: Внеплановый полив при низкой влажности
+          description: |
+            Если влажность почвы опускается ниже заданного порога,
+            будет запущен внеплановый полив соответствующего направления,
+            даже вне расписания.
+          default:
+            active_choice: выбор
+            выбор: false
+            сенсор: []
+          selector:
+            choose:
+              choices:
+                "выбор":
+                  selector:
+                    boolean: {}
+                "сенсор":
+                  selector:
+                    entity:
+                      filter:
+                        - domain:
+                            - input_boolean
+                      multiple: false
+
+        set_soil_watering_low_threshold:
+          name: Порог низкой влажности
+          description: |
+            Если влажность почвы ниже этого значения — будет запущен
+            внеплановый полив соответствующего направления.
+          default: 30
+          selector:
+            number:
+              min: 1
+              max: 100
+              step: 1
+              mode: slider
+              unit_of_measurement: "%"
+
+        set_soil_watering_for:
+          name: Время подтверждения низкой влажности
+          description: |
+            Влажность должна оставаться ниже порога это время подряд,
+            прежде чем будет запущен внеплановый полив.
+            <small>* Защита от ложных срабатываний из-за кратковременных скачков показаний</small>
+          default: "00:15:00"
+          selector:
+            time: {}
+
+        set_soil_watering_duration:
+          name: Длительность внепланового полива
+          description: Время работы направления при внеплановом поливе
+          default: "00:05:00"
+          selector:
+            time: {}
 
     ####################################################################
     # Секция: Прогноз погоды (второстепенная)
@@ -583,7 +638,7 @@ blueprint:
               unit_of_measurement: "час"   
 
     ####################################################################
-    # Секция: Безопасность и задержки главного клапана (свёрнута)
+    # Секция: Безопасность и задержки главного клапана (второстепенная)
     ####################################################################
 
     safety_section:
@@ -703,6 +758,10 @@ trigger_variables:
   soil_moisture_sensors: !input soil_moisture_sensors
   set_soil_block_schedule_enable: !input set_soil_block_schedule_enable
   set_soil_skip_threshold: !input set_soil_skip_threshold
+  set_soil_watering_enable: !input set_soil_watering_enable
+  set_soil_watering_low_threshold: !input set_soil_watering_low_threshold
+  set_soil_watering_for: !input set_soil_watering_for
+  set_soil_watering_duration: !input set_soil_watering_duration  
 
   is_soil_moisture_defined: "{{ soil_moisture_valves != [] and soil_moisture_sensors != [] }}"
   is_watervalve_defined: "{{ watervalve_switch != [] }}"
@@ -762,7 +821,12 @@ variables:
   action_switch_off: "{{ 'turn_off' if set_nc_no_type_valve == 'type_no' else 'turn_on' }}"
 
   use_forecast_enable: "{{ set_use_forecast_enable.выбор if set_use_forecast_enable.active_choice == 'выбор' else states(set_use_forecast_enable.сенсор) in open_states }}"
-
+  soil_watering_enable: >
+    {{
+      set_soil_watering_enable.выбор | bool(false)
+      if set_soil_watering_enable.active_choice == 'выбор'
+      else is_state(set_soil_watering_enable.сенсор, 'on')
+    }}
 triggers:
   - trigger: state # Ручное включение направления
     entity_id: !input watervalve_switch
@@ -808,6 +872,13 @@ triggers:
   - entity_id: !input waterpump_switch
     trigger: state
     id: pump_off_trigger
+
+  - trigger: numeric_state # Низкая влажность почвы — внеплановый полив
+    entity_id: !input soil_moisture_sensors
+    below: !input set_soil_watering_low_threshold
+    for: !input set_soil_watering_for
+    id: soil_moisture_low_trigger
+    enabled: "{{ is_soil_moisture_defined }}"
 
 actions:
   - if:
@@ -1367,13 +1438,98 @@ actions:
                 {% set watervalve_count = watervalve_switch | list | count %}
                 {% set work_time_morning_in_seconds = (time_work_morning.split(':')[0] | int * 3600 + time_work_morning.split(':')[1] | int * 60 + time_work_morning.split(':')[2] | int) if watering_morning_enable else 0 %}
                 {% set work_time_evening_in_seconds = (time_work_evening.split(':')[0] | int * 3600 + time_work_evening.split(':')[1] | int * 60 + time_work_evening.split(':')[2] | int) if watering_evening_enable else 0 %}
+                {% set soil_watering_duration_seconds = set_soil_watering_duration.split(':')[0] | int * 3600 + set_soil_watering_duration.split(':')[1] | int * 60 + set_soil_watering_duration.split(':')[2] | int %}
                 {% set auto_off_pump_time_in_seconds = set_auto_off_pump_time.split(':')[0] | int * 3600 + set_auto_off_pump_time.split(':')[1] | int * 60 + set_auto_off_pump_time.split(':')[2] | int %}
                 {% set max_seconds = max(((set_watervalve_open_delay | int + work_time_morning_in_seconds | int + set_watervalve_close_delay | int) * watervalve_count + 60), 
-                  ((set_watervalve_open_delay | int + work_time_evening_in_seconds | int + set_watervalve_close_delay | int) * watervalve_count + 60), 
+                  ((set_watervalve_open_delay | int + work_time_evening_in_seconds | int + set_watervalve_close_delay | int) * watervalve_count + 60),
+                  (set_watervalve_open_delay | int + soil_watering_duration_seconds + set_watervalve_close_delay | int + 60), 
                   auto_off_pump_time_in_seconds) %}
                 {{ '%02d:%02d:%02d' | format(max_seconds // 3600, (max_seconds % 3600) // 60, max_seconds % 60) }}
             target:
               entity_id: !input pump_off_auto
+
+#######################################################################################
+# Внеплановый полив по датчику влажности почвы (низкая влажность)
+#######################################################################################
+
+      - conditions:
+          - condition: trigger
+            id:
+              - soil_moisture_low_trigger
+
+          - condition: template
+            value_template: |
+              {{ set_use_soil_moisture and soil_watering_enable }}
+
+          - condition: template
+            value_template: |
+              {{ states(watering_switch) in closed_states }}
+
+          - condition: template
+            value_template: |
+              {{ states(pump_off_auto) == 'idle' }}
+
+        sequence:
+          - variables:
+              triggered_sensor: "{{ trigger.entity_id }}"
+
+              triggered_valve: >
+                {% set ns = namespace(idx=-1) %}
+                {% for sensor in soil_moisture_sensors | list %}
+                  {% if sensor == triggered_sensor and ns.idx == -1 %}
+                    {% set ns.idx = loop.index0 %}
+                  {% endif %}
+                {% endfor %}
+                {% if ns.idx >= 0 and (soil_moisture_valves | count) > ns.idx %}
+                  {{ soil_moisture_valves[ns.idx] }}
+                {% else %}
+                  {{ '' }}
+                {% endif %}
+
+              time_work_current: "{{ set_soil_watering_duration }}"
+
+          - if:
+              - condition: template
+                value_template: "{{ triggered_valve == '' }}"
+            then:
+              - variables:
+                  log_message: >-
+                    Ошибка: не найден клапан для датчика влажности {{ triggered_sensor }}.
+                    Проверьте соответствие порядка списков "Клапаны направлений" и "Датчики влажности".
+                  log_entity_id: "{{ triggered_sensor }}"
+                  notification_title: "Ошибка сопоставления датчика"
+              - *log_error
+              - stop: "soil sensor mapping error"
+
+          - *check_forecast
+
+          - if:
+              - condition: template
+                value_template: |
+                  {{ states(waterpump_switch) in closed_states }}
+            then:
+              - *waterpump_on
+              - *check_pump
+              - delay: "{{ time_waterpump_work }}"
+
+          - *open_watering
+          - *check_watering
+
+          - variables:
+              log_message: >-
+                Внеплановый полив: направление {{ triggered_valve }} запущено
+                из-за низкой влажности почвы ({{ states(triggered_sensor) }}%,
+                порог {{ set_soil_watering_low_threshold }}%).
+              log_entity_id: "{{ triggered_valve }}"
+              notification_title: "Внеплановый полив"
+          - *log_error
+
+          - repeat:
+              for_each: "{{ [triggered_valve] }}"
+              sequence:
+                - *watervalve_action
+
+          - *close_watering
 
 mode: parallel
 max: 10
