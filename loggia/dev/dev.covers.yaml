@@ -105,7 +105,7 @@ blueprint:
           description: |
             Выключатель типа <strong>Aqara Z1 Pro</strong> со встроенным слайдером. Может быть подключен через MQTT или ZHA.
              + <small>Параметр обязателен только при выборе параметра <em>"Управление по слайдеру"</em>. Если ничего не выбрано, то дополнительный параметр учитываться не будет.</small>
-          default: 
+          default: []
           selector:
             device:
               entity:
@@ -160,6 +160,10 @@ blueprint:
           description: |
             Угол между направлением на север и направлением на солнце.
             + <small>Для автоматического закрытия штор при включенной опции защиты от прямых лучей солнца.</small>
+          default:
+            active_choice: угол
+            угол: 0
+            сенсор: []            
           selector:
             choose:
               choices:
@@ -211,6 +215,10 @@ blueprint:
           description: |
             Угол возвышения солнца над горизонтом.
             + <small>Для автоматического открытия штор при включенной защите от прямых лучей солнца.</small>
+          default:
+            active_choice: угол
+            угол: 0
+            сенсор: []            
           selector:
             choose:
               choices:
@@ -293,6 +301,10 @@ blueprint:
           description: |
             Верхний предел при открытии штор.
             + <small>Если нет нужды открывать шторы до конца.</small>
+          default:
+            active_choice: процент
+            процент: 100
+            сенсор: []            
           selector:
             choose:
               choices:
@@ -317,6 +329,10 @@ blueprint:
           description: |
             Нижний предел при закрытии штор.
             + <small>Если нет нужды закрывать шторы до конца.</small>
+          default:
+            active_choice: процент
+            процент: 0
+            сенсор: []            
           selector:
             choose:
               choices:
@@ -452,20 +468,20 @@ blueprint:
           selector:
             text:
 
-    helpers_section:
-      name: Настройки вспомогательных сенсоров
-      icon: mdi:settings-helper
-      input:
-        text_rising_setting_sensor:
-          name: Текстовый сенсор
-          description: Текстовый сенсор, используемый для отображения следующего времени открытия/закрытия штор
-          default: []
-          selector:
-            entity:
-              filter:
-                - domain: 
-                    - input_text
-              multiple: false
+    # helpers_section:
+    #   name: Настройки вспомогательных сенсоров
+    #   icon: mdi:settings-helper
+    #   input:
+    #     text_rising_setting_sensor:
+    #       name: Текстовый сенсор
+    #       description: Текстовый сенсор, используемый для отображения следующего времени открытия/закрытия штор
+    #       default: []
+    #       selector:
+    #         entity:
+    #           filter:
+    #             - domain: 
+    #                 - input_text
+    #           multiple: false
 
 
 mode: queued
@@ -487,7 +503,7 @@ trigger_variables:
   sun_sensor: !input sun_sensor
   slider_device: !input slider_device
   illuminance_sensor: !input illuminance_sensor
-  text_rising_setting_sensor: !input text_rising_setting_sensor
+#  text_rising_setting_sensor: !input text_rising_setting_sensor
 
   forecasts: !input forecasts
   # set_sun_azimuth: !input set_sun_azimuth
@@ -508,9 +524,9 @@ trigger_variables:
   set_illuminance_delay: !input set_illuminance_delay
 
   is_forecast_enabled: "{{ forecast_sensor != [] and 'extra_forecast' in automation_extra }}"
-  is_illuminance_enabled: "{{ illuminance_sensor != [] and (set_min_illuminance != 0 or set_max_illuminance != 0) and 'extra_illuminance' in automation_extra }}"
-  is_slider_enabled: "{{ 'extra_slider' in automation_extra }}"
-  is_sun_protect_enabled: "{{ (sun_elevation != 0 or sun_azimuth != 0) and 'extra_sun_protect' in automation_extra }}"
+  is_illuminance_enabled: "{{ illuminance_sensor != [] and 'extra_illuminance' in automation_extra }}"
+  is_slider_enabled: "{{ slider_device != [] and 'extra_slider' in automation_extra }}"
+  is_sun_protect_enabled: "{{ sun_sensor != [] and 'extra_sun_protect' in automation_extra }}"
   is_open_until_enabled: "{{ 'extra_opening_until' in automation_extra }}"
   is_close_until_enabled: "{{ 'extra_close_until' in automation_extra }}"
 
@@ -520,8 +536,9 @@ variables:
   nextday: "{{ (now().weekday() + 1) % 7 }}"
   
   delay_for_repeat: 1
-  is_mqtt_device: "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'mqtt' }}"
-  is_zha_device: "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device)[1]), 'domain') == 'zha' }}"
+
+  is_mqtt_device: "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device) | first | default('')), 'domain') == 'mqtt' }}"
+  is_zha_device: "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device) | first | default('')), 'domain') == 'zha' }}"
 
   up_time: "{{ set_up_time_workday if workday else set_up_time_weekend }}"
   down_time: "{{ set_down_time }}"
@@ -532,54 +549,52 @@ variables:
   chosen_type_sun_elevation: "{{ sun_elevation_config.active_choice }}"
 
   sun_azimuth: |
-    {{ sun_azimuth_config.процент | int(0)
-      if chosen_type_sun_azimuth == 'процент' 
+    {{ sun_azimuth_config.угол | int(0)
+      if chosen_type_sun_azimuth == 'угол' 
       else (0 if sun_azimuth_config.сенсор == [] else states(sun_azimuth_config.сенсор)) }}
   sun_elevation: |
-    {{ sun_elevation_config.процент | int(0)
-      if chosen_type_sun_elevation == 'процент' 
+    {{ sun_elevation_config.угол | int(0)
+      if chosen_type_sun_elevation == 'угол' 
       else (0 if sun_elevation_config.сенсор == [] else states(sun_elevation_config.сенсор)) }}
 
-  maxp: |
-    {% set ns = namespace(items=[]) %}
-    {% for item in blinds %}
-      {% set ns.items = ns.items + [state_attr(item,'current_position')] %}
-    {% endfor %}
-    {{ ns.items | max }}
-  minp: |
-    {% set ns = namespace(items=[]) %}
-    {% for item in blinds %}
-      {% set ns.items = ns.items + [state_attr(item,'current_position')] %}
-    {% endfor %}
-    {{ ns.items | min }}
+  # maxp: |
+  #   {% set ns = namespace(items=[]) %}
+  #   {% for item in blinds %}
+  #     {% set ns.items = ns.items + [state_attr(item,'current_position')] %}
+  #   {% endfor %}
+  #   {{ ns.items | max }}
+  # minp: |
+  #   {% set ns = namespace(items=[]) %}
+  #   {% for item in blinds %}
+  #     {% set ns.items = ns.items + [state_attr(item,'current_position')] %}
+  #   {% endfor %}
+  #   {{ ns.items | min }}
 
-  maxpp: |
-    {% set ns = namespace(items=[]) %}
-    {% for item in blinds_for_protect %}
-      {% set ns.items = ns.items + [state_attr(item,'current_position')] %}
-    {% endfor %}
-    {{ ns.items | max }}
-  minpp: |
-    {% set ns = namespace(items=[]) %}
-    {% for item in blinds_for_protect %}
-      {% set ns.items = ns.items + [state_attr(item,'current_position')] %}
-    {% endfor %}
-    {{ ns.items | min }}
+  # maxpp: |
+  #   {% set ns = namespace(items=[]) %}
+  #   {% for item in blinds_for_protect %}
+  #     {% set ns.items = ns.items + [state_attr(item,'current_position')] %}
+  #   {% endfor %}
+  #   {{ ns.items | max }}
+  # minpp: |
+  #   {% set ns = namespace(items=[]) %}
+  #   {% for item in blinds_for_protect %}
+  #     {% set ns.items = ns.items + [state_attr(item,'current_position')] %}
+  #   {% endfor %}
+  #   {{ ns.items | min }}
 
-  error: "{{ minp != maxp and minpp != maxpp }}"
+  # error: "{{ minp != maxp and minpp != maxpp }}"
 
-  text_helper: |
-    {% set rising = (state_attr(sun_sensor,'next_rising').strftime('%H:%M:%S') | as_datetime | as_local) if not is_open_until_enabled else up_time %}
-    {% set rising = rising.split(':')[0] ~ ":" ~ rising.split(':')[1]%}
-    {% set setting = (state_attr(sun_sensor,'next_setting') | as_datetime | as_local).strftime('%H:%M:%S') if not is_close_until_enabled else down_time %}
-    {% set setting = setting.split(':')[0] ~ ":" ~ setting.split(':')[1] %}
-    {{ 'Откроются в ' ~ rising if now() > today_at(down_time) else 'Закроются в ' ~ setting }}
+  # text_helper: |
+  #   {% set rising = (state_attr(sun_sensor,'next_rising').strftime('%H:%M:%S') | as_datetime | as_local) if not is_open_until_enabled else up_time %}
+  #   {% set rising = rising.split(':')[0] ~ ":" ~ rising.split(':')[1]%}
+  #   {% set setting = (state_attr(sun_sensor,'next_setting') | as_datetime | as_local).strftime('%H:%M:%S') if not is_close_until_enabled else down_time %}
+  #   {% set setting = setting.split(':')[0] ~ ":" ~ setting.split(':')[1] %}
+  #   {{ 'Откроются в ' ~ rising if now() > today_at(down_time) else 'Закроются в ' ~ setting }}
 
   chosen_type_up_limit: "{{ up_limit_config.active_choice }}"
   chosen_type_down_limit: "{{ down_limit_config.active_choice }}"
 
-#  up_limit: "{{ set_up_limit if set_up_limit_sensor == [] else states(set_up_limit_sensor) }}"
-#  down_limit: "{{ set_down_limit if set_down_limit_sensor == [] else states(set_down_limit_sensor) }}"
   up_limit: |
     {{ up_limit_config.процент | int(100)
       if chosen_type_up_limit == 'процент' 
@@ -634,22 +649,22 @@ triggers:
     enabled: "{{ is_sun_protect_enabled }}"
 
   - trigger: mqtt
-    options:
-      topic: !input basic_topic
-      payload: !input payload_down
+    topic: !input basic_topic
+    payload: !input payload_down
     id: mqtt_slider_down_trigger
+    enabled: "{{ is_slider_enabled }}"
 
   - trigger: mqtt
-    options:
-      topic: !input basic_topic
-      payload: !input payload_up
+    topic: !input basic_topic
+    payload: !input payload_up
     id: mqtt_slider_up_trigger
+    enabled: "{{ is_slider_enabled }}"
 
   - trigger: mqtt
-    options:
-      topic: !input basic_topic
-      payload: !input payload_stop
+    topic: !input basic_topic
+    payload: !input payload_stop
     id: mqtt_slider_stop_trigger
+    enabled: "{{ is_slider_enabled }}"
 
   - trigger: event
     event_type: zha_event
@@ -657,6 +672,7 @@ triggers:
       device_id: !input slider_device
       command: !input payload_down
     id: zha_slider_down_trigger
+    enabled: "{{ is_slider_enabled }}"
     
   - trigger: event
     event_type: zha_event
@@ -664,6 +680,7 @@ triggers:
       device_id: !input slider_device
       command: !input payload_up
     id: zha_slider_up_trigger
+    enabled: "{{ is_slider_enabled }}"
 
   - trigger: event
     event_type: zha_event
@@ -671,15 +688,55 @@ triggers:
       device_id: !input slider_device
       command: !input payload_stop
     id: zha_slider_stop_trigger
+    enabled: "{{ is_slider_enabled }}"
 
 actions:
-  - action: input_text.set_value
-    metadata: {}
-    target:
-      entity_id: !input text_rising_setting_sensor
-    data:
-      value: "{{ text_helper }}"
-    continue_on_error: true
+
+  - variables:
+    open_blinds: &open_blinds
+      sequence:
+        - repeat:
+            count: !input repeat_for
+
+            sequence:
+              - action: cover.set_cover_position
+                target:
+                  entity_id: "{{ blinds_target | default(blinds) }}"
+                data:
+                  position: >-
+                    {% set position = (up_limit | int(100)) - (repeat_for | int(1) - repeat.index) %}
+                    {{ [0, [position, 100] | min] | max }}
+
+              - delay:
+                  seconds: "{{ delay_for_repeat | int(1) }}"
+
+    close_blinds: &close_blinds
+      sequence:
+        - repeat:
+            count: !input repeat_for
+
+            sequence:
+              - action: cover.set_cover_position
+                target:
+                  entity_id: "{{ blinds_target | default(blinds) }}"
+                data:
+                  position: >-
+                    {% set position = (down_limit | int(0)) + (repeat_for | int(1) - repeat.index) %}
+                    {{ [0, [position, 100] | min] | max }}
+
+              - delay:
+                  seconds: "{{ delay_for_repeat | int(1) }}"
+
+    stop_blinds: &stop_blinds
+      sequence:
+        - repeat:
+            count: !input repeat_for
+
+            sequence:
+              - action: cover.stop_cover
+                target:
+                  entity_id: "{{ blinds_target | default(blinds) }}"
+                data: {}
 
   - choose:
 
@@ -698,19 +755,11 @@ actions:
             value_template: "{{ false if slider_device == [] else is_slider_enabled }}"
           - condition: template
             value_template: "{{ true if is_zha_device else device_attr(slider_device, 'name') == trigger.topic.split('/')[1] }}"
+
         sequence:
-          - repeat:
-              count: !input repeat_for
-              sequence:
-                - action: cover.set_cover_position
-                  metadata: {}
-                  target:
-                    entity_id: !input blinds
-                  data:
-                    position: |
-                      {{ (up_limit | int - (repeat_for | int - repeat.index)) }}
-                - delay:
-                    seconds: "{{ delay_for_repeat }}"
+          - variables:
+              blinds_target: !input blinds
+          - *open_blinds          
 
       - conditions: # Остановить по кнопке 
           - condition: trigger
@@ -721,15 +770,11 @@ actions:
             value_template: "{{ false if slider_device == [] else is_slider_enabled }}"
           - condition: template
             value_template: "{{ true if is_zha_device else device_attr(slider_device, 'name') == trigger.topic.split('/')[1] }}"
+
         sequence:
-          - repeat:
-              count: !input repeat_for
-              sequence:
-                - action: cover.stop_cover
-                  metadata: {}
-                  target:
-                    entity_id: !input blinds
-                  data: {}
+          - variables:
+              blinds_target: !input blinds
+          - *stop_blinds          
 
       - conditions: # Закрыть по слайдеру
           - condition: trigger
@@ -740,19 +785,11 @@ actions:
             value_template: "{{ false if slider_device == [] else is_slider_enabled }}"
           - condition: template
             value_template: "{{ true if is_zha_device else device_attr(slider_device, 'name') == trigger.topic.split('/')[1] }}"
+
         sequence:
-          - repeat:
-              count: !input repeat_for
-              sequence:
-                - action: cover.set_cover_position
-                  metadata: {}
-                  target:
-                    entity_id: !input blinds
-                  data:
-                    position: |
-                      {{ (down_limit | int + (repeat_for | int - repeat.index)) }}
-                - delay:
-                    seconds: "{{ delay_for_repeat }}"
+          - variables:
+              blinds_target: !input blinds
+          - *close_blinds          
 
 #########################################################################################################
 #
@@ -766,21 +803,11 @@ actions:
               - up_time_workday_trigger
           - condition: template # Будни
             value_template: "{{ workday }}" 
-          # - condition: template # Солнце выше горизонта
-          #   value_template: "{{ states('sun.sun') == 'above_horizon' }}"
+
         sequence:
-          - repeat:
-              count: !input repeat_for
-              sequence:
-                - action: cover.set_cover_position
-                  metadata: {}
-                  target:
-                    entity_id: !input blinds
-                  data:
-                    position: |
-                      {{ (up_limit | int - (repeat_for | int - repeat.index)) }}
-                - delay:
-                    seconds: "{{ delay_for_repeat }}"
+          - variables:
+              blinds_target: !input blinds
+          - *open_blinds          
 
       - conditions: # Время открытия в выходные
           - condition: trigger
@@ -788,41 +815,21 @@ actions:
               - up_time_weekend_trigger
           - condition: template # Выходные
             value_template: "{{ weekend }}"
-          # - condition: template # Солнце выше горизонта
-          #   value_template: "{{ states('sun.sun') == 'above_horizon' }}"
+
         sequence:
-          - repeat:
-              count: !input repeat_for
-              sequence:
-                - action: cover.set_cover_position
-                  metadata: {}
-                  target:
-                    entity_id: !input blinds
-                  data:
-                    position: |
-                      {{ (up_limit | int - (repeat_for | int - repeat.index)) }}
-                - delay:
-                    seconds: "{{ delay_for_repeat }}"
+          - variables:
+              blinds_target: !input blinds
+          - *open_blinds          
 
       - conditions: # Время закрытия
           - condition: trigger
             id:
               - down_time_trigger
-          # - condition: template
-          #   value_template: "{{ is_close_until_enabled }}"
+
         sequence:
-          - repeat:
-              count: !input repeat_for
-              sequence:
-                - action: cover.set_cover_position
-                  metadata: {}
-                  target:
-                    entity_id: !input blinds
-                  data:
-                    position: |
-                      {{ (down_limit | int + (repeat_for | int - repeat.index)) }}
-                - delay:
-                    seconds: "{{ delay_for_repeat }}"
+          - variables:
+              blinds_target: !input blinds
+          - *close_blinds          
 
 #########################################################################################################
 #
@@ -836,37 +843,21 @@ actions:
               - sunrise_trigger
           - condition: template
             value_template: "{{ true if not is_open_until_enabled else now() >= today_at(up_time) }}"
+
         sequence:
-          - repeat:
-              count: !input repeat_for
-              sequence:
-                - action: cover.set_cover_position
-                  metadata: {}
-                  target:
-                    entity_id: !input blinds
-                  data:
-                    position: |
-                      {{ (up_limit | int - (repeat_for | int - repeat.index)) }}
-                - delay:
-                    seconds: "{{ delay_for_repeat }}"
+          - variables:
+              blinds_target: !input blinds
+          - *open_blinds          
 
       - conditions: # Солнце село
           - condition: trigger
             id:
               - sunset_trigger
+
         sequence:
-          - repeat:
-              count: !input repeat_for
-              sequence:
-                - action: cover.set_cover_position
-                  metadata: {}
-                  target:
-                    entity_id: !input blinds
-                  data:
-                    position: |
-                      {{ (down_limit | int + (repeat_for | int - repeat.index)) }}
-                - delay:
-                    seconds: "{{ delay_for_repeat }}"
+          - variables:
+              blinds_target: !input blinds
+          - *close_blinds          
 
 #########################################################################################################
 #
@@ -880,20 +871,11 @@ actions:
               - sun_elevation_trigger
           - condition: template
             value_template: "{{ now() <= today_at(set_down_time) }}"
+
         sequence:
-          - repeat:
-              count: !input repeat_for
-              sequence:
-                - action: cover.set_cover_position
-                  metadata: {}
-                  target:
-                    entity_id: >
-                      {{ (blinds if blinds_for_protect == [] else  blinds_for_protect) | list }}
-                  data:
-                    position: |
-                      {{ (up_limit | int - (repeat_for | int - repeat.index)) }}
-                - delay:
-                    seconds: "{{ delay_for_repeat }}"
+          - variables:
+              blinds_target: "{{ blinds if blinds_for_protect == [] else blinds_for_protect }}"
+          - *open_blinds
 
       - conditions: # Закрыть шторы при защите от прямых лучей солнца
           - condition: trigger
@@ -905,27 +887,17 @@ actions:
           - condition: template
             value_template: |
               {{ true if not is_illuminance_enabled else states(illuminance_sensor) | int >= set_max_illuminance }}
+
         sequence:
-          - repeat:
-              count: !input repeat_for
-              sequence:
-                - action: cover.set_cover_position
-                  metadata: {}
-                  target:
-                    entity_id: >
-                      {{ (blinds if blinds_for_protect == [] else  blinds_for_protect) | list }}
-                  data:
-                    position: |
-                      {{ (down_limit | int + (repeat_for | int - repeat.index)) }}
-                - delay:
-                    seconds: "{{ delay_for_repeat }}"
+          - variables:
+              blinds_target: "{{ blinds if blinds_for_protect == [] else blinds_for_protect }}"
+          - *close_blinds
 
 #########################################################################################################
 #
 # УПРАВЛЕНИЕ ПО ПОГОДЕ
 #
 #########################################################################################################
-
 
       - conditions: # Закрыть при изменении погоды при включенном режиме защиты от прямых лучей
           - condition: trigger
@@ -950,19 +922,9 @@ actions:
               {{ states(sun_sensor) == 'above_horizon' }}
 
         sequence:
-          - repeat:
-              count: !input repeat_for
-              sequence:
-                - action: cover.set_cover_position
-                  metadata: {}
-                  target:
-                    entity_id: >
-                      {{ (blinds if blinds_for_protect == [] else  blinds_for_protect) | list }}
-                  data:
-                    position: |
-                      {{ (down_limit | int + (repeat_for | int - repeat.index)) }}
-                - delay:
-                    seconds: "{{ delay_for_repeat }}"
+          - variables:
+              blinds_target: "{{ blinds if blinds_for_protect == [] else blinds_for_protect }}"
+          - *close_blinds
 
       - conditions: # Открыть при изменении погоды при включенном режиме защиты от прямых лучей
           - condition: trigger
@@ -985,20 +947,11 @@ actions:
           - condition: template
             value_template: |
               {{ states(sun_sensor) == 'above_horizon' }}
+
         sequence:
-          - repeat:
-              count: !input repeat_for
-              sequence:
-                - action: cover.set_cover_position
-                  metadata: {}
-                  target:
-                    entity_id: >
-                      {{ (blinds if blinds_for_protect == [] else  blinds_for_protect) | list }}
-                  data:
-                    position: |
-                      {{ (up_limit | int - (repeat_for | int - repeat.index)) }}
-                - delay:
-                    seconds: "{{ delay_for_repeat }}"
+          - variables:
+              blinds_target: "{{ blinds if blinds_for_protect == [] else blinds_for_protect }}"
+          - *open_blinds
 
 #########################################################################################################
 #
@@ -1027,42 +980,28 @@ actions:
           - condition: template
             value_template: |
               {{ states(sun_sensor) == 'above_horizon' }}
+          - condition: template
+            value_template: |
+              {{ (set_min_illuminance > 0 or set_max_illuminance > 0) }}
+
         sequence:
           - choose:
               - conditions: 
                   - condition: template
                     value_template: |
                       {{ states(illuminance_sensor) | int >= set_max_illuminance }}
+
                 sequence:
-                  - repeat:
-                      count: !input repeat_for
-                      sequence:
-                        - action: cover.set_cover_position
-                          metadata: {}
-                          target:
-                            entity_id: >
-                              {{ (blinds if blinds_for_protect == [] else  blinds_for_protect) | list }}
-                          data:
-                            position: |
-                              {{ (down_limit | int + (repeat_for | int - repeat.index)) }}
-                        - delay:
-                            seconds: "{{ delay_for_repeat }}"
+                  - variables:
+                      blinds_target: "{{ blinds if blinds_for_protect == [] else blinds_for_protect }}"
+                  - *close_blinds
 
               - conditions: 
                   - condition: template
                     value_template: |
                       {{ states(illuminance_sensor) | int <= set_min_illuminance }}
+
                 sequence:
-                  - repeat:
-                      count: !input repeat_for
-                      sequence:
-                        - action: cover.set_cover_position
-                          metadata: {}
-                          target:
-                            entity_id: >
-                              {{ (blinds if blinds_for_protect == [] else  blinds_for_protect) | list }}
-                          data:
-                            position: |
-                              {{ (up_limit | int - (repeat_for | int - repeat.index)) }}
-                        - delay:
-                            seconds: "{{ delay_for_repeat }}"
+                  - variables:
+                      blinds_target: "{{ blinds if blinds_for_protect == [] else blinds_for_protect }}"
+                  - *open_blinds
