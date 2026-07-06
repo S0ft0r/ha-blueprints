@@ -2,7 +2,10 @@ blueprint:
   name: Управление поливом теплицы
   description: |
     ### Управление поливом теплицы. Dev версия
-    <small>Версия 2026.07.01 Сборка 8</small> 
+    <small>Версия 2026.07.01 Сборка 7</small> 
+
+    <a href="https://raw.githubusercontent.com/S0ft0r/ha-blueprints/main/docs/greenhouse/readme.md">Описание</a>
+    <a href="https://raw.githubusercontent.com/S0ft0r/ha-blueprints/main/docs/greenhouse/changelog.md">История изменений</a>
 
     <small><a href="https://github.com/S0ft0r/ha-blueprints/blob/main/as-is.md">Отказ от ответственности</a></small>
   domain: automation

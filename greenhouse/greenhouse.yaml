@@ -2,70 +2,12 @@ blueprint:
   name: Управление поливом теплицы
   description: |
     ### Управление поливом теплицы.
-    <small>Версия 2026.07.01, сборка 6</small>
+    <small>Версия 2026.07.01, сборка 7</small>
 
-    Автоматизация для управления системой полива теплицы в Home Assistant.
-
-    #### Возможности
-
-    - Управление главным клапаном / реле подачи воды.
-    - Поддержка сущностей доменов `switch` и `valve`.
-    - Поддержка нескольких клапанов направлений полива.
-    - Настройка типа клапанов направлений:
-      - нормально-открытые;
-      - нормально-закрытые.
-    - Раздельные сценарии полива утром и вечером.
-    - Настройка времени запуска:
-      - фиксированное время;
-      - время из `input_datetime`.
-    - Настройка длительности полива на каждое направление:
-      - фиксированное время;
-      - значение из `input_datetime`.
-    - Включение или отключение утреннего и вечернего полива:
-      - вручную через параметр;
-      - через `input_boolean`.
-    - Режимы работы по дням:
-      - ежедневно;
-      - через день;
-      - выбор конкретных дней недели.
-    - Возможность выбрать отдельные клапаны направлений только для утреннего или вечернего полива.
-    - Управление насосом перед началом и после завершения полива.
-    - Задержка работы насоса для набора давления в системе.
-    - Учет присутствия людей дома при отключении насоса.
-    - Учёт влажности почвы по направлениям:
-      - привязка датчиков влажности к клапанам направлений по порядку;
-      - возможность не указывать датчик для отдельных направлений;
-      - пропуск полива направления, если влажность выше заданного порога;
-      - единый порог запрета полива (с возможностью гибкой настройки);
-      - учёт доступности датчика (если датчик недоступен — направление поливается).
-    - Учет прогноза погоды для отмены полива.
-    - Настройка погодных условий, при которых полив отменяется.
-    - Проверка прогноза на заданное количество часов вперед.
-    - Таймер аварийного автоматического отключения системы.
-    - Автоматический расчет времени защитного таймера с учетом количества направлений и длительности полива.
-    - Настройка задержек открытия и закрытия главного клапана.
-    - Настройка задержек открытия и закрытия клапанов направлений.
-    - Поддержка ручного включения направления полива.
-    - Автоматическое закрытие остальных направлений при ручном запуске одного направления.
-    - Логирование ошибок и событий отмены в Logbook.
-    - Отправка уведомлений через выбранные `notify`-сущности.
-    - Логируются только ошибки и события отмены (по погоде или из-за высокой влажности почвы), штатные события не записываются.
-
-    #### Контроль ошибок
-
-    В текущей версии предусмотрена базовая диагностика и фиксация событий:
-
-    - насос не включился после команды;
-    - главный клапан не открылся после команды;
-    - отмена полива направления из-за высокой влажности почвы;
-    - отмена полива по прогнозу погоды;
-    - события записываются в Logbook;
-    - при выбранных получателях отправляется уведомление через `notify`.
-
+    <a href="https://raw.githubusercontent.com/S0ft0r/ha-blueprints/main/docs/greenhouse/readme.md">Описание</a>
     <a href="https://raw.githubusercontent.com/S0ft0r/ha-blueprints/main/docs/greenhouse/changelog.md">История изменений</a>
 
     <small><a href="https://github.com/S0ft0r/ha-blueprints/blob/main/as-is.md">Отказ от ответственности</a></small>
-
   domain: automation
   source_url: https://raw.githubusercontent.com/S0ft0r/ha-blueprints/main/greenhouse/greenhouse.yaml
   author: Softor
@@ -435,6 +377,7 @@ blueprint:
         waterpump_switch:
           name: Реле насоса
           description: ""
+          default: []
           selector:
             entity:
               filter:
@@ -552,6 +495,120 @@ blueprint:
               mode: slider
               unit_of_measurement: "%"
 
+        set_soil_watering_enable:
+          name: Внеплановый полив при низкой влажности
+          description: |
+            Если влажность почвы опускается ниже заданного порога,
+            будет запущен внеплановый полив соответствующего направления,
+            даже вне расписания.
+          default:
+            active_choice: выбор
+            выбор: false
+            сенсор: []
+          selector:
+            choose:
+              choices:
+                "выбор":
+                  selector:
+                    boolean: {}
+                "сенсор":
+                  selector:
+                    entity:
+                      filter:
+                        - domain:
+                            - input_boolean
+                      multiple: false
+
+        set_soil_watering_low_threshold:
+          name: Порог низкой влажности
+          description: |
+            Если влажность почвы ниже этого значения — будет запущен
+            внеплановый полив соответствующего направления.
+          default: 30
+          selector:
+            number:
+              min: 1
+              max: 100
+              step: 1
+              mode: slider
+              unit_of_measurement: "%"
+
+        set_soil_watering_for:
+          name: Время подтверждения низкой влажности
+          description: |
+            Влажность должна оставаться ниже порога это время подряд,
+            прежде чем будет запущен внеплановый полив.
+            <small>* Защита от ложных срабатываний из-за кратковременных скачков показаний</small>
+          default: "00:15:00"
+          selector:
+            time: {}
+
+        set_soil_watering_duration:
+          name: Длительность внепланового полива
+          description: Время работы направления при внеплановом поливе
+          default: "00:05:00"
+          selector:
+            time: {}
+
+        set_soil_diag_enable:
+          name: Диагностика датчиков влажности
+          description: |
+            После каждого полива система проверит, изменились ли показания датчика.
+            Если влажность не выросла — будет отправлено предупреждение.
+            <small>* Диагностика выполняется асинхронно и не увеличивает длительность цикла полива</small>
+          default: false
+          selector:
+            boolean: {}
+
+        set_soil_diag_delay:
+          name: Задержка проверки после полива
+          description: |
+            Время ожидания после закрытия клапана направления
+            перед проверкой показаний датчика.
+            <small>* Вода должна успеть дойти до зоны датчика</small>
+          default: "00:05:00"
+          selector:
+            time: {}
+
+        set_soil_diag_min_delta:
+          name: Минимальный прирост влажности
+          description: |
+            Если влажность после полива выросла менее чем на это значение,
+            система сообщит о проблеме.
+          default: 3
+          selector:
+            number:
+              min: 1
+              max: 30
+              step: 1
+              mode: slider
+              unit_of_measurement: "%"
+
+        set_soil_night_block_enable:
+          name: Запрет внепланового полива в ночное время
+          description: |
+            Если включено, внеплановый полив по датчику влажности
+            не будет запускаться в заданный ночной период.
+          default: true
+          selector:
+            boolean: {}
+
+        set_soil_night_start:
+          name: Начало ночного периода
+          description: |
+            После этого времени внеплановый полив запрещён.
+          default: "22:00:00"
+          selector:
+            time: {}
+
+        set_soil_night_end:
+          name: Окончание ночного периода
+          description: |
+            После этого времени внеплановый полив снова разрешён.
+          default: "06:00:00"
+          selector:
+            time: {}
+
     ####################################################################
     # Секция: Прогноз погоды (второстепенная)
     ####################################################################
@@ -638,7 +695,111 @@ blueprint:
               unit_of_measurement: "час"   
 
     ####################################################################
-    # Секция: Безопасность и задержки главного клапана (свёрнута)
+    # Секция: Адаптация полива по температуре (второстепенная)
+    ####################################################################
+
+    weather_adapt_section:
+      name: Адаптация полива по температуре
+      description: |
+        Автоматическая корректировка длительности полива
+        в зависимости от температуры воздуха.
+
+        Базовое время полива умножается на коэффициент:
+        - ниже «холодной» границы — полив не запускается
+        - между «холодной» и «комфортной» — сокращённый полив
+        - между «комфортной» и «жаркой» — базовое время 
+        - выше «жаркой» границы — увеличенный полив
+      icon: mdi:thermometer-water
+      collapsed: true
+      input:
+
+        set_weather_adapt_enable:
+          name: Адаптировать время полива по температуре
+          default: false
+          selector:
+            boolean: {}
+
+        weather_temp_sensor:
+          name: Датчик температуры воздуха
+          description: |
+            Датчик температуры для расчёта коэффициента.
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - sensor
+                  device_class: temperature
+              multiple: false
+
+        set_temp_cold:
+          name: Холодная граница
+          description: |
+            Ниже этой температуры полив не запускается
+          default: 5
+          selector:
+            number:
+              min: -10
+              max: 30
+              step: 1
+              mode: slider
+              unit_of_measurement: "°C"
+
+        set_temp_comfort:
+          name: Комфортная граница
+          description: |
+            Между холодной и комфортной границей —
+            время полива сокращается пропорционально
+          default: 18
+          selector:
+            number:
+              min: 0
+              max: 35
+              step: 1
+              mode: slider
+              unit_of_measurement: "°C"
+
+        set_temp_hot:
+          name: Жаркая граница
+          description: |
+            Выше этой температуры время полива увеличивается
+          default: 30
+          selector:
+            number:
+              min: 15
+              max: 50
+              step: 1
+              mode: slider
+              unit_of_measurement: "°C"
+
+        set_cold_multiplier:
+          name: Коэффициент при прохладе
+          description: |
+            Минимальный множитель (на холодной границе).
+            Между холодной и комфортной — плавная интерполяция.
+          default: 0.5
+          selector:
+            number:
+              min: 0.1
+              max: 1.0
+              step: 0.1
+              mode: slider
+
+        set_hot_multiplier:
+          name: Коэффициент при жаре
+          description: |
+            Множитель при достижении жаркой границы.
+            Выше — не растёт (потолок).
+          default: 1.5
+          selector:
+            number:
+              min: 1.0
+              max: 3.0
+              step: 0.1
+              mode: slider
+
+    ####################################################################
+    # Секция: Безопасность и задержки главного клапана (второстепенная)
     ####################################################################
 
     safety_section:
@@ -753,7 +914,33 @@ trigger_variables:
   set_logging_enable: !input set_logging_enable
   notify_target: !input notify_target
 
+  set_use_soil_moisture: !input set_use_soil_moisture
+  soil_moisture_valves: !input soil_moisture_valves
+  soil_moisture_sensors: !input soil_moisture_sensors
+  set_soil_block_schedule_enable: !input set_soil_block_schedule_enable
+  set_soil_skip_threshold: !input set_soil_skip_threshold
+  set_soil_watering_enable: !input set_soil_watering_enable
+  set_soil_watering_low_threshold: !input set_soil_watering_low_threshold
+  set_soil_watering_for: !input set_soil_watering_for
+  set_soil_watering_duration: !input set_soil_watering_duration
+  set_soil_diag_enable: !input set_soil_diag_enable
+  set_soil_diag_delay: !input set_soil_diag_delay
+  set_soil_diag_min_delta: !input set_soil_diag_min_delta
+  set_soil_night_block_enable: !input set_soil_night_block_enable
+  set_soil_night_start: !input set_soil_night_start
+  set_soil_night_end: !input set_soil_night_end  
+
+  set_weather_adapt_enable: !input set_weather_adapt_enable
+  weather_temp_sensor: !input weather_temp_sensor
+  set_temp_cold: !input set_temp_cold
+  set_temp_comfort: !input set_temp_comfort
+  set_temp_hot: !input set_temp_hot
+  set_cold_multiplier: !input set_cold_multiplier
+  set_hot_multiplier: !input set_hot_multiplier
+
+  is_soil_moisture_defined: "{{ soil_moisture_valves != [] and soil_moisture_sensors != [] }}"
   is_watervalve_defined: "{{ watervalve_switch != [] }}"
+  is_waterpump_defined: "{{ waterpump_switch != [] }}"
 
   open_states:
     - "on"
@@ -776,10 +963,10 @@ variables:
   selected_days_morning: "{{ now().strftime('%a') | lower in set_select_days_morning }}"
   selected_days_evening: "{{ now().strftime('%a') | lower in set_select_days_evening }}"
 
-  # Определение времени работы насоса 
+  # Определение времени работы насоса
   time_waterpump_work: "{{ set_time_waterpump_work.время if set_time_waterpump_work.active_choice == 'время' else states(set_time_waterpump_work.сенсор) }}"
 
-  # Определение вермени работы системы полива на каждое направления
+  # Определение времени работы системы полива на каждое направление
   time_work_morning: "{{ set_time_work_morning.время if set_time_work_morning.active_choice == 'время' else states(set_time_work_morning.сенсор) }}"
   time_work_evening: "{{ set_time_work_evening.время if set_time_work_evening.active_choice == 'время' else states(set_time_work_evening.сенсор) }}"
 
@@ -791,27 +978,83 @@ variables:
   watervalve_close_delay: "{{ '%02d:%02d:%02d' | format(set_watervalve_close_delay | int // 3600, (set_watervalve_close_delay | int % 3600) // 60, set_watervalve_close_delay | int % 60) }}"
   watervalve_open_delay: "{{ '%02d:%02d:%02d' | format(set_watervalve_open_delay | int // 3600, (set_watervalve_open_delay | int % 3600) // 60, set_watervalve_open_delay | int % 60) }}"
 
-  # Действия на открытие/закрытия насоса
+  # Действия на открытие/закрытие насоса
   waterpump_open_action: "{{ 'valve.open_valve' if waterpump_switch.split('.')[0] == 'valve' else 'homeassistant.turn_on' }}"
   waterpump_close_action: "{{ 'valve.close_valve' if waterpump_switch.split('.')[0] == 'valve' else 'homeassistant.turn_off' }}"
 
-  # Действия на открытие/закрытия клапана на воду
+  # Действия на открытие/закрытие клапана на воду
   watering_open_action: "{{ 'valve.open_valve' if watering_switch.split('.')[0] == 'valve' else 'homeassistant.turn_on' }}"
   watering_close_action: "{{ 'valve.close_valve' if watering_switch.split('.')[0] == 'valve' else 'homeassistant.turn_off' }}"
 
   # Тип клапанов направления - НО/НЗ
   no_type_valve: "{{ set_nc_no_type_valve == 'type_no' }}"
 
-  # Определение действия в соответствие с типом клапана направления
+  # Определение действия в соответствии с типом клапана направления
   action_valve_open: "{{ 'open_valve' if set_nc_no_type_valve == 'type_no' else 'close_valve' }}"
   action_valve_close: "{{ 'close_valve' if set_nc_no_type_valve == 'type_no' else 'open_valve' }}"
   action_switch_on: "{{ 'turn_on' if set_nc_no_type_valve == 'type_no' else 'turn_off' }}"
   action_switch_off: "{{ 'turn_off' if set_nc_no_type_valve == 'type_no' else 'turn_on' }}"
 
   use_forecast_enable: "{{ set_use_forecast_enable.выбор if set_use_forecast_enable.active_choice == 'выбор' else states(set_use_forecast_enable.сенсор) in open_states }}"
+  soil_watering_enable: >
+    {{
+      set_soil_watering_enable.выбор | bool(false)
+      if set_soil_watering_enable.active_choice == 'выбор'
+      else is_state(set_soil_watering_enable.сенсор, 'on')
+    }}
+
+  weather_multiplier: >
+    {% if not set_weather_adapt_enable or weather_temp_sensor == [] %}
+      {{ 1.0 }}
+    {% else %}
+      {% set temp = states(weather_temp_sensor) | float(default=-999) %}
+      {% if temp <= -999 %}
+        {{ 1.0 }}
+      {% elif temp < set_temp_cold | float %}
+        {{ 0.0 }}
+      {% elif temp < set_temp_comfort | float %}
+        {% set range = (set_temp_comfort | float) - (set_temp_cold | float) %}
+        {% set position = temp - (set_temp_cold | float) %}
+        {% if range > 0 %}
+          {{ ((set_cold_multiplier | float) + (1.0 - (set_cold_multiplier | float)) * (position / range)) | round(2) }}
+        {% else %}
+          {{ 1.0 }}
+        {% endif %}
+      {% elif temp < set_temp_hot | float %}
+        {{ 1.0 }}
+      {% else %}
+        {{ set_hot_multiplier | float }}
+      {% endif %}
+    {% endif %}
+
+  adjusted_time_work_morning: >
+    {% set parts = time_work_morning.split(':') %}
+    {% set base_seconds = parts[0] | int * 3600 + parts[1] | int * 60 + parts[2] | int %}
+    {% set adjusted = (base_seconds * (weather_multiplier | float)) | int %}
+    {{ '%02d:%02d:%02d' | format(adjusted // 3600, (adjusted % 3600) // 60, adjusted % 60) }}
+
+  adjusted_time_work_evening: >
+    {% set parts = time_work_evening.split(':') %}
+    {% set base_seconds = parts[0] | int * 3600 + parts[1] | int * 60 + parts[2] | int %}
+    {% set adjusted = (base_seconds * (weather_multiplier | float)) | int %}
+    {{ '%02d:%02d:%02d' | format(adjusted // 3600, (adjusted % 3600) // 60, adjusted % 60) }}
+
+  is_night_time: >
+    {% if not set_soil_night_block_enable %}
+      {{ false }}
+    {% else %}
+      {% set now_t = now().strftime('%H:%M:%S') %}
+      {% set start = set_soil_night_start %}
+      {% set end = set_soil_night_end %}
+      {% if start > end %}
+        {{ now_t >= start or now_t < end }}
+      {% else %}
+        {{ now_t >= start and now_t < end }}
+      {% endif %}
+    {% endif %}
 
 triggers:
-  - trigger: state # Ручное включение направления
+  - trigger: state # Ручное переключение направления
     entity_id: !input watervalve_switch
     id: watervalve_toggle_trigger
     enabled: "{{ is_watervalve_defined }}"
@@ -848,7 +1091,7 @@ triggers:
     trigger: state
     id: pump_off_auto_trigger
 
-  - entity_id: !input watering_switch # Влючение таймера для варийного выключение системы
+  - entity_id: !input watering_switch # Включение таймера для аварийного выключения системы
     trigger: state
     id: watering_toggle_trigger
 
@@ -856,22 +1099,33 @@ triggers:
     trigger: state
     id: pump_off_trigger
 
+  - trigger: numeric_state # Низкая влажность почвы — внеплановый полив
+    entity_id: !input soil_moisture_sensors
+    below: !input set_soil_watering_low_threshold
+    for: !input set_soil_watering_for
+    id: soil_moisture_low_trigger
+    enabled: "{{ is_soil_moisture_defined }}"
+
+  - trigger: event
+    event_type: my_greenhouse_soil_diag_check_event
+    id: soil_diag_check_trigger
+
 actions:
   - if:
       - condition: template
         value_template: |
           {{ forecast_sensor != [] and states(forecast_sensor) not in invalid_states and use_forecast_enable }}
-    then: 
+    then:
       - action: weather.get_forecasts
         data:
           type: hourly
         target:
           entity_id: "{{ forecast_sensor }}"
         response_variable: hourly
-  
-  - variables:    
+
+  - variables:
       no_rain_next_hours: |
-        {% if forecast_sensor != [] and states(forecast_sensor) not in invalid_states and use_forecast_enable and hourly is defined and hourly.get(forecast_sensor) is not none  %}
+        {% if forecast_sensor != [] and states(forecast_sensor) not in invalid_states and use_forecast_enable and hourly is defined and hourly.get(forecast_sensor) is not none %}
           {% set hours = set_rain_number_forecast_hours | int %}
           {% set forecasts = hourly[forecast_sensor].forecast[:hours] | map(attribute='condition') | list %}
           {{ intersect(forecasts, set_rain_conditions) | count == 0 }}
@@ -912,33 +1166,41 @@ actions:
                       message: "{{ log_message }}"
 
       close_watering: &close_watering
-        sequence: 
-          - action: "{{ watering_close_action }}" 
-            target: 
+        sequence:
+          - action: "{{ watering_close_action }}"
+            target:
               entity_id: !input watering_switch
           - delay: "{{ watering_close_delay }}"
 
       waterpump_off: &waterpump_off
-        sequence: 
-          - action: "{{ waterpump_close_action }}" 
-            target: 
-              entity_id: !input waterpump_switch
+        sequence:
+          - if:
+              - condition: template
+                value_template: "{{ is_waterpump_defined }}"
+            then:
+              - action: "{{ waterpump_close_action }}"
+                target:
+                  entity_id: !input waterpump_switch
 
       open_watering: &open_watering
-        sequence: 
-          - action: "{{ watering_open_action }}" 
-            target: 
+        sequence:
+          - action: "{{ watering_open_action }}"
+            target:
               entity_id: !input watering_switch
           - delay: "{{ watering_open_delay }}"
 
       waterpump_on: &waterpump_on
-        sequence: 
-          - action: "{{ waterpump_open_action }}" 
-            target: 
-              entity_id: !input waterpump_switch
+        sequence:
+          - if:
+              - condition: template
+                value_template: "{{ is_waterpump_defined }}"
+            then:
+              - action: "{{ waterpump_open_action }}"
+                target:
+                  entity_id: !input waterpump_switch
 
       watervalve_action: &watervalve_action
-        sequence: 
+        sequence:
           - variables:
               current_valve: "{{ repeat.item }}"
 
@@ -949,7 +1211,6 @@ actions:
                     {% set ns.idx = loop.index0 %}
                   {% endif %}
                 {% endfor %}
-
                 {% if ns.idx >= 0 and (soil_moisture_sensors | count) > ns.idx %}
                   {{ soil_moisture_sensors[ns.idx] }}
                 {% else %}
@@ -980,8 +1241,7 @@ actions:
           - choose:
               - conditions:
                   - condition: template
-                    value_template: |
-                      {{ current_soil_blocked }}
+                    value_template: "{{ current_soil_blocked }}"
                 sequence:
                   - variables:
                       log_message: >-
@@ -991,10 +1251,16 @@ actions:
                         Порог запрета: {{ set_soil_skip_threshold }}%.
                       log_entity_id: "{{ current_soil_sensor }}"
                       notification_title: "Полив направления отменен"
-
                   - *log_error
 
             default:
+              - variables:
+                  soil_before: >
+                    {% if set_soil_diag_enable and current_soil_valid %}
+                      {{ states(current_soil_sensor) | float(default=-1) }}
+                    {% else %}
+                      {{ -1 }}
+                    {% endif %}
               - action: "{{ 'valve.' ~ action_valve_close if current_valve.split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_off }}"
                 target:
                   entity_id: "{{ current_valve }}"
@@ -1004,15 +1270,26 @@ actions:
                 target:
                   entity_id: "{{ current_valve }}"
               - delay: "{{ watervalve_close_delay }}"
+              - if:
+                  - condition: template
+                    value_template: >
+                      {{ set_soil_diag_enable and current_soil_valid and (soil_before | float) >= 0 }}
+                then:
+                  - event: my_greenhouse_soil_diag_check_event
+                    event_data:
+                      valve: "{{ current_valve }}"
+                      sensor: "{{ current_soil_sensor }}"
+                      soil_before: "{{ soil_before | float }}"
+                      duration: "{{ time_work_current }}"
 
       check_pump: &check_pump
         sequence:
-          - delay: 
+          - delay:
               seconds: 2
           - if:
               - condition: template
                 value_template: |
-                  {{ states(waterpump_switch) in closed_states or states(waterpump_switch) in invalid_states }}
+                  {{ is_waterpump_defined and (states(waterpump_switch) in closed_states or states(waterpump_switch) in invalid_states) }}
             then:
               - variables:
                   log_message: |
@@ -1025,7 +1302,7 @@ actions:
 
       check_watering: &check_watering
         sequence:
-          - delay: 
+          - delay:
               seconds: 2
           - if:
               - condition: template
@@ -1057,16 +1334,32 @@ actions:
               - *log_error
               - stop: "forecast delay"
 
+      close_no_valve: &close_no_valve
+        sequence:
+          - if:
+              - condition: template
+                value_template: "{{ no_type_valve }}"
+            then:
+              - repeat:
+                  for_each: !input watervalve_switch
+                  sequence:
+                    - action: >
+                        {{ 'valve.' ~ action_valve_open if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_on }}
+                      target:
+                        entity_id: "{{ repeat.item }}"
+                    - delay:
+                        seconds: 1
+
   - choose:
+
 #######################################################################################
-# Действие при аварийном отключение насоса (например, при протечке)
+# Действие при аварийном отключении насоса (например, при протечке)
 #######################################################################################
 
       - conditions:
           - condition: trigger
             id:
               - pump_off_trigger
-
           - condition: template
             value_template: |
               {{ trigger.from_state.state in open_states and trigger.to_state.state in closed_states }}
@@ -1084,16 +1377,14 @@ actions:
           - condition: trigger
             id:
               - watervalve_toggle_trigger
-
           - condition: template
             value_template: >
               {{ trigger.to_state.context.user_id is not none }}
-
           - condition: template
             value_template: >
               {{ trigger.to_state.state in closed_states and trigger.from_state.state in open_states }}
 
-        sequence: 
+        sequence:
           - *close_watering
 
 #######################################################################################
@@ -1104,11 +1395,9 @@ actions:
           - condition: trigger
             id:
               - watervalve_toggle_trigger
-
           - condition: template
             value_template: >
               {{ trigger.to_state.context.user_id is not none }}
-
           - condition: template
             value_template: >
               {{ trigger.from_state.state in closed_states and trigger.to_state.state in open_states }}
@@ -1117,11 +1406,11 @@ actions:
           - if:
               - condition: template # Проверка состояния реле насоса
                 value_template: |
-                  {{ states(waterpump_switch) in closed_states }}
+                  {{ is_waterpump_defined and states(waterpump_switch) in closed_states }}
             then:
               - *waterpump_on
               - *check_pump
-              - delay: "{{ time_waterpump_work }}" # Задержка (для набора давления в систему)
+              - delay: "{{ time_waterpump_work }}"
           - repeat:
               for_each: !input watervalve_switch # Закрытие всех клапанов направления (кроме выбранного)
               sequence:
@@ -1135,7 +1424,7 @@ actions:
                         entity_id: "{{ repeat.item }}"
                     - delay:
                         seconds: 1
-          - delay: "{{ watervalve_close_delay }}" # Ожидание закрытия клапанов
+          - delay: "{{ watervalve_close_delay }}"
           - if:
               - condition: template # Проверка состояния клапана на полив
                 value_template: |
@@ -1145,26 +1434,22 @@ actions:
               - *check_watering
 
 #######################################################################################
-# Включение насоса и закрытие клапанов направления до включения системы утром
+# Включение насоса до включения системы утром
 #######################################################################################
 
       - conditions:
           - condition: trigger
             id:
               - time_before_morning_trigger
-
           - condition: template
             value_template: |
-              {{ states(waterpump_switch) not in invalid_states }}
-
+              {{ is_waterpump_defined and states(waterpump_switch) not in invalid_states }}
           - condition: template
             value_template: |
               {{ true if ('every_over_day_morning' not in set_working_day_morning) else ((now().timestamp() / 86400) | int % 2 == 0) }}
-
           - condition: template
             value_template: |
               {{ true if ('select_morning' not in set_working_day_morning) else selected_days_morning }}
-
           - condition: template
             value_template: |
               {{ watering_morning_enable }}
@@ -1173,42 +1458,50 @@ actions:
           - *check_forecast
           - *waterpump_on
           - *check_pump
-          - if:
-              - condition: template
-                value_template: |
-                  {{ no_type_valve }}
-            then:
-              - repeat:
-                  for_each: !input watervalve_switch 
-                  sequence:
-                    - action: |
-                        {{ 'valve.' ~ action_valve_open if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_on }}
-                      target:
-                        entity_id: "{{ repeat.item }}"
-                    - delay:
-                        seconds: 1
+          - *close_no_valve
 
 #######################################################################################
-# Включение насоса и закрытие клапанов направления до включения системы вечером
+# Закрытие клапанов направления до включения системы утром (без насоса)
+#######################################################################################
+
+      - conditions:
+          - condition: trigger
+            id:
+              - time_before_morning_trigger
+          - condition: template
+            value_template: |
+              {{ not is_waterpump_defined }}
+          - condition: template
+            value_template: |
+              {{ true if ('every_over_day_morning' not in set_working_day_morning) else ((now().timestamp() / 86400) | int % 2 == 0) }}
+          - condition: template
+            value_template: |
+              {{ true if ('select_morning' not in set_working_day_morning) else selected_days_morning }}
+          - condition: template
+            value_template: |
+              {{ watering_morning_enable }}
+
+        sequence:
+          - *check_forecast
+          - *close_no_valve
+
+#######################################################################################
+# Включение насоса до включения системы вечером
 #######################################################################################
 
       - conditions:
           - condition: trigger
             id:
               - time_before_evening_trigger
-
           - condition: template
             value_template: |
-              {{ states(waterpump_switch) not in invalid_states }}
-
+              {{ is_waterpump_defined and states(waterpump_switch) not in invalid_states }}
           - condition: template
             value_template: |
               {{ true if ('every_over_day_evening' not in set_working_day_evening) else ((now().timestamp() / 86400) | int % 2 == 0) }}
-
           - condition: template
             value_template: |
               {{ true if ('select_evening' not in set_working_day_evening) else selected_days_evening }}
-
           - condition: template
             value_template: |
               {{ watering_evening_enable }}
@@ -1217,21 +1510,32 @@ actions:
           - *check_forecast
           - *waterpump_on
           - *check_pump
-          - delay:
-              seconds: 1
-          - if:
-              - condition: template
-                value_template: |
-                  {{ no_type_valve }}
-            then:
-              - repeat:
-                  for_each: !input watervalve_switch 
-                  sequence:
-                    - action: "{{ 'valve.' ~ action_valve_open if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_on }}"
-                      target:
-                        entity_id: "{{ repeat.item }}"
-                    - delay:
-                        seconds: 1
+          - *close_no_valve
+
+#######################################################################################
+# Закрытие клапанов направления до включения системы вечером (без насоса)
+#######################################################################################
+
+      - conditions:
+          - condition: trigger
+            id:
+              - time_before_evening_trigger
+          - condition: template
+            value_template: |
+              {{ not is_waterpump_defined }}
+          - condition: template
+            value_template: |
+              {{ true if ('every_over_day_evening' not in set_working_day_evening) else ((now().timestamp() / 86400) | int % 2 == 0) }}
+          - condition: template
+            value_template: |
+              {{ true if ('select_evening' not in set_working_day_evening) else selected_days_evening }}
+          - condition: template
+            value_template: |
+              {{ watering_evening_enable }}
+
+        sequence:
+          - *check_forecast
+          - *close_no_valve
 
 #######################################################################################
 # Включение системы утром
@@ -1241,30 +1545,28 @@ actions:
           - condition: trigger
             id:
               - on_morning_trigger
-
           - condition: template
             value_template: |
               {{ true if ('every_over_day_morning' not in set_working_day_morning) else ((now().timestamp() / 86400) | int % 2 == 0) }}
-
           - condition: template
             value_template: |
               {{ true if ('select_morning' not in set_working_day_morning) else selected_days_morning }}
-
           - condition: template
             value_template: |
-              {{ states(waterpump_switch) in open_states }}
-
+              {{ not is_waterpump_defined or states(waterpump_switch) in open_states }}
           - condition: template
             value_template: |
               {{ watering_morning_enable }}
-
           - condition: template
             value_template: |
               {{ no_rain_next_hours }}
+          - condition: template
+            value_template: >
+              {{ (weather_multiplier | float) > 0 }}
 
         sequence:
           - variables:
-              time_work_current: "{{ time_work_morning }}"
+              time_work_current: "{{ adjusted_time_work_morning }}"
           - *open_watering
           - *check_watering
           - repeat:
@@ -1272,7 +1574,7 @@ actions:
                 {% set morning_valves = morning_watervalve_switch 
                     | select('in', watervalve_switch) 
                     | list %}
-                {{ (watervalve_switch if morning_valves == [] else morning_valves) | list }}                
+                {{ (watervalve_switch if morning_valves == [] else morning_valves) | list }}
               sequence:
                 - *watervalve_action
           - *close_watering
@@ -1285,30 +1587,28 @@ actions:
           - condition: trigger
             id:
               - on_evening_trigger
-
           - condition: template
             value_template: |
               {{ true if ('every_over_day_evening' not in set_working_day_evening) else ((now().timestamp() / 86400) | int % 2 == 0) }}
-
           - condition: template
             value_template: |
               {{ true if ('select_evening' not in set_working_day_evening) else selected_days_evening }}
-
           - condition: template
             value_template: |
-              {{ states(waterpump_switch) in open_states }}
-
+              {{ not is_waterpump_defined or states(waterpump_switch) in open_states }}
           - condition: template
             value_template: |
               {{ watering_evening_enable }}
-
           - condition: template
             value_template: |
               {{ no_rain_next_hours }}
+          - condition: template
+            value_template: >
+              {{ (weather_multiplier | float) > 0 }}
 
-        sequence: 
+        sequence:
           - variables:
-              time_work_current: "{{ time_work_evening }}"
+              time_work_current: "{{ adjusted_time_work_evening }}"
           - *open_watering
           - *check_watering
           - repeat:
@@ -1316,7 +1616,7 @@ actions:
                 {% set evening_valves = evening_watervalve_switch 
                     | select('in', watervalve_switch) 
                     | list %}
-                {{ (watervalve_switch if evening_valves == [] else evening_valves) | list }}                
+                {{ (watervalve_switch if evening_valves == [] else evening_valves) | list }}
               sequence:
                 - *watervalve_action
           - *close_watering
@@ -1340,33 +1640,30 @@ actions:
               - repeat:
                   for_each: !input watervalve_switch
                   sequence:
-                    - action: "{{ 'valve.' ~ action_valve_close if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_off }}" #  Выключение клапана потока
+                    - action: "{{ 'valve.' ~ action_valve_close if (repeat.item).split('.')[0] == 'valve' else 'homeassistant.' ~ action_switch_off }}"
                       target:
                         entity_id: "{{ repeat.item }}"
                     - delay:
                         seconds: 1
           - if:
-              - condition: template
+              - condition: template # Расчет расстояния по координатам вместо is_state('home')
+                                    # для корректной работы с мульти-инстанс системами и несколькими домами
                 value_template: |
                   {% set i = namespace(item=int(0)) %}
                   {% set items = states.person | rejectattr('state', 'in', ['unavailable', 'unknown', 'none']) | map(attribute='entity_id') | list %}
                   {% for item in items %}
                     {% set zla = 0 if state_attr('zone.home', 'latitude') is none else state_attr('zone.home', 'latitude') | round(3) %}
                     {% set zlo = 0 if state_attr('zone.home', 'longitude') is none else state_attr('zone.home', 'longitude') | round(3) %}
-                    
                     {% set ila = 0 if state_attr(item, 'latitude') is none else state_attr(item, 'latitude') | round(3) %}
                     {% set ilo = 0 if state_attr(item, 'longitude') is none else state_attr(item, 'longitude') | round(3) %}
-
-                    {% set la = (zla - ila) | abs | round (3) | float < 0.003 %} {# ~ 300 метров #}
-                    {% set lo = (zlo - ilo) | abs | round (3) | float < 0.003 %} {# ~ 300 метров #}
-                    
+                    {% set la = (zla - ila) | abs | round(3) | float < 0.003 %} {# ~ 300 метров #}
+                    {% set lo = (zlo - ilo) | abs | round(3) | float < 0.003 %} {# ~ 300 метров #}
                     {% set i.item = i.item + (1 if (la and lo) else 0) %}
                   {% endfor %}
                   {{ true if not set_person_check else i.item == 0 }}
-
               - condition: template
                 value_template: |
-                  {{ states(waterpump_switch) in open_states }}
+                  {{ is_waterpump_defined and states(waterpump_switch) in open_states }}
             then:
               - delay: "{{ time_waterpump_work }}"
               - *waterpump_off
@@ -1379,7 +1676,6 @@ actions:
           - condition: trigger
             id:
               - watering_toggle_trigger
-
           - condition: template
             value_template: |
               {{ trigger.from_state.state in open_states and trigger.to_state.state in closed_states }}
@@ -1390,36 +1686,179 @@ actions:
               entity_id: !input pump_off_auto
 
 #######################################################################################
-# Влючение таймера работы системы
+# Включение таймера работы системы
 #######################################################################################
 
       - conditions:
           - condition: trigger
             id:
               - watering_toggle_trigger
-
           - condition: template
             value_template: |
               {{ trigger.from_state.state in closed_states and trigger.to_state.state in open_states }}
-
           - condition: template
             value_template: |
-              {{ states(waterpump_switch) in open_states }}
+              {{ not is_waterpump_defined or states(waterpump_switch) in open_states }}
 
         sequence:
           - action: timer.start
-            data: # Расчет времени до автоотключение
+            data:
               duration: |
                 {% set watervalve_count = watervalve_switch | list | count %}
-                {% set work_time_morning_in_seconds = (time_work_morning.split(':')[0] | int * 3600 + time_work_morning.split(':')[1] | int * 60 + time_work_morning.split(':')[2] | int) if watering_morning_enable else 0 %}
-                {% set work_time_evening_in_seconds = (time_work_evening.split(':')[0] | int * 3600 + time_work_evening.split(':')[1] | int * 60 + time_work_evening.split(':')[2] | int) if watering_evening_enable else 0 %}
+                {% set work_time_morning_in_seconds = (adjusted_time_work_morning.split(':')[0] | int * 3600 + adjusted_time_work_morning.split(':')[1] | int * 60 + adjusted_time_work_morning.split(':')[2] | int) if watering_morning_enable else 0 %}
+                {% set work_time_evening_in_seconds = (adjusted_time_work_evening.split(':')[0] | int * 3600 + adjusted_time_work_evening.split(':')[1] | int * 60 + adjusted_time_work_evening.split(':')[2] | int) if watering_evening_enable else 0 %}
+                {% set soil_watering_duration_seconds = set_soil_watering_duration.split(':')[0] | int * 3600 + set_soil_watering_duration.split(':')[1] | int * 60 + set_soil_watering_duration.split(':')[2] | int %}
                 {% set auto_off_pump_time_in_seconds = set_auto_off_pump_time.split(':')[0] | int * 3600 + set_auto_off_pump_time.split(':')[1] | int * 60 + set_auto_off_pump_time.split(':')[2] | int %}
-                {% set max_seconds = max(((set_watervalve_open_delay | int + work_time_morning_in_seconds | int + set_watervalve_close_delay | int) * watervalve_count + 60), 
-                  ((set_watervalve_open_delay | int + work_time_evening_in_seconds | int + set_watervalve_close_delay | int) * watervalve_count + 60), 
+                {% set max_seconds = max(
+                  ((set_watervalve_open_delay | int + work_time_morning_in_seconds | int + set_watervalve_close_delay | int) * watervalve_count + 60),
+                  ((set_watervalve_open_delay | int + work_time_evening_in_seconds | int + set_watervalve_close_delay | int) * watervalve_count + 60),
+                  (set_watervalve_open_delay | int + soil_watering_duration_seconds + set_watervalve_close_delay | int + 60),
                   auto_off_pump_time_in_seconds) %}
                 {{ '%02d:%02d:%02d' | format(max_seconds // 3600, (max_seconds % 3600) // 60, max_seconds % 60) }}
             target:
               entity_id: !input pump_off_auto
 
+#######################################################################################
+# Внеплановый полив по датчику влажности почвы (низкая влажность)
+#######################################################################################
+
+      - conditions:
+          - condition: trigger
+            id:
+              - soil_moisture_low_trigger
+          - condition: template
+            value_template: |
+              {{ set_use_soil_moisture and soil_watering_enable }}
+          - condition: template
+            value_template: |
+              {{ states(watering_switch) in closed_states }}
+          - condition: template
+            value_template: |
+              {{ states(pump_off_auto) == 'idle' }}
+          - condition: template
+            value_template: |
+              {{ not is_night_time }}
+        sequence:
+          - variables:
+              triggered_sensor: "{{ trigger.entity_id }}"
+
+              triggered_valve: >
+                {% set ns = namespace(idx=-1) %}
+                {% for sensor in soil_moisture_sensors | list %}
+                  {% if sensor == triggered_sensor and ns.idx == -1 %}
+                    {% set ns.idx = loop.index0 %}
+                  {% endif %}
+                {% endfor %}
+                {% if ns.idx >= 0 and (soil_moisture_valves | count) > ns.idx %}
+                  {{ soil_moisture_valves[ns.idx] }}
+                {% else %}
+                  {{ '' }}
+                {% endif %}
+
+              time_work_current: "{{ set_soil_watering_duration }}"
+
+          - if:
+              - condition: template
+                value_template: "{{ triggered_valve == '' }}"
+            then:
+              - variables:
+                  log_message: >-
+                    Ошибка: не найден клапан для датчика влажности {{ triggered_sensor }}.
+                    Проверьте соответствие порядка списков "Клапаны направлений" и "Датчики влажности".
+                  log_entity_id: "{{ triggered_sensor }}"
+                  notification_title: "Ошибка сопоставления датчика"
+              - *log_error
+              - stop: "soil sensor mapping error"
+
+          - *check_forecast
+
+          - if:
+              - condition: template
+                value_template: |
+                  {{ is_waterpump_defined and states(waterpump_switch) in closed_states }}
+            then:
+              - *waterpump_on
+              - *check_pump
+              - delay: "{{ time_waterpump_work }}"
+
+          - *open_watering
+          - *check_watering
+
+          - variables:
+              log_message: >-
+                Внеплановый полив: направление {{ triggered_valve }} запущено
+                из-за низкой влажности почвы ({{ states(triggered_sensor) }}%,
+                порог {{ set_soil_watering_low_threshold }}%).
+              log_entity_id: "{{ triggered_valve }}"
+              notification_title: "Внеплановый полив"
+          - *log_error
+
+          - repeat:
+              for_each: "{{ [triggered_valve] }}"
+              sequence:
+                - *watervalve_action
+
+          - *close_watering
+
+#######################################################################################
+# Проверка на зависание датчика(-ов) влажности почвы
+#######################################################################################
+
+      - conditions:
+          - condition: trigger
+            id:
+              - soil_diag_check_trigger
+
+        sequence:
+          - variables:
+              diag_valve: "{{ trigger.event.data.valve | default('') }}"
+              diag_sensor: "{{ trigger.event.data.sensor | default('') }}"
+              soil_before: "{{ trigger.event.data.soil_before | float(default=-1) }}"
+              diag_duration: "{{ trigger.event.data.duration | default('00:00:00') }}"
+              diag_source: "{{ trigger.event.data.source | default('unknown') }}"
+
+          - if:
+              - condition: template
+                value_template: >
+                  {{
+                    diag_sensor != ''
+                    and (soil_before | float) >= 0
+                    and states(diag_sensor) not in invalid_states
+                  }}
+            then:
+              - delay: !input set_soil_diag_delay
+
+              - variables:
+                  soil_after: "{{ states(diag_sensor) | float(default=-1) }}"
+                  soil_delta: "{{ ((soil_after | float) - (soil_before | float)) | round(1) }}"
+
+              - if:
+                  - condition: template
+                    value_template: >
+                      {{
+                        (soil_after | float) >= 0
+                        and (soil_delta | float) < (set_soil_diag_min_delta | float)
+                      }}
+                then:
+                  - variables:
+                      log_message: >-
+                        Диагностика направления {{ diag_valve }}:
+                        датчик {{ diag_sensor }} не показал ожидаемого роста влажности.
+
+                        До полива: {{ soil_before }}%.
+                        После полива: {{ soil_after }}%.
+                        Изменение: {{ soil_delta }}%.
+                        Минимально ожидаемое: {{ set_soil_diag_min_delta }}%.
+                        Длительность полива: {{ diag_duration }}.
+                        Источник: {{ diag_source }}.
+
+                        Возможные причины:
+                        неисправность датчика, засор линии,
+                        вода не дошла до зоны датчика,
+                        недостаточная длительность полива.
+                      log_entity_id: "{{ diag_sensor }}"
+                      notification_title: "Диагностика датчика влажности"
+                  - *log_error
+
 mode: parallel
-max: 10
+max: 15
