@@ -2,7 +2,7 @@ blueprint:
   name: Управление поливом теплицы
   description: |
     ### Управление поливом теплицы.
-    <small>Версия 2026.07.01, сборка 7</small>
+    <small>Версия 2026.07.01, сборка 8</small>
 
     <a href="https://raw.githubusercontent.com/S0ft0r/ha-blueprints/main/docs/greenhouse/readme.md">Описание</a>
     <a href="https://raw.githubusercontent.com/S0ft0r/ha-blueprints/main/docs/greenhouse/changelog.md">История изменений</a>
@@ -840,6 +840,13 @@ blueprint:
           selector:
             time: {}
 
+        set_stale_time:
+          name: Время "протухания"
+          description: Время, после которого счтиается, что сенсор (персона, прогноз погоды и т.п.) завис - например при отсутствии связи с интернетом.
+          default: "02:00:00"
+          selector:
+            time: {}
+
     ####################################################################
     # Секция: Логирование ошибок
     ####################################################################
@@ -910,6 +917,7 @@ trigger_variables:
   set_rain_number_forecast_hours: !input set_rain_number_forecast_hours
 
   set_person_check: !input set_person_check
+  set_stale_time: !input set_stale_time
 
   set_logging_enable: !input set_logging_enable
   notify_target: !input notify_target
@@ -995,6 +1003,9 @@ variables:
   action_switch_on: "{{ 'turn_on' if set_nc_no_type_valve == 'type_no' else 'turn_off' }}"
   action_switch_off: "{{ 'turn_off' if set_nc_no_type_valve == 'type_no' else 'turn_on' }}"
 
+  stale_seconds: |
+    {{ set_stale_time.split(':')[0] | int * 3600 + set_stale_time.split(':')[1] | int * 60 + set_stale_time.split(':')[2] | int }}
+
   use_forecast_enable: "{{ set_use_forecast_enable.выбор if set_use_forecast_enable.active_choice == 'выбор' else states(set_use_forecast_enable.сенсор) in open_states }}"
   soil_watering_enable: >
     {{
@@ -1053,6 +1064,10 @@ variables:
       {% endif %}
     {% endif %}
 
+  forecast_stale: |
+    {% set sensor = expand(forecast_sensor) | first | default(none) %}
+    {{ sensor is none or sensor.state in invalid_states or (now() - sensor.last_updated).total_seconds() > (stale_seconds | int(7200)) }}
+
 triggers:
   - trigger: state # Ручное переключение направления
     entity_id: !input watervalve_switch
@@ -1106,7 +1121,7 @@ triggers:
     id: soil_moisture_low_trigger
     enabled: "{{ is_soil_moisture_defined }}"
 
-  - trigger: event
+  - trigger: event # Асинхронная проверка состояния датчика почвы на зависания
     event_type: my_greenhouse_soil_diag_check_event
     id: soil_diag_check_trigger
 
@@ -1114,7 +1129,7 @@ actions:
   - if:
       - condition: template
         value_template: |
-          {{ forecast_sensor != [] and states(forecast_sensor) not in invalid_states and use_forecast_enable }}
+          {{ not forecast_stale and use_forecast_enable }}
     then:
       - action: weather.get_forecasts
         data:
@@ -1122,26 +1137,69 @@ actions:
         target:
           entity_id: "{{ forecast_sensor }}"
         response_variable: hourly
+        continue_on_error: true
 
   - variables:
+      #######################################################################################
+      # Расчет расстояния по координатам вместо is_state('home')
+      # для корректной работы с мульти-инстанс системами и несколькими домами
+      #######################################################################################
+
+      person_not_in_home: |
+        {% set i = namespace(item=int(0)) %}
+        {% set items = states.person | rejectattr('state', 'in', ['unavailable', 'unknown', 'none']) | map(attribute='entity_id') | list %}
+        {% set zla = 0 if state_attr('zone.home', 'latitude') is none else state_attr('zone.home', 'latitude') | round(3) %}
+        {% set zlo = 0 if state_attr('zone.home', 'longitude') is none else state_attr('zone.home', 'longitude') | round(3) %}
+        {% for item in items %}
+          {% if (now() - states[item].last_updated).total_seconds() < (stale_seconds | int(7200)) %}
+            {% set ila = 0 if state_attr(item, 'latitude') is none else state_attr(item, 'latitude') | round(3) %}
+            {% set ilo = 0 if state_attr(item, 'longitude') is none else state_attr(item, 'longitude') | round(3) %}
+            {% set la = (zla - ila) | abs | round(3) | float < 0.003 %} {# ~ 300 метров #}
+            {% set lo = (zlo - ilo) | abs | round(3) | float < 0.003 %} {# ~ 190 метров #}
+            {% set i.item = i.item + (1 if (la and lo) else 0) %}
+          {% endif %}
+        {% endfor %}
+        {{ true if not set_person_check else i.item == 0 }}
+
+      #######################################################################################
+      # Проверка дождя по прогнозу
+      #######################################################################################
+
       no_rain_next_hours: |
-        {% if forecast_sensor != [] and states(forecast_sensor) not in invalid_states and use_forecast_enable and hourly is defined and hourly.get(forecast_sensor) is not none %}
-          {% set hours = set_rain_number_forecast_hours | int %}
-          {% set forecasts = hourly[forecast_sensor].forecast[:hours] | map(attribute='condition') | list %}
-          {{ intersect(forecasts, set_rain_conditions) | count == 0 }}
+        {% if forecast_sensor != [] 
+          and states(forecast_sensor) not in invalid_states 
+          and not forecast_stale 
+          and use_forecast_enable 
+          and hourly is defined 
+          and hourly.get(forecast_sensor) is not none %}
+            {% set hours = set_rain_number_forecast_hours | int %}
+            {% set forecasts = hourly[forecast_sensor].forecast[:hours] | map(attribute='condition') | list %}
+            {{ intersect(forecasts, set_rain_conditions) | count == 0 }}
         {% else %}
           {{ true }}
         {% endif %}
+
+      #######################################################################################
+      # Включать ли полив утром
+      #######################################################################################
 
       watering_morning_enable: |
         {% set from_sensor = (states(set_pump_morning_enable.сенсор) in open_states) | bool(default=false) if set_pump_morning_enable.active_choice == 'сенсор' else true %}
         {% set from_choice = set_pump_morning_enable.выбор | bool(default=false) if set_pump_morning_enable.active_choice == 'выбор' else true %}
         {{ from_sensor and from_choice }}
 
+      #######################################################################################
+      # Включать ли полив вечером
+      #######################################################################################
+
       watering_evening_enable: |
         {% set from_sensor = (states(set_pump_evening_enable.сенсор) in open_states) | bool(default=false) if set_pump_evening_enable.active_choice == 'сенсор' else true %}
         {% set from_choice = set_pump_evening_enable.выбор | bool(default=false) if set_pump_evening_enable.active_choice == 'выбор' else true %}
         {{ from_sensor and from_choice }}
+
+      #######################################################################################
+      # Сообщения об ошибках
+      #######################################################################################
 
       log_error: &log_error
         sequence:
@@ -1164,6 +1222,11 @@ actions:
                     data:
                       title: "Полив теплицы: {{ notification_title | default('Проблема') }}"
                       message: "{{ log_message }}"
+                    continue_on_error: true
+
+      #######################################################################################
+      # Закрыть главный клапан
+      #######################################################################################
 
       close_watering: &close_watering
         sequence:
@@ -1171,6 +1234,10 @@ actions:
             target:
               entity_id: !input watering_switch
           - delay: "{{ watering_close_delay }}"
+
+      #######################################################################################
+      # Выключить насос
+      #######################################################################################
 
       waterpump_off: &waterpump_off
         sequence:
@@ -1182,12 +1249,20 @@ actions:
                 target:
                   entity_id: !input waterpump_switch
 
+      #######################################################################################
+      # Открыть главный клапан
+      #######################################################################################
+
       open_watering: &open_watering
         sequence:
           - action: "{{ watering_open_action }}"
             target:
               entity_id: !input watering_switch
           - delay: "{{ watering_open_delay }}"
+
+      #######################################################################################
+      # Включить насос
+      #######################################################################################
 
       waterpump_on: &waterpump_on
         sequence:
@@ -1198,6 +1273,10 @@ actions:
               - action: "{{ waterpump_open_action }}"
                 target:
                   entity_id: !input waterpump_switch
+
+      #######################################################################################
+      # Действия клапанов направления
+      #######################################################################################
 
       watervalve_action: &watervalve_action
         sequence:
@@ -1282,6 +1361,10 @@ actions:
                       soil_before: "{{ soil_before | float }}"
                       duration: "{{ time_work_current }}"
 
+      #######################################################################################
+      # Проверка насоса
+      #######################################################################################
+
       check_pump: &check_pump
         sequence:
           - delay:
@@ -1299,6 +1382,10 @@ actions:
                   notification_title: "Ошибка насоса"
               - *log_error
               - stop: "waterpump error"
+
+      #######################################################################################
+      # Проверка главного клапана
+      #######################################################################################
 
       check_watering: &check_watering
         sequence:
@@ -1319,20 +1406,41 @@ actions:
               - *waterpump_off
               - stop: "watering error"
 
+      #######################################################################################
+      # Проверка погоды (и сенсора)
+      #######################################################################################
+
       check_forecast: &check_forecast
         sequence:
           - if:
               - condition: template
-                value_template: |
-                  {{ not no_rain_next_hours }}
+                value_template: "{{ forecast_stale and use_forecast_enable }}"
             then:
               - variables:
-                  log_message: |
-                    Внимание: полив отменен из-за прогноза погоды.
-                  log_entity_id: !input forecast_sensor
-                  notification_title: "Отмена полива"
+                  log_message: >-
+                    Предупреждение: прогноз погоды устарел или недоступен.
+                    Сенсор: {{ forecast_sensor }}.
+                    Данные прогноза игнорируются, полив продолжится по расписанию.
+                  log_entity_id: "{{ forecast_sensor }}"
+                  notification_title: "Прогноз погоды устарел"
               - *log_error
-              - stop: "forecast delay"
+            else:
+              - if:
+                  - condition: template
+                    value_template: |
+                      {{ not no_rain_next_hours }}
+                then:
+                  - variables:
+                      log_message: |
+                        Внимание: полив отменен из-за прогноза погоды.
+                      log_entity_id: !input forecast_sensor
+                      notification_title: "Отмена полива"
+                  - *log_error
+                  - stop: "forecast delay"
+
+      #######################################################################################
+      # Закрытие НО клапанов
+      #######################################################################################
 
       close_no_valve: &close_no_valve
         sequence:
@@ -1646,21 +1754,9 @@ actions:
                     - delay:
                         seconds: 1
           - if:
-              - condition: template # Расчет расстояния по координатам вместо is_state('home')
-                                    # для корректной работы с мульти-инстанс системами и несколькими домами
+              - condition: template 
                 value_template: |
-                  {% set i = namespace(item=int(0)) %}
-                  {% set items = states.person | rejectattr('state', 'in', ['unavailable', 'unknown', 'none']) | map(attribute='entity_id') | list %}
-                  {% for item in items %}
-                    {% set zla = 0 if state_attr('zone.home', 'latitude') is none else state_attr('zone.home', 'latitude') | round(3) %}
-                    {% set zlo = 0 if state_attr('zone.home', 'longitude') is none else state_attr('zone.home', 'longitude') | round(3) %}
-                    {% set ila = 0 if state_attr(item, 'latitude') is none else state_attr(item, 'latitude') | round(3) %}
-                    {% set ilo = 0 if state_attr(item, 'longitude') is none else state_attr(item, 'longitude') | round(3) %}
-                    {% set la = (zla - ila) | abs | round(3) | float < 0.003 %} {# ~ 300 метров #}
-                    {% set lo = (zlo - ilo) | abs | round(3) | float < 0.003 %} {# ~ 300 метров #}
-                    {% set i.item = i.item + (1 if (la and lo) else 0) %}
-                  {% endfor %}
-                  {{ true if not set_person_check else i.item == 0 }}
+                  {{ person_not_in_home }}
               - condition: template
                 value_template: |
                   {{ is_waterpump_defined and states(waterpump_switch) in open_states }}

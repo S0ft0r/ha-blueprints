@@ -2,7 +2,7 @@ blueprint:
   name: Управление поливом теплицы
   description: |
     ### Управление поливом теплицы. Dev версия
-    <small>Версия 2026.07.01 Сборка 7</small> 
+    <small>Версия 2026.07.01 Сборка 8</small> 
 
     <a href="https://raw.githubusercontent.com/S0ft0r/ha-blueprints/main/docs/greenhouse/readme.md">Описание</a>
     <a href="https://raw.githubusercontent.com/S0ft0r/ha-blueprints/main/docs/greenhouse/changelog.md">История изменений</a>
@@ -846,6 +846,13 @@ blueprint:
           selector:
             time: {}
 
+        set_stale_time:
+          name: Время "протухания"
+          description: Время, после которого счтиается, что сенсор (персона, прогноз погоды и т.п.) завис - например при отсутствии связи с интернетом.
+          default: "02:00:00"
+          selector:
+            time: {}
+
     ####################################################################
     # Секция: Логирование ошибок
     ####################################################################
@@ -916,6 +923,7 @@ trigger_variables:
   set_rain_number_forecast_hours: !input set_rain_number_forecast_hours
 
   set_person_check: !input set_person_check
+  set_stale_time: !input set_stale_time
 
   set_logging_enable: !input set_logging_enable
   notify_target: !input notify_target
@@ -1001,15 +1009,22 @@ variables:
   action_switch_on: "{{ 'turn_on' if set_nc_no_type_valve == 'type_no' else 'turn_off' }}"
   action_switch_off: "{{ 'turn_off' if set_nc_no_type_valve == 'type_no' else 'turn_on' }}"
 
+  stale_seconds: |
+    {{ set_stale_time.split(':')[0] | int * 3600 + set_stale_time.split(':')[1] | int * 60 + set_stale_time.split(':')[2] | int }}
+
+  forecast_stale: |
+    {% set sensor = expand(forecast_sensor) | first | default(none) %}
+    {{ sensor is none or sensor.state in invalid_states or (now() - sensor.last_updated).total_seconds() > (stale_seconds | int(7200)) }}
+
   use_forecast_enable: "{{ set_use_forecast_enable.выбор if set_use_forecast_enable.active_choice == 'выбор' else states(set_use_forecast_enable.сенсор) in open_states }}"
-  soil_watering_enable: >
+  soil_watering_enable: |
     {{
       set_soil_watering_enable.выбор | bool(false)
       if set_soil_watering_enable.active_choice == 'выбор'
       else is_state(set_soil_watering_enable.сенсор, 'on')
     }}
 
-  weather_multiplier: >
+  weather_multiplier: |
     {% if not set_weather_adapt_enable or weather_temp_sensor == [] %}
       {{ 1.0 }}
     {% else %}
@@ -1033,19 +1048,19 @@ variables:
       {% endif %}
     {% endif %}
 
-  adjusted_time_work_morning: >
+  adjusted_time_work_morning: |
     {% set parts = time_work_morning.split(':') %}
     {% set base_seconds = parts[0] | int * 3600 + parts[1] | int * 60 + parts[2] | int %}
     {% set adjusted = (base_seconds * (weather_multiplier | float)) | int %}
     {{ '%02d:%02d:%02d' | format(adjusted // 3600, (adjusted % 3600) // 60, adjusted % 60) }}
 
-  adjusted_time_work_evening: >
+  adjusted_time_work_evening: |
     {% set parts = time_work_evening.split(':') %}
     {% set base_seconds = parts[0] | int * 3600 + parts[1] | int * 60 + parts[2] | int %}
     {% set adjusted = (base_seconds * (weather_multiplier | float)) | int %}
     {{ '%02d:%02d:%02d' | format(adjusted // 3600, (adjusted % 3600) // 60, adjusted % 60) }}
 
-  is_night_time: >
+  is_night_time: |
     {% if not set_soil_night_block_enable %}
       {{ false }}
     {% else %}
@@ -1057,6 +1072,14 @@ variables:
       {% else %}
         {{ now_t >= start and now_t < end }}
       {% endif %}
+    {% endif %}
+
+  forecast_age: |
+    {% set age = (now() - states[forecast_sensor].last_updated).total_seconds() %}
+    {% if age > 7200 %}  {# старше 2 часов #}
+      {{ false }}  {# игнорировать устаревший прогноз #}
+    {% else %}
+      {{ true }}
     {% endif %}
 
 triggers:
@@ -1128,13 +1151,40 @@ actions:
         target:
           entity_id: "{{ forecast_sensor }}"
         response_variable: hourly
+        continue_on_error: true
 
   - variables:
+      #######################################################################################
+      # Расчет расстояния по координатам вместо is_state('home')
+      # для корректной работы с мульти-инстанс системами и несколькими домами
+      #######################################################################################
+
+      person_not_in_home: |
+        {% set i = namespace(item=int(0)) %}
+        {% set items = states.person | rejectattr('state', 'in', ['unavailable', 'unknown', 'none']) | map(attribute='entity_id') | list %}
+        {% set zla = 0 if state_attr('zone.home', 'latitude') is none else state_attr('zone.home', 'latitude') | round(3) %}
+        {% set zlo = 0 if state_attr('zone.home', 'longitude') is none else state_attr('zone.home', 'longitude') | round(3) %}
+        {% for item in items %}
+          {% if (now() - states[item].last_updated).total_seconds() < (stale_seconds | int(7200)) %}
+            {% set ila = 0 if state_attr(item, 'latitude') is none else state_attr(item, 'latitude') | round(3) %}
+            {% set ilo = 0 if state_attr(item, 'longitude') is none else state_attr(item, 'longitude') | round(3) %}
+            {% set la = (zla - ila) | abs | round(3) | float < 0.003 %} {# ~ 300 метров #}
+            {% set lo = (zlo - ilo) | abs | round(3) | float < 0.003 %} {# ~ 190 метров #}
+            {% set i.item = i.item + (1 if (la and lo) else 0) %}
+          {% endif %}
+        {% endfor %}
+        {{ true if not set_person_check else i.item == 0 }}
+
       no_rain_next_hours: |
-        {% if forecast_sensor != [] and states(forecast_sensor) not in invalid_states and use_forecast_enable and hourly is defined and hourly.get(forecast_sensor) is not none %}
-          {% set hours = set_rain_number_forecast_hours | int %}
-          {% set forecasts = hourly[forecast_sensor].forecast[:hours] | map(attribute='condition') | list %}
-          {{ intersect(forecasts, set_rain_conditions) | count == 0 }}
+        {% if forecast_sensor != [] 
+          and states(forecast_sensor) not in invalid_states 
+          and forecast_age 
+          and use_forecast_enable 
+          and hourly is defined 
+          and hourly.get(forecast_sensor) is not none %}
+            {% set hours = set_rain_number_forecast_hours | int %}
+            {% set forecasts = hourly[forecast_sensor].forecast[:hours] | map(attribute='condition') | list %}
+            {{ intersect(forecasts, set_rain_conditions) | count == 0 }}
         {% else %}
           {{ true }}
         {% endif %}
@@ -1170,6 +1220,7 @@ actions:
                     data:
                       title: "Полив теплицы: {{ notification_title | default('Проблема') }}"
                       message: "{{ log_message }}"
+                    continue_on_error: true
 
       close_watering: &close_watering
         sequence:
@@ -1652,21 +1703,9 @@ actions:
                     - delay:
                         seconds: 1
           - if:
-              - condition: template # Расчет расстояния по координатам вместо is_state('home')
-                                    # для корректной работы с мульти-инстанс системами и несколькими домами
+              - condition: template 
                 value_template: |
-                  {% set i = namespace(item=int(0)) %}
-                  {% set items = states.person | rejectattr('state', 'in', ['unavailable', 'unknown', 'none']) | map(attribute='entity_id') | list %}
-                  {% for item in items %}
-                    {% set zla = 0 if state_attr('zone.home', 'latitude') is none else state_attr('zone.home', 'latitude') | round(3) %}
-                    {% set zlo = 0 if state_attr('zone.home', 'longitude') is none else state_attr('zone.home', 'longitude') | round(3) %}
-                    {% set ila = 0 if state_attr(item, 'latitude') is none else state_attr(item, 'latitude') | round(3) %}
-                    {% set ilo = 0 if state_attr(item, 'longitude') is none else state_attr(item, 'longitude') | round(3) %}
-                    {% set la = (zla - ila) | abs | round(3) | float < 0.003 %} {# ~ 300 метров #}
-                    {% set lo = (zlo - ilo) | abs | round(3) | float < 0.003 %} {# ~ 300 метров #}
-                    {% set i.item = i.item + (1 if (la and lo) else 0) %}
-                  {% endfor %}
-                  {{ true if not set_person_check else i.item == 0 }}
+                  {{ person_not_in_home }}
               - condition: template
                 value_template: |
                   {{ is_waterpump_defined and states(waterpump_switch) in open_states }}
