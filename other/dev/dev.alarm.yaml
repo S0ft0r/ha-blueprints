@@ -21,6 +21,28 @@ blueprint:
       selector:
         time: {}
 
+    set_alarm_type:
+      name: Настройки типа будильника
+      default:
+        - short_set
+      selector:
+        select:
+          options:
+            - label: Полностью настраиваемый
+            - value: full_custom
+            - label: Будни/Суббота/Воскресенье
+            - value: short_set
+            - label: Ежедневный
+            - value: input_set
+
+    full_custom_section:
+      # через объекты
+    short_set_section:
+      # отдельное время на будни и каждый день выходных
+    input_set_section:
+      # отдельное время на каждый день
+  
+
     alarm_section:
       name: Настройка работы будильника
       input:
@@ -219,6 +241,21 @@ blueprint:
                     - person
               multiple: true
 
+    events_section:
+      name: Настройка событий
+      icon: mdi:bell-ring-outline
+      collapsed: true
+      input:
+        event_enabled:
+          name: Генерировать событие при срабатывании
+          description: |
+            Другие автоматизации смогут подписаться на 
+            событие <strong>custom_event_alarm</strong> 
+            с действием <strong>triggered</strong>.
+          default: false
+          selector:
+            boolean:
+
 trigger_variables:
   set_time_alarm: !input set_time_alarm
   kettle_switch: !input kettle_switch
@@ -241,6 +278,7 @@ trigger_variables:
   light_enabled: "{{ 'on_light' in alarm_on_options }}"
   phrase_enabled: "{{ 'on_phrase' in alarm_on_options }}"
   music_enabled: "{{ 'on_music' in alarm_on_options }}"
+  event_enabled: !input event_enabled
 
   set_command_base: !input set_command_base
   set_command_music: !input set_command_music
@@ -295,6 +333,12 @@ triggers:
       {% set time_alarm = set_time_alarm %}
       {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(time_alarm)) | timestamp_custom('%H:%M', false) }}
     enabled: "{{ phrase_enabled }}"
+
+  - trigger: template
+    id: alarm_triggered
+    value_template: >-
+      {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(set_time_alarm)) | timestamp_custom('%H:%M', false) }}
+    enabled: "{{ event_enabled }}"
 
 conditions:
   - condition: template
@@ -359,13 +403,13 @@ actions:
         sequence: 
           - delay:
               seconds: 1
-          # - service: media_player.play_media
-          #   entity_id: !input media_player
-          #   data:
-          #     media_content_id: "{{ command_music }}"
-          #     media_content_type: command
-          #     extra:
-          #       volume_level: 0.3
+          - service: media_player.play_media
+            entity_id: !input media_player
+            data:
+              media_content_id: "{{ command_music }}"
+              media_content_type: command
+              extra:
+                volume_level: 0.3
         
       - conditions: # Фраза
           - condition: trigger
@@ -377,13 +421,27 @@ actions:
         sequence: 
           - delay:
               seconds: 1
-          # - service: media_player.play_media
-          #   entity_id: !input media_player
-          #   data:
-          #     media_content_id: !input set_phrase
-          #     media_content_type: text  
-          #     extra:
-          #       volume_level: 0.8
+          - service: media_player.play_media
+            entity_id: !input media_player
+            data:
+              media_content_id: !input set_phrase
+              media_content_type: text  
+              extra:
+                volume_level: 0.8
+
+      - conditions:
+          - condition: trigger
+            id:
+              - alarm_triggered
+          - condition: template
+            value_template: |
+              {{ now().strftime('%a') | lower in alarm_on_days }}
+        sequence:
+          - event: custom_event_alarm
+            event_data:
+              action: triggered
+              alarm_time: "{{ set_time_alarm }}"
+              day: "{{ now().strftime('%a') | lower }}"
 
 mode: parallel
 max: 5

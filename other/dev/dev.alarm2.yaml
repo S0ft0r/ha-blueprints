@@ -448,6 +448,7 @@ trigger_variables:
   light_switch: !input light_switch
   media_player: !input media_player
   person_sensor: !input person_sensor
+  sun_sensor: !input sun_sensor
 
   set_kettle_before_alarm: !input set_kettle_before_alarm
   set_light_before_alarm: !input set_light_before_alarm
@@ -458,6 +459,7 @@ trigger_variables:
 
   person_home: !input person_home
   event_enabled: !input event_enabled
+  set_sunset: !input set_sunset
 
   person_home_enabled: "{{ person_home }}"
   kettle_enabled: "{{ alarm_active and 'on_kettle' in alarm_options }}"
@@ -491,8 +493,6 @@ variables:
     {% else %}
       {{ set_command_base ~ ' ' ~ commands_music[0] }}
     {% endif %}
-
-  
 
 triggers:
   - trigger: template
@@ -589,6 +589,9 @@ actions:
           - condition: trigger
             id:
               - light_on
+          - condition: template
+            value_template: |
+                  {{ set_sunset or states(sun_sensor) in invalid_states or states(sun_sensor) == 'below_horizon' }}
         sequence:
           - repeat:
               count: 254

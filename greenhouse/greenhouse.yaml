@@ -810,6 +810,19 @@ blueprint:
       collapsed: true
       input:
 
+        set_check_devices_enable:
+          name: Проверять доступность устройств перед поливом
+          default: true
+          selector:
+            boolean: {}
+
+        set_stale_time:
+          name: Время "протухания"
+          description: Время, после которого счтиается, что сенсор (персона, прогноз погоды и т.п.) завис - например при отсутствии связи с интернетом.
+          default: "02:00:00"
+          selector:
+            time: {}
+
         set_watering_open_delay:
           name: Задержка открытия клапана на воду
           description: Время ожидания полного открытия клапана направления
@@ -839,14 +852,7 @@ blueprint:
           default: "00:30:00"
           selector:
             time: {}
-
-        set_stale_time:
-          name: Время "протухания"
-          description: Время, после которого счтиается, что сенсор (персона, прогноз погоды и т.п.) завис - например при отсутствии связи с интернетом.
-          default: "02:00:00"
-          selector:
-            time: {}
-
+            
     ####################################################################
     # Секция: Логирование ошибок
     ####################################################################
@@ -917,6 +923,8 @@ trigger_variables:
   set_rain_number_forecast_hours: !input set_rain_number_forecast_hours
 
   set_person_check: !input set_person_check
+  
+  set_check_devices_enable: !input set_check_devices_enable
   set_stale_time: !input set_stale_time
 
   set_logging_enable: !input set_logging_enable
@@ -1067,6 +1075,24 @@ variables:
   forecast_stale: |
     {% set sensor = expand(forecast_sensor) | first | default(none) %}
     {{ sensor is none or sensor.state in invalid_states or (now() - sensor.last_updated).total_seconds() > (stale_seconds | int(7200)) }}
+
+  unavailable_devices: >
+    {% set ns = namespace(items=[]) %}
+    {% if states(watering_switch) in invalid_states %}
+      {% set ns.items = ns.items + [watering_switch] %}
+    {% endif %}
+    {% if is_waterpump_defined and states(waterpump_switch) in invalid_states %}
+      {% set ns.items = ns.items + [waterpump_switch] %}
+    {% endif %}
+    {% for valve in watervalve_switch | list %}
+      {% if states(valve) in invalid_states %}
+        {% set ns.items = ns.items + [valve] %}
+      {% endif %}
+    {% endfor %}
+    {{ ns.items }}
+
+  any_device_unavailable: >
+    {{ unavailable_devices | length > 0 }}
 
 triggers:
   - trigger: state # Ручное переключение направления
@@ -1458,6 +1484,65 @@ actions:
                     - delay:
                         seconds: 1
 
+      check_devices: &check_devices
+        sequence:
+          - variables:
+              all_valves_unavailable: >
+                {% set total = current_watervalve | list | length %}
+                {% set unavail = current_watervalve | list
+                    | select('in', unavailable_devices) | list | length %}
+                {{ total > 0 and unavail == total }}
+
+              critical_unavailable: >
+                {{ states(watering_switch) in invalid_states
+                  or (is_waterpump_defined and states(waterpump_switch) in invalid_states)
+                  or all_valves_unavailable }}
+
+
+          - if:
+              - condition: template
+                value_template: "{{ set_check_devices_enable }}"
+            then:
+              - if:
+                  - condition: template
+                    value_template: "{{ critical_unavailable }}"
+                then:
+                  - variables:
+                      log_message: >-
+                        Ошибка: полив заблокирован — критичные устройства недоступны.
+
+                        Недоступные устройства:
+                        {% for device in unavailable_devices %}
+                        — {{ device }} ({{ states(device) }})
+                        {% endfor %}
+
+                        Возможные причины:
+                        отсутствие интернета (облачные интеграции),
+                        потеря связи с координатором Zigbee,
+                        перезагрузка устройства.
+                      log_entity_id: "{{ watering_switch }}"
+                      notification_title: "Полив заблокирован"
+                  - *log_error
+                  - stop: "critical devices unavailable"
+              - if:
+                  - condition: template
+                    value_template: >
+                      {{ unavailable_devices and not critical_unavailable }}
+                then:
+                  - variables:
+                      log_message: >-
+                        Предупреждение: часть устройств недоступна,
+                        но полив продолжится.
+
+                        Недоступные устройства:
+                        {% for device in unavailable_devices %}
+                        — {{ device }} ({{ states(device) }})
+                        {% endfor %}
+                      log_entity_id: "{{ watering_switch }}"
+                      notification_title: "Частичная недоступность устройств"
+                  - *log_error
+
+
   - choose:
 
 #######################################################################################
@@ -1511,6 +1596,7 @@ actions:
               {{ trigger.from_state.state in closed_states and trigger.to_state.state in open_states }}
 
         sequence:
+#          - *check_devices
           - if:
               - condition: template # Проверка состояния реле насоса
                 value_template: |
@@ -1563,6 +1649,10 @@ actions:
               {{ watering_morning_enable }}
 
         sequence:
+          - variables:
+              current_watervalve: !input watervalve_switch
+          - *check_devices
+
           - *check_forecast
           - *waterpump_on
           - *check_pump
@@ -1590,6 +1680,13 @@ actions:
               {{ watering_morning_enable }}
 
         sequence:
+          - variables:
+              current_watervalve: |
+                {% set morning_valves = morning_watervalve_switch 
+                    | select('in', watervalve_switch) 
+                    | list %}
+                {{ (watervalve_switch if morning_valves == [] else morning_valves) | list }}              
+          - *check_devices
           - *check_forecast
           - *close_no_valve
 
@@ -1615,6 +1712,13 @@ actions:
               {{ watering_evening_enable }}
 
         sequence:
+          - variables:
+              current_watervalve: |
+                {% set evening_valves = evening_watervalve_switch 
+                    | select('in', watervalve_switch) 
+                    | list %}
+                {{ (watervalve_switch if evening_valves == [] else evening_valves) | list }}              
+          - *check_devices
           - *check_forecast
           - *waterpump_on
           - *check_pump
@@ -1642,6 +1746,13 @@ actions:
               {{ watering_evening_enable }}
 
         sequence:
+          - variables:
+              current_watervalve: |
+                {% set evening_valves = evening_watervalve_switch 
+                    | select('in', watervalve_switch) 
+                    | list %}
+                {{ (watervalve_switch if evening_valves == [] else evening_valves) | list }}              
+          - *check_devices
           - *check_forecast
           - *close_no_valve
 
@@ -1675,6 +1786,12 @@ actions:
         sequence:
           - variables:
               time_work_current: "{{ adjusted_time_work_morning }}"
+              current_watervalve: |
+                {% set morning_valves = morning_watervalve_switch 
+                    | select('in', watervalve_switch) 
+                    | list %}
+                {{ (watervalve_switch if morning_valves == [] else morning_valves) | list }}              
+          - *check_devices
           - *open_watering
           - *check_watering
           - repeat:
@@ -1717,6 +1834,12 @@ actions:
         sequence:
           - variables:
               time_work_current: "{{ adjusted_time_work_evening }}"
+              current_watervalve: |
+                {% set evening_valves = evening_watervalve_switch 
+                    | select('in', watervalve_switch) 
+                    | list %}
+                {{ (watervalve_switch if evening_valves == [] else evening_valves) | list }}              
+          - *check_devices
           - *open_watering
           - *check_watering
           - repeat:
@@ -1852,6 +1975,8 @@ actions:
                 {% endif %}
 
               time_work_current: "{{ set_soil_watering_duration }}"
+              current_watervalve: "{{ triggered_valve }}"
+          - *check_devices
 
           - if:
               - condition: template
