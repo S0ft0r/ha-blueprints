@@ -10,276 +10,282 @@ blueprint:
   author: Softor
 
   input:
-    alarm_schedule_section:
-      name: Расписание будильника
-      icon: mdi:calendar-clock
-      collapsed: false
+
+    kettle_switch:
+      name: Чайник
+      description: |
+        Чайник
+      default: []
+      selector:
+        entity:
+          filter:
+            - domain:
+                - water_heater
+          multiple: false
+
+    light_switch:
+      name: Ночник
+      selector:
+        entity:
+          filter:
+            - domain:
+                - light
+          multiple: true
+
+
+    mon_section:
+      name: Понедельник
+      icon: mdi:calendar-today
+      collapsed: true
       input:
-        mon_section:
-          name: Понедельник
-          icon: mdi:calendar-today
-          collapsed: true
-          input:
-            alarm_mon_enabled:
-              name: "Включен"
-              default: true
-              selector:
-                boolean: {}
-            alarm_mon:
-              name: "Время"
-              default: "06:30:00"
-              selector:
-                time: {}
-            alarm_mon_options:
-              name: "Устройства"
-              default:
-                - on_kettle
-                - on_light
-              selector:
-                select:
-                  options:
-                    - label: Чайник
-                      value: on_kettle
-                    - label: Ночник
-                      value: on_light
-                    - label: Фраза
-                      value: on_phrase
-                    - label: Музыка
-                      value: on_music
-                  sort: false
-                  multiple: true
-                  custom_value: false
-                  mode: list
+        alarm_mon_enabled:
+          name: "Включен"
+          default: true
+          selector:
+            boolean: {}
+        alarm_mon:
+          name: "Время"
+          default: "06:30:00"
+          selector:
+            time: {}
+        alarm_mon_options:
+          name: "Устройства"
+          default:
+            - on_kettle
+            - on_light
+          selector:
+            select:
+              options:
+                - label: Чайник
+                  value: on_kettle
+                - label: Ночник
+                  value: on_light
+                - label: Фраза
+                  value: on_phrase
+                - label: Музыка
+                  value: on_music
+              sort: false
+              multiple: true
+              custom_value: false
+              mode: list
 
-        tue_section:
-          name: Вторник
-          icon: mdi:calendar-today
-          collapsed: true
-          input:
-            alarm_tue_enabled:
-              name: "Включен"
-              default: true
-              selector:
-                boolean: {}
-            alarm_tue:
-              name: "Время"
-              default: "06:30:00"
-              selector:
-                time: {}
-            alarm_tue_options:
-              name: "Устройства"
-              default:
-                - on_kettle
-                - on_light
-              selector:
-                select:
-                  options:
-                    - label: Чайник
-                      value: on_kettle
-                    - label: Ночник
-                      value: on_light
-                    - label: Фраза
-                      value: on_phrase
-                    - label: Музыка
-                      value: on_music
-                  sort: false
-                  multiple: true
-                  custom_value: false
-                  mode: list
+    tue_section:
+      name: Вторник
+      icon: mdi:calendar-today
+      collapsed: true
+      input:
+        alarm_tue_enabled:
+          name: "Включен"
+          default: true
+          selector:
+            boolean: {}
+        alarm_tue:
+          name: "Время"
+          default: "06:30:00"
+          selector:
+            time: {}
+        alarm_tue_options:
+          name: "Устройства"
+          default:
+            - on_kettle
+            - on_light
+          selector:
+            select:
+              options:
+                - label: Чайник
+                  value: on_kettle
+                - label: Ночник
+                  value: on_light
+                - label: Фраза
+                  value: on_phrase
+                - label: Музыка
+                  value: on_music
+              sort: false
+              multiple: true
+              custom_value: false
+              mode: list
 
-        wed_section:
-          name: Среда
-          icon: mdi:calendar-today
-          collapsed: true
-          input:
-            alarm_wed_enabled:
-              name: "Включен"
-              default: true
-              selector:
-                boolean: {}
-            alarm_wed:
-              name: "Время"
-              default: "06:30:00"
-              selector:
-                time: {}
-            alarm_wed_options:
-              name: "Устройства"
-              default:
-                - on_kettle
-                - on_light
-              selector:
-                select:
-                  options:
-                    - label: Чайник
-                      value: on_kettle
-                    - label: Ночник
-                      value: on_light
-                    - label: Фраза
-                      value: on_phrase
-                    - label: Музыка
-                      value: on_music
-                  sort: false
-                  multiple: true
-                  custom_value: false
-                  mode: list
+    wed_section:
+      name: Среда
+      icon: mdi:calendar-today
+      collapsed: true
+      input:
+        alarm_wed_enabled:
+          name: "Включен"
+          default: true
+          selector:
+            boolean: {}
+        alarm_wed:
+          name: "Время"
+          default: "06:30:00"
+          selector:
+            time: {}
+        alarm_wed_options:
+          name: "Устройства"
+          default:
+            - on_kettle
+            - on_light
+          selector:
+            select:
+              options:
+                - label: Чайник
+                  value: on_kettle
+                - label: Ночник
+                  value: on_light
+                - label: Фраза
+                  value: on_phrase
+                - label: Музыка
+                  value: on_music
+              sort: false
+              multiple: true
+              custom_value: false
+              mode: list
 
-        thu_section:
-          name: Четверг
-          icon: mdi:calendar-today
-          collapsed: true
-          input:
-            alarm_thu_enabled:
-              name: "Включен"
-              default: true
-              selector:
-                boolean: {}
-            alarm_thu:
-              name: "Время"
-              default: "06:30:00"
-              selector:
-                time: {}
-            alarm_thu_options:
-              name: "Устройства"
-              default:
-                - on_kettle
-                - on_light
-              selector:
-                select:
-                  options:
-                    - label: Чайник
-                      value: on_kettle
-                    - label: Ночник
-                      value: on_light
-                    - label: Фраза
-                      value: on_phrase
-                    - label: Музыка
-                      value: on_music
-                  sort: false
-                  multiple: true
-                  custom_value: false
-                  mode: list
+    thu_section:
+      name: Четверг
+      icon: mdi:calendar-today
+      collapsed: true
+      input:
+        alarm_thu_enabled:
+          name: "Включен"
+          default: true
+          selector:
+            boolean: {}
+        alarm_thu:
+          name: "Время"
+          default: "06:30:00"
+          selector:
+            time: {}
+        alarm_thu_options:
+          name: "Устройства"
+          default:
+            - on_kettle
+            - on_light
+          selector:
+            select:
+              options:
+                - label: Чайник
+                  value: on_kettle
+                - label: Ночник
+                  value: on_light
+                - label: Фраза
+                  value: on_phrase
+                - label: Музыка
+                  value: on_music
+              sort: false
+              multiple: true
+              custom_value: false
+              mode: list
 
-        fri_section:
-          name: Пятница
-          icon: mdi:calendar-today
-          collapsed: true
-          input:
-            alarm_fri_enabled:
-              name: "Включен"
-              default: true
-              selector:
-                boolean: {}
-            alarm_fri:
-              name: "Время"
-              default: "06:30:00"
-              selector:
-                time: {}
-            alarm_fri_options:
-              name: "Устройства"
-              default:
-                - on_kettle
-                - on_light
-              selector:
-                select:
-                  options:
-                    - label: Чайник
-                      value: on_kettle
-                    - label: Ночник
-                      value: on_light
-                    - label: Фраза
-                      value: on_phrase
-                    - label: Музыка
-                      value: on_music
-                  sort: false
-                  multiple: true
-                  custom_value: false
-                  mode: list
+    fri_section:
+      name: Пятница
+      icon: mdi:calendar-today
+      collapsed: true
+      input:
+        alarm_fri_enabled:
+          name: "Включен"
+          default: true
+          selector:
+            boolean: {}
+        alarm_fri:
+          name: "Время"
+          default: "06:30:00"
+          selector:
+            time: {}
+        alarm_fri_options:
+          name: "Устройства"
+          default:
+            - on_kettle
+            - on_light
+          selector:
+            select:
+              options:
+                - label: Чайник
+                  value: on_kettle
+                - label: Ночник
+                  value: on_light
+                - label: Фраза
+                  value: on_phrase
+                - label: Музыка
+                  value: on_music
+              sort: false
+              multiple: true
+              custom_value: false
+              mode: list
 
-        sat_section:
-          name: Суббота
-          icon: mdi:calendar-weekend
-          collapsed: true
-          input:
-            alarm_sat_enabled:
-              name: "Включен"
-              default: false
-              selector:
-                boolean: {}
-            alarm_sat:
-              name: "Время"
-              default: "08:00:00"
-              selector:
-                time: {}
-            alarm_sat_options:
-              name: "Устройства"
-              default: []
-              selector:
-                select:
-                  options:
-                    - label: Чайник
-                      value: on_kettle
-                    - label: Ночник
-                      value: on_light
-                    - label: Фраза
-                      value: on_phrase
-                    - label: Музыка
-                      value: on_music
-                  sort: false
-                  multiple: true
-                  custom_value: false
-                  mode: list
+    sat_section:
+      name: Суббота
+      icon: mdi:calendar-weekend
+      collapsed: true
+      input:
+        alarm_sat_enabled:
+          name: "Включен"
+          default: false
+          selector:
+            boolean: {}
+        alarm_sat:
+          name: "Время"
+          default: "08:00:00"
+          selector:
+            time: {}
+        alarm_sat_options:
+          name: "Устройства"
+          default: []
+          selector:
+            select:
+              options:
+                - label: Чайник
+                  value: on_kettle
+                - label: Ночник
+                  value: on_light
+                - label: Фраза
+                  value: on_phrase
+                - label: Музыка
+                  value: on_music
+              sort: false
+              multiple: true
+              custom_value: false
+              mode: list
 
-        sun_section:
-          name: Воскресенье
-          icon: mdi:calendar-weekend
-          collapsed: true
-          input:
-            alarm_sun_enabled:
-              name: "Включен"
-              default: false
-              selector:
-                boolean: {}
-            alarm_sun:
-              name: "Время"
-              default: "08:00:00"
-              selector:
-                time: {}
-            alarm_sun_options:
-              name: "Устройства"
-              default: []
-              selector:
-                select:
-                  options:
-                    - label: Чайник
-                      value: on_kettle
-                    - label: Ночник
-                      value: on_light
-                    - label: Фраза
-                      value: on_phrase
-                    - label: Музыка
-                      value: on_music
-                  sort: false
-                  multiple: true
-                  custom_value: false
-                  mode: list
+    sun_section:
+      name: Воскресенье
+      icon: mdi:calendar-weekend
+      collapsed: true
+      input:
+        alarm_sun_enabled:
+          name: "Включен"
+          default: false
+          selector:
+            boolean: {}
+        alarm_sun:
+          name: "Время"
+          default: "08:00:00"
+          selector:
+            time: {}
+        alarm_sun_options:
+          name: "Устройства"
+          default: []
+          selector:
+            select:
+              options:
+                - label: Чайник
+                  value: on_kettle
+                - label: Ночник
+                  value: on_light
+                - label: Фраза
+                  value: on_phrase
+                - label: Музыка
+                  value: on_music
+              sort: false
+              multiple: true
+              custom_value: false
+              mode: list
 
     kettle_section:
       name: Настройка чайника
       icon: mdi:kettle-steam
       collapsed: true
       input:
-        kettle_switch:
-          name: Чайник
-          description: |
-            Чайник
-          default: []
-          selector:
-            entity:
-              filter:
-                - domain:
-                    - water_heater
-              multiple: false
-
         set_kettle_before_alarm:
           name: Включать чайник до будильника за
           default: "00:10:00"
@@ -314,16 +320,6 @@ blueprint:
       icon: mdi:lamp
       collapsed: true
       input:
-        light_switch:
-          name: Ночник
-          default: []
-          selector:
-            entity:
-              filter:
-                - domain:
-                    - light
-              multiple: true
-
         set_light_before_alarm:
           name: Включать ночник до будильника за
           default: "00:00:00"
