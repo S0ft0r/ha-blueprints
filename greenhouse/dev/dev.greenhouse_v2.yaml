@@ -1,0 +1,3023 @@
+blueprint:
+  name: Управление поливом теплиц
+  description: |
+    ### Автоматическое управление поливом двух теплиц с баком.
+
+    Функции:
+    - Наполнение бака с контролем уровня
+    - Прогрев воды после наполнения
+    - Полив двух зон (огурцы / помидоры) по влажности почвы
+    - Три режима: Авто / Обслуживание / Стоп
+    - Защита от ошибок датчиков и приводов
+    - Восстановление после перезагрузки HA
+
+    Для каждой настройки можно задать значение прямо здесь
+    или указать вспомогательную сущность Home Assistant,
+    чтобы менять параметры без редактирования автоматизации.
+
+  domain: automation
+  author: Softor
+  source_url: https://raw.githubusercontent.com/S0ft0r/ha-blueprints/main/greenhouse/dev/dev.greenhouse_v2.yaml
+
+  input:
+
+    ####################################################################
+    # Режим системы (только helper — переключается в runtime)
+    ####################################################################
+
+    system_mode:
+      name: Режим работы системы
+      description: |
+        **Обязательный** вспомогательный элемент `[input_select](https://www.home-assistant.io/integrations/input_select/)`.
+        Варианты: `auto`, `maintenance`, `stop`
+      selector:
+        entity:
+          filter:
+            - domain: input_select
+          multiple: false
+
+    ####################################################################
+    # Состояния системы (только helper — меняются в runtime)
+    ####################################################################
+
+    tank_state:
+      name: Состояние бака
+      description: |
+        **Обязательный** `[input_select](https://www.home-assistant.io/integrations/input_select/)`.
+        Варианты: `error`, `empty`, `filling`, `warmup`, `ready`
+      selector:
+        entity:
+          filter:
+            - domain: input_select
+          multiple: false
+
+    zone_cucumbers_state:
+      name: Состояние зоны огурцов
+      description: |
+        **Обязательный** `[input_select](https://www.home-assistant.io/integrations/input_select/)`.
+        Варианты: `no_need`, `need_watering`, `waiting_conditions`,
+        `watering`, `waiting_resume`, `zone_error`
+      selector:
+        entity:
+          filter:
+            - domain: input_select
+          multiple: false
+
+    zone_tomatoes_state:
+      name: Состояние зоны помидоров
+      description: |
+        **Обязательный** `[input_select](https://www.home-assistant.io/integrations/input_select/)`.
+        Варианты: `no_need`, `need_watering`, `waiting_conditions`,
+        `watering`, `waiting_resume`, `zone_error`
+      selector:
+        entity:
+          filter:
+            - domain: input_select
+          multiple: false
+
+    ####################################################################
+    # Заявки на полив (только helper — меняются в runtime)
+    ####################################################################
+
+    watering_request_cucumbers:
+      name: Заявка на полив огурцов
+      description: |
+        **Обязательный** `[input_boolean](https://www.home-assistant.io/integrations/input_boolean/)`.
+        Устанавливается автоматически при низкой влажности,
+        снимается при достижении верхнего порога.
+      selector:
+        entity:
+          filter:
+            - domain: input_boolean
+          multiple: false
+
+    watering_request_tomatoes:
+      name: Заявка на полив помидоров
+      description: |
+        **Обязательный** `[input_boolean](https://www.home-assistant.io/integrations/input_boolean/)`'
+      selector:
+        entity:
+          filter:
+            - domain: input_boolean
+          multiple: false
+
+    ####################################################################
+    # Флаги прогрева и обслуживания (только helper)
+    ####################################################################
+
+    tank_warmup_active:
+      name: Флаг активного прогрева
+      description: '**Обязательный** `[input_boolean](https://www.home-assistant.io/integrations/input_boolean/)`'
+      selector:
+        entity:
+          filter:
+            - domain: input_boolean
+          multiple: false
+
+    tank_warmup_end_time:
+      name: Время окончания прогрева
+      description: |
+        **Обязательный** `[input_datetime](https://www.home-assistant.io/integrations/input_datetime/)` (дата + время).
+        Используется для восстановления прогрева после рестарта HA.
+      selector:
+        entity:
+          filter:
+            - domain: input_datetime
+          multiple: false
+
+    tank_filled_in_maintenance:
+      name: Бак наполнялся в режиме обслуживания
+      description: |
+        **Обязательный** `[input_boolean](https://www.home-assistant.io/integrations/input_boolean/)`'
+        Устанавливается при ручном наполнении, чтобы после
+        возврата в «Авто» запустить прогрев.
+      selector:
+        entity:
+          filter:
+            - domain: input_boolean
+          multiple: false
+
+    ####################################################################
+    # Флаги ошибок (только helper — меняются в runtime)
+    ####################################################################
+
+    error_system:
+      name: Общая ошибка системы
+      description: '**Обязательный** `[input_boolean](https://www.home-assistant.io/integrations/input_boolean/)`'
+      selector:
+        entity:
+          filter:
+            - domain: input_boolean
+          multiple: false
+
+    error_tank:
+      name: Ошибка бака
+      description: '**Обязательный** `[input_boolean](https://www.home-assistant.io/integrations/input_boolean/)`'
+      selector:
+        entity:
+          filter:
+            - domain: input_boolean
+          multiple: false
+
+    error_tank_fill_timeout:
+      name: Таймаут наполнения бака
+      description: '**Обязательный** `[input_boolean](https://www.home-assistant.io/integrations/input_boolean/)`'
+      selector:
+        entity:
+          filter:
+            - domain: input_boolean
+          multiple: false
+
+    error_tank_no_level_rise:
+      name: Нет роста уровня при наполнении
+      description: '**Обязательный** `[input_boolean](https://www.home-assistant.io/integrations/input_boolean/)`'
+      selector:
+        entity:
+          filter:
+            - domain: input_boolean
+          multiple: false
+
+    error_zone_cucumbers:
+      name: Ошибка зоны огурцов
+      description: '**Обязательный** `[input_boolean](https://www.home-assistant.io/integrations/input_boolean/)`'
+      selector:
+        entity:
+          filter:
+            - domain: input_boolean
+          multiple: false
+
+    error_zone_tomatoes:
+      name: Ошибка зоны помидоров
+      description: '**Обязательный** `[input_boolean](https://www.home-assistant.io/integrations/input_boolean/)`'
+      selector:
+        entity:
+          filter:
+            - domain: input_boolean
+          multiple: false
+
+    error_cucumbers_timeout:
+      name: Таймаут полива огурцов
+      description: '**Обязательный** `[input_boolean](https://www.home-assistant.io/integrations/input_boolean/)`'
+      selector:
+        entity:
+          filter:
+            - domain: input_boolean
+          multiple: false
+
+    error_tomatoes_timeout:
+      name: Таймаут полива помидоров
+      description: '**Обязательный** `[input_boolean](https://www.home-assistant.io/integrations/input_boolean/)`'
+      selector:
+        entity:
+          filter:
+            - domain: input_boolean
+          multiple: false
+
+    ####################################################################
+    # Исполнительные устройства
+    ####################################################################
+
+    main_valve:
+      name: Магистральный клапан
+      description: Реле или клапан магистральной подачи воды
+      selector:
+        entity:
+          filter:
+            - domain:
+                - switch
+                - valve
+          multiple: false
+
+    tank_fill_valve:
+      name: Кран набора воды в бак
+      selector:
+        entity:
+          filter:
+            - domain:
+                - switch
+                - valve
+          multiple: false
+
+    cucumbers_valve:
+      name: Кран полива огурцов
+      selector:
+        entity:
+          filter:
+            - domain:
+                - switch
+                - valve
+          multiple: false
+
+    tomatoes_valve:
+      name: Кран полива помидоров
+      selector:
+        entity:
+          filter:
+            - domain:
+                - switch
+                - valve
+          multiple: false
+
+    ####################################################################
+    # Датчики
+    ####################################################################
+
+    tank_level_sensor:
+      name: Датчик уровня бака
+      description: 'Сенсор уровня воды (0–100%)'
+      selector:
+        entity:
+          filter:
+            - domain: sensor
+          multiple: false
+
+    moisture_cucumbers_sensor:
+      name: Датчик влажности почвы — огурцы
+      selector:
+        entity:
+          filter:
+            - domain: sensor
+          multiple: false
+
+    moisture_tomatoes_sensor:
+      name: Датчик влажности почвы — помидоры
+      selector:
+        entity:
+          filter:
+            - domain: sensor
+          multiple: false
+
+    ####################################################################
+    # Таймеры (только helper — нет альтернативы)
+    ####################################################################
+
+    timer_warmup:
+      name: Таймер прогрева бака
+      description: '**Обязательный** `[timer](https://www.home-assistant.io/integrations/timer/)` (restore: true)'
+      selector:
+        entity:
+          filter:
+            - domain: timer
+          multiple: false
+
+    timer_fill_timeout:
+      name: Таймер таймаута наполнения бака
+      description: '**Обязательный** `[timer](https://www.home-assistant.io/integrations/timer/)`'
+      selector:
+        entity:
+          filter:
+            - domain: timer
+          multiple: false
+
+    timer_no_rise:
+      name: Таймер отсутствия роста уровня
+      description: '**Обязательный** `[timer](https://www.home-assistant.io/integrations/timer/)`'
+      selector:
+        entity:
+          filter:
+            - domain: timer
+          multiple: false
+
+    timer_cucumbers_timeout:
+      name: Таймер таймаута полива огурцов
+      description: '**Обязательный** `[timer](https://www.home-assistant.io/integrations/timer/)`'
+      selector:
+        entity:
+          filter:
+            - domain: timer
+          multiple: false
+
+    timer_tomatoes_timeout:
+      name: Таймер таймаута полива помидоров
+      description: '**Обязательный** `[timer](https://www.home-assistant.io/integrations/timer/)`'
+      selector:
+        entity:
+          filter:
+            - domain: timer
+          multiple: false
+
+    ####################################################################
+    # Секция: Вечернее окно полива
+    ####################################################################
+
+    watering_window_section:
+      name: Вечернее окно полива
+      description: |
+        Временной интервал, в котором разрешён автоматический полив.
+        Наполнение бака допускается в любое время.
+      icon: mdi:clock-time-eight-outline
+      input:
+
+        watering_window_start:
+          name: Начало вечернего окна
+          default:
+            active_choice: значение
+            значение: "18:00:00"
+            сенсор: []
+          selector:
+            choose:
+              choices:
+                "значение":
+                  selector:
+                    time: {}
+                "сенсор":
+                  selector:
+                    entity:
+                      filter:
+                        - domain: input_datetime
+                      multiple: false
+
+        watering_window_end:
+          name: Конец вечернего окна
+          default:
+            active_choice: значение
+            значение: "22:00:00"
+            сенсор: []
+          selector:
+            choose:
+              choices:
+                "значение":
+                  selector:
+                    time: {}
+                "сенсор":
+                  selector:
+                    entity:
+                      filter:
+                        - domain: input_datetime
+                      multiple: false
+
+    ####################################################################
+    # Секция: Пороги бака
+    ####################################################################
+
+    tank_thresholds_section:
+      name: Пороги уровня бака
+      description: |
+        Уровни для управления наполнением и определения состояния бака.
+      icon: mdi:gauge
+      input:
+
+        tank_level_empty:
+          name: Порог пустого бака
+          default:
+            active_choice: значение
+            значение: 10
+            сенсор: []
+          selector:
+            choose:
+              choices:
+                "значение":
+                  selector:
+                    number:
+                      min: 0
+                      max: 50
+                      step: 1
+                      unit_of_measurement: "%"
+                      mode: slider
+                "сенсор":
+                  selector:
+                    entity:
+                      filter:
+                        - domain: input_number
+                      multiple: false
+
+        tank_level_min_working:
+          name: Минимальный рабочий уровень для полива
+          description: |
+            Внутри вечернего окна, если бак прогрет и уровень
+            выше этого значения, полив разрешён без долива.
+          default:
+            active_choice: значение
+            значение: 20
+            сенсор: []
+          selector:
+            choose:
+              choices:
+                "значение":
+                  selector:
+                    number:
+                      min: 5
+                      max: 50
+                      step: 1
+                      unit_of_measurement: "%"
+                      mode: slider
+                "сенсор":
+                  selector:
+                    entity:
+                      filter:
+                        - domain: input_number
+                      multiple: false
+
+        tank_level_auto_target:
+          name: Целевой автоуровень наполнения
+          default:
+            active_choice: значение
+            значение: 80
+            сенсор: []
+          selector:
+            choose:
+              choices:
+                "значение":
+                  selector:
+                    number:
+                      min: 30
+                      max: 100
+                      step: 1
+                      unit_of_measurement: "%"
+                      mode: slider
+                "сенсор":
+                  selector:
+                    entity:
+                      filter:
+                        - domain: input_number
+                      multiple: false
+
+        tank_level_full:
+          name: Порог полного бака
+          default:
+            active_choice: значение
+            значение: 95
+            сенсор: []
+          selector:
+            choose:
+              choices:
+                "значение":
+                  selector:
+                    number:
+                      min: 50
+                      max: 100
+                      step: 1
+                      unit_of_measurement: "%"
+                      mode: slider
+                "сенсор":
+                  selector:
+                    entity:
+                      filter:
+                        - domain: input_number
+                      multiple: false
+
+    ####################################################################
+    # Секция: Пороги влажности — огурцы
+    ####################################################################
+
+    cucumbers_thresholds_section:
+      name: Пороги влажности — огурцы
+      description: |
+        Гистерезис: заявка формируется при падении ниже нижнего порога,
+        снимается при достижении верхнего.
+      icon: mdi:sprout
+      input:
+
+        cucumbers_moisture_low:
+          name: Нижний порог влажности огурцов
+          description: Ниже этого значения — формируется заявка на полив
+          default:
+            active_choice: значение
+            значение: 40
+            сенсор: []
+          selector:
+            choose:
+              choices:
+                "значение":
+                  selector:
+                    number:
+                      min: 5
+                      max: 90
+                      step: 1
+                      unit_of_measurement: "%"
+                      mode: slider
+                "сенсор":
+                  selector:
+                    entity:
+                      filter:
+                        - domain: input_number
+                      multiple: false
+
+        cucumbers_moisture_high:
+          name: Верхний порог влажности огурцов
+          description: Выше этого значения — заявка снимается, полив завершён
+          default:
+            active_choice: значение
+            значение: 70
+            сенсор: []
+          selector:
+            choose:
+              choices:
+                "значение":
+                  selector:
+                    number:
+                      min: 10
+                      max: 95
+                      step: 1
+                      unit_of_measurement: "%"
+                      mode: slider
+                "сенсор":
+                  selector:
+                    entity:
+                      filter:
+                        - domain: input_number
+                      multiple: false
+
+    ####################################################################
+    # Секция: Пороги влажности — помидоры
+    ####################################################################
+
+    tomatoes_thresholds_section:
+      name: Пороги влажности — помидоры
+      icon: mdi:fruit-cherries
+      input:
+
+        tomatoes_moisture_low:
+          name: Нижний порог влажности помидоров
+          default:
+            active_choice: значение
+            значение: 35
+            сенсор: []
+          selector:
+            choose:
+              choices:
+                "значение":
+                  selector:
+                    number:
+                      min: 5
+                      max: 90
+                      step: 1
+                      unit_of_measurement: "%"
+                      mode: slider
+                "сенсор":
+                  selector:
+                    entity:
+                      filter:
+                        - domain: input_number
+                      multiple: false
+
+        tomatoes_moisture_high:
+          name: Верхний порог влажности помидоров
+          default:
+            active_choice: значение
+            значение: 65
+            сенсор: []
+          selector:
+            choose:
+              choices:
+                "значение":
+                  selector:
+                    number:
+                      min: 10
+                      max: 95
+                      step: 1
+                      unit_of_measurement: "%"
+                      mode: slider
+                "сенсор":
+                  selector:
+                    entity:
+                      filter:
+                        - domain: input_number
+                      multiple: false
+
+    ####################################################################
+    # Секция: Таймауты и задержки
+    ####################################################################
+
+    timeouts_section:
+      name: Таймауты и задержки
+      description: |
+        Максимальное время процессов, задержки приводов, время прогрева.
+      icon: mdi:timer-cog-outline
+      input:
+
+        warmup_duration_minutes:
+          name: Длительность прогрева воды
+          default:
+            active_choice: значение
+            значение: 120
+            сенсор: []
+          selector:
+            choose:
+              choices:
+                "значение":
+                  selector:
+                    number:
+                      min: 10
+                      max: 300
+                      step: 10
+                      unit_of_measurement: "мин"
+                      mode: slider
+                "сенсор":
+                  selector:
+                    entity:
+                      filter:
+                        - domain: input_number
+                      multiple: false
+
+        fill_timeout_minutes:
+          name: Таймаут наполнения бака
+          description: Если за это время бак не наполнился — ошибка
+          default:
+            active_choice: значение
+            значение: 60
+            сенсор: []
+          selector:
+            choose:
+              choices:
+                "значение":
+                  selector:
+                    number:
+                      min: 5
+                      max: 180
+                      step: 5
+                      unit_of_measurement: "мин"
+                      mode: slider
+                "сенсор":
+                  selector:
+                    entity:
+                      filter:
+                        - domain: input_number
+                      multiple: false
+
+        no_rise_timeout_minutes:
+          name: Таймаут отсутствия роста уровня
+          description: |
+            Если при наполнении уровень не растёт это время — ошибка.
+          default:
+            active_choice: значение
+            значение: 10
+            сенсор: []
+          selector:
+            choose:
+              choices:
+                "значение":
+                  selector:
+                    number:
+                      min: 2
+                      max: 30
+                      step: 1
+                      unit_of_measurement: "мин"
+                      mode: slider
+                "сенсор":
+                  selector:
+                    entity:
+                      filter:
+                        - domain: input_number
+                      multiple: false
+
+        zone_watering_timeout_minutes:
+          name: Таймаут полива зоны
+          description: |
+            Максимальное допустимое время непрерывного полива одной зоны.
+          default:
+            active_choice: значение
+            значение: 90
+            сенсор: []
+          selector:
+            choose:
+              choices:
+                "значение":
+                  selector:
+                    number:
+                      min: 10
+                      max: 240
+                      step: 10
+                      unit_of_measurement: "мин"
+                      mode: slider
+                "сенсор":
+                  selector:
+                    entity:
+                      filter:
+                        - domain: input_number
+                      multiple: false
+
+        valve_action_timeout:
+          name: Таймаут срабатывания привода
+          description: |
+            Время ожидания изменения состояния крана после команды.
+            Если не сработал — повторная попытка, затем ошибка.
+          default:
+            active_choice: значение
+            значение: 30
+            сенсор: []
+          selector:
+            choose:
+              choices:
+                "значение":
+                  selector:
+                    number:
+                      min: 5
+                      max: 120
+                      step: 5
+                      unit_of_measurement: "сек"
+                      mode: slider
+                "сенсор":
+                  selector:
+                    entity:
+                      filter:
+                        - domain: input_number
+                      multiple: false
+
+        sensor_stale_timeout_minutes:
+          name: Допустимое время без обновления датчика
+          description: |
+            Если датчик влажности не обновлялся дольше — зона в ошибку.
+          default:
+            active_choice: значение
+            значение: 60
+            сенсор: []
+          selector:
+            choose:
+              choices:
+                "значение":
+                  selector:
+                    number:
+                      min: 5
+                      max: 180
+                      step: 5
+                      unit_of_measurement: "мин"
+                      mode: slider
+                "сенсор":
+                  selector:
+                    entity:
+                      filter:
+                        - domain: input_number
+                      multiple: false
+
+    ####################################################################
+    # Секция: Дебаунс / подтверждение показаний
+    ####################################################################
+
+    debounce_section:
+      name: Дебаунс и подтверждение показаний
+      description: |
+        Защита от ложных срабатываний из-за скачков датчиков.
+      icon: mdi:filter-outline
+      collapsed: true
+      input:
+
+        tank_level_debounce:
+          name: Подтверждение уровня бака
+          description: |
+            Уровень должен оставаться за порогом это время,
+            прежде чем система отреагирует.
+          default:
+            active_choice: значение
+            значение: 30
+            сенсор: []
+          selector:
+            choose:
+              choices:
+                "значение":
+                  selector:
+                    number:
+                      min: 5
+                      max: 120
+                      step: 5
+                      unit_of_measurement: "сек"
+                      mode: slider
+                "сенсор":
+                  selector:
+                    entity:
+                      filter:
+                        - domain: input_number
+                      multiple: false
+
+        moisture_debounce_minutes:
+          name: Подтверждение влажности почвы
+          description: |
+            Влажность должна оставаться за порогом это время,
+            прежде чем будет создана или снята заявка на полив.
+          default:
+            active_choice: значение
+            значение: 5
+            сенсор: []
+          selector:
+            choose:
+              choices:
+                "значение":
+                  selector:
+                    number:
+                      min: 1
+                      max: 30
+                      step: 1
+                      unit_of_measurement: "мин"
+                      mode: slider
+                "сенсор":
+                  selector:
+                    entity:
+                      filter:
+                        - domain: input_number
+                      multiple: false
+
+    ####################################################################
+    # Секция: Диагностика
+    ####################################################################
+
+    diagnostics_section:
+      name: Диагностика
+      description: |
+        Предупреждения о неэффективном поливе.
+      icon: mdi:stethoscope
+      collapsed: true
+      input:
+
+        diag_no_moisture_rise_enable:
+          name: Предупреждать, если влажность не растёт при поливе
+          description: |
+            Если зона поливается длительное время, а влажность
+            не увеличивается — логируется предупреждение.
+          default:
+            active_choice: значение
+            значение: true
+            сенсор: []
+          selector:
+            choose:
+              choices:
+                "значение":
+                  selector:
+                    boolean: {}
+                "сенсор":
+                  selector:
+                    entity:
+                      filter:
+                        - domain: input_boolean
+                      multiple: false
+
+        diag_check_after_minutes:
+          name: Проверка после начала полива
+          description: Через сколько минут после старта проверять рост влажности
+          default:
+            active_choice: значение
+            значение: 30
+            сенсор: []
+          selector:
+            choose:
+              choices:
+                "значение":
+                  selector:
+                    number:
+                      min: 10
+                      max: 60
+                      step: 5
+                      unit_of_measurement: "мин"
+                      mode: slider
+                "сенсор":
+                  selector:
+                    entity:
+                      filter:
+                        - domain: input_number
+                      multiple: false
+
+        diag_min_moisture_delta:
+          name: Минимальный ожидаемый рост влажности
+          default:
+            active_choice: значение
+            значение: 3
+            сенсор: []
+          selector:
+            choose:
+              choices:
+                "значение":
+                  selector:
+                    number:
+                      min: 1
+                      max: 20
+                      step: 1
+                      unit_of_measurement: "%"
+                      mode: slider
+                "сенсор":
+                  selector:
+                    entity:
+                      filter:
+                        - domain: input_number
+                      multiple: false
+
+    ####################################################################
+    # Секция: Логирование
+    ####################################################################
+
+    logging_section:
+      name: Логирование и уведомления
+      description: |
+        Запись событий в Logbook и опциональная отправка уведомлений.
+      icon: mdi:alert-circle-outline
+      collapsed: true
+      input:
+
+        logging_enable:
+          name: Логировать события
+          default:
+            active_choice: значение
+            значение: true
+            сенсор: []
+          selector:
+            choose:
+              choices:
+                "значение":
+                  selector:
+                    boolean: {}
+                "сенсор":
+                  selector:
+                    entity:
+                      filter:
+                        - domain: input_boolean
+                      multiple: false
+
+        notify_target:
+          name: Получатель уведомлений
+          description: |
+            Опционально. Если не выбрано — только запись в Logbook.
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain: notify
+              multiple: true
+
+    ####################################################################
+    # Секция: Восстановление после рестарта
+    ####################################################################
+
+    startup_section:
+      name: Восстановление после рестарта
+      description: |
+        Настройки поведения при старте Home Assistant.
+      icon: mdi:restart
+      collapsed: true
+      input:
+
+        startup_delay:
+          name: Задержка после старта HA
+          description: |
+            Время ожидания загрузки интеграций (Zigbee и т.д.)
+            перед принудительным закрытием кранов.
+          default:
+            active_choice: значение
+            значение: 60
+            сенсор: []
+          selector:
+            choose:
+              choices:
+                "значение":
+                  selector:
+                    number:
+                      min: 10
+                      max: 300
+                      step: 10
+                      unit_of_measurement: "сек"
+                      mode: slider
+                "сенсор":
+                  selector:
+                    entity:
+                      filter:
+                        - domain: input_number
+                      multiple: false
+
+trigger_variables:
+
+  # Режим и состояния (обязательные helper)
+  system_mode: !input system_mode
+  tank_state: !input tank_state
+  zone_cucumbers_state: !input zone_cucumbers_state
+  zone_tomatoes_state: !input zone_tomatoes_state
+
+  # Заявки на полив
+  watering_request_cucumbers: !input watering_request_cucumbers
+  watering_request_tomatoes: !input watering_request_tomatoes
+
+  # Флаги прогрева
+  tank_warmup_active: !input tank_warmup_active
+  tank_warmup_end_time: !input tank_warmup_end_time
+  tank_filled_in_maintenance: !input tank_filled_in_maintenance
+
+  # Флаги ошибок
+  error_system: !input error_system
+  error_tank: !input error_tank
+  error_tank_fill_timeout: !input error_tank_fill_timeout
+  error_tank_no_level_rise: !input error_tank_no_level_rise
+  error_zone_cucumbers: !input error_zone_cucumbers
+  error_zone_tomatoes: !input error_zone_tomatoes
+  error_cucumbers_timeout: !input error_cucumbers_timeout
+  error_tomatoes_timeout: !input error_tomatoes_timeout
+
+  # Исполнительные устройства
+  main_valve: !input main_valve
+  tank_fill_valve: !input tank_fill_valve
+  cucumbers_valve: !input cucumbers_valve
+  tomatoes_valve: !input tomatoes_valve
+
+  # Датчики
+  tank_level_sensor: !input tank_level_sensor
+  moisture_cucumbers_sensor: !input moisture_cucumbers_sensor
+  moisture_tomatoes_sensor: !input moisture_tomatoes_sensor
+
+  # Таймеры
+  timer_warmup: !input timer_warmup
+  timer_fill_timeout: !input timer_fill_timeout
+  timer_no_rise: !input timer_no_rise
+  timer_cucumbers_timeout: !input timer_cucumbers_timeout
+  timer_tomatoes_timeout: !input timer_tomatoes_timeout
+
+  # Choose-параметры (сырые значения из input)
+  _watering_window_start: !input watering_window_start
+  _watering_window_end: !input watering_window_end
+
+  _tank_level_empty: !input tank_level_empty
+  _tank_level_min_working: !input tank_level_min_working
+  _tank_level_auto_target: !input tank_level_auto_target
+  _tank_level_full: !input tank_level_full
+
+  _cucumbers_moisture_low: !input cucumbers_moisture_low
+  _cucumbers_moisture_high: !input cucumbers_moisture_high
+  _tomatoes_moisture_low: !input tomatoes_moisture_low
+  _tomatoes_moisture_high: !input tomatoes_moisture_high
+
+  _warmup_duration_minutes: !input warmup_duration_minutes
+  _fill_timeout_minutes: !input fill_timeout_minutes
+  _no_rise_timeout_minutes: !input no_rise_timeout_minutes
+  _zone_watering_timeout_minutes: !input zone_watering_timeout_minutes
+  _valve_action_timeout: !input valve_action_timeout
+  _sensor_stale_timeout_minutes: !input sensor_stale_timeout_minutes
+
+  _tank_level_debounce: !input tank_level_debounce
+  _moisture_debounce_minutes: !input moisture_debounce_minutes
+
+  _diag_no_moisture_rise_enable: !input diag_no_moisture_rise_enable
+  _diag_check_after_minutes: !input diag_check_after_minutes
+  _diag_min_moisture_delta: !input diag_min_moisture_delta
+
+  _logging_enable: !input logging_enable
+  _startup_delay: !input startup_delay
+
+  notify_target: !input notify_target
+
+  # Вспомогательные константы
+  open_states:
+    - "on"
+    - "open"
+    - "true"
+
+  closed_states:
+    - "off"
+    - "closed"
+    - "false"
+
+  invalid_states:
+    - ""
+    - "unavailable"
+    - "unknown"
+    - "none"
+
+variables:
+
+  ###########################################################################
+  # Резолвинг choose-параметров: значение или сенсор
+  ###########################################################################
+
+  watering_window_start: >
+    {{ _watering_window_start.значение
+       if _watering_window_start.active_choice == 'значение'
+       else states(_watering_window_start.сенсор) }}
+
+  watering_window_end: >
+    {{ _watering_window_end.значение
+       if _watering_window_end.active_choice == 'значение'
+       else states(_watering_window_end.сенсор) }}
+
+  tank_level_empty: >
+    {{ (_tank_level_empty.значение | float)
+       if _tank_level_empty.active_choice == 'значение'
+       else (states(_tank_level_empty.сенсор) | float(default=10)) }}
+
+  tank_level_min_working: >
+    {{ (_tank_level_min_working.значение | float)
+       if _tank_level_min_working.active_choice == 'значение'
+       else (states(_tank_level_min_working.сенсор) | float(default=20)) }}
+
+  tank_level_auto_target: >
+    {{ (_tank_level_auto_target.значение | float)
+       if _tank_level_auto_target.active_choice == 'значение'
+       else (states(_tank_level_auto_target.сенсор) | float(default=80)) }}
+
+  tank_level_full: >
+    {{ (_tank_level_full.значение | float)
+       if _tank_level_full.active_choice == 'значение'
+       else (states(_tank_level_full.сенсор) | float(default=95)) }}
+
+  cucumbers_moisture_low: >
+    {{ (_cucumbers_moisture_low.значение | float)
+       if _cucumbers_moisture_low.active_choice == 'значение'
+       else (states(_cucumbers_moisture_low.сенсор) | float(default=40)) }}
+
+  cucumbers_moisture_high: >
+    {{ (_cucumbers_moisture_high.значение | float)
+       if _cucumbers_moisture_high.active_choice == 'значение'
+       else (states(_cucumbers_moisture_high.сенсор) | float(default=70)) }}
+
+  tomatoes_moisture_low: >
+    {{ (_tomatoes_moisture_low.значение | float)
+       if _tomatoes_moisture_low.active_choice == 'значение'
+       else (states(_tomatoes_moisture_low.сенсор) | float(default=35)) }}
+
+  tomatoes_moisture_high: >
+    {{ (_tomatoes_moisture_high.значение | float)
+       if _tomatoes_moisture_high.active_choice == 'значение'
+       else (states(_tomatoes_moisture_high.сенсор) | float(default=65)) }}
+
+  warmup_duration_minutes: >
+    {{ (_warmup_duration_minutes.значение | int)
+       if _warmup_duration_minutes.active_choice == 'значение'
+       else (states(_warmup_duration_minutes.сенсор) | int(default=120)) }}
+
+  fill_timeout_minutes: >
+    {{ (_fill_timeout_minutes.значение | int)
+       if _fill_timeout_minutes.active_choice == 'значение'
+       else (states(_fill_timeout_minutes.сенсор) | int(default=60)) }}
+
+  no_rise_timeout_minutes: >
+    {{ (_no_rise_timeout_minutes.значение | int)
+       if _no_rise_timeout_minutes.active_choice == 'значение'
+       else (states(_no_rise_timeout_minutes.сенсор) | int(default=10)) }}
+
+  zone_watering_timeout_minutes: >
+    {{ (_zone_watering_timeout_minutes.значение | int)
+       if _zone_watering_timeout_minutes.active_choice == 'значение'
+       else (states(_zone_watering_timeout_minutes.сенсор) | int(default=90)) }}
+
+  valve_action_timeout: >
+    {{ (_valve_action_timeout.значение | int)
+       if _valve_action_timeout.active_choice == 'значение'
+       else (states(_valve_action_timeout.сенсор) | int(default=30)) }}
+
+  sensor_stale_timeout_minutes: >
+    {{ (_sensor_stale_timeout_minutes.значение | int)
+       if _sensor_stale_timeout_minutes.active_choice == 'значение'
+       else (states(_sensor_stale_timeout_minutes.сенсор) | int(default=60)) }}
+
+  tank_level_debounce: >
+    {{ (_tank_level_debounce.значение | int)
+       if _tank_level_debounce.active_choice == 'значение'
+       else (states(_tank_level_debounce.сенсор) | int(default=30)) }}
+
+  moisture_debounce_minutes: >
+    {{ (_moisture_debounce_minutes.значение | int)
+       if _moisture_debounce_minutes.active_choice == 'значение'
+       else (states(_moisture_debounce_minutes.сенсор) | int(default=5)) }}
+
+  diag_no_moisture_rise_enable: >
+    {% if _diag_no_moisture_rise_enable.active_choice == 'значение' %}
+      {{ _diag_no_moisture_rise_enable.значение | bool(false) }}
+    {% else %}
+      {{ states(_diag_no_moisture_rise_enable.сенсор) in open_states }}
+    {% endif %}
+
+  diag_check_after_minutes: >
+    {{ (_diag_check_after_minutes.значение | int)
+       if _diag_check_after_minutes.active_choice == 'значение'
+       else (states(_diag_check_after_minutes.сенсор) | int(default=30)) }}
+
+  diag_min_moisture_delta: >
+    {{ (_diag_min_moisture_delta.значение | float)
+       if _diag_min_moisture_delta.active_choice == 'значение'
+       else (states(_diag_min_moisture_delta.сенсор) | float(default=3)) }}
+
+  logging_enable: >
+    {% if _logging_enable.active_choice == 'значение' %}
+      {{ _logging_enable.значение | bool(true) }}
+    {% else %}
+      {{ states(_logging_enable.сенсор) in open_states }}
+    {% endif %}
+
+  startup_delay: >
+    {{ (_startup_delay.значение | int)
+       if _startup_delay.active_choice == 'значение'
+       else (states(_startup_delay.сенсор) | int(default=60)) }}
+
+  ###########################################################################
+  # Вычисляемые переменные
+  ###########################################################################
+
+  # Действия для каждого привода (switch vs valve)
+  main_valve_open_action: >
+    {{ 'valve.open_valve' if main_valve.split('.')[0] == 'valve'
+       else 'homeassistant.turn_on' }}
+  main_valve_close_action: >
+    {{ 'valve.close_valve' if main_valve.split('.')[0] == 'valve'
+       else 'homeassistant.turn_off' }}
+
+  fill_valve_open_action: >
+    {{ 'valve.open_valve' if tank_fill_valve.split('.')[0] == 'valve'
+       else 'homeassistant.turn_on' }}
+  fill_valve_close_action: >
+    {{ 'valve.close_valve' if tank_fill_valve.split('.')[0] == 'valve'
+       else 'homeassistant.turn_off' }}
+
+  cucumbers_valve_open_action: >
+    {{ 'valve.open_valve' if cucumbers_valve.split('.')[0] == 'valve'
+       else 'homeassistant.turn_on' }}
+  cucumbers_valve_close_action: >
+    {{ 'valve.close_valve' if cucumbers_valve.split('.')[0] == 'valve'
+       else 'homeassistant.turn_off' }}
+
+  tomatoes_valve_open_action: >
+    {{ 'valve.open_valve' if tomatoes_valve.split('.')[0] == 'valve'
+       else 'homeassistant.turn_on' }}
+  tomatoes_valve_close_action: >
+    {{ 'valve.close_valve' if tomatoes_valve.split('.')[0] == 'valve'
+       else 'homeassistant.turn_off' }}
+
+  # Уровень бака нормализованный
+  tank_level: >
+    {% set raw = states(tank_level_sensor) %}
+    {% if raw in invalid_states %}
+      {{ -1 }}
+    {% else %}
+      {% set val = raw | float(default=-999) %}
+      {{ val if (val >= 0 and val <= 100) else -1 }}
+    {% endif %}
+
+  tank_sensor_ok: "{{ tank_level | float >= 0 }}"
+
+  # Датчики влажности
+  moisture_cucumbers: >
+    {% set raw = states(moisture_cucumbers_sensor) %}
+    {{ raw | float(default=-1) if raw not in invalid_states else -1 }}
+
+  moisture_tomatoes: >
+    {% set raw = states(moisture_tomatoes_sensor) %}
+    {{ raw | float(default=-1) if raw not in invalid_states else -1 }}
+
+  cucumbers_sensor_ok: >
+    {% set val = moisture_cucumbers | float %}
+    {% set age = (now() - states[moisture_cucumbers_sensor].last_updated).total_seconds() %}
+    {% set stale = sensor_stale_timeout_minutes | int * 60 %}
+    {{ val >= 0 and age < stale }}
+
+  tomatoes_sensor_ok: >
+    {% set val = moisture_tomatoes | float %}
+    {% set age = (now() - states[moisture_tomatoes_sensor].last_updated).total_seconds() %}
+    {% set stale = sensor_stale_timeout_minutes | int * 60 %}
+    {{ val >= 0 and age < stale }}
+
+  # Вечернее окно
+  in_watering_window: >
+    {% set now_t = now().strftime('%H:%M:%S') %}
+    {% set start = watering_window_start %}
+    {% set end_t = watering_window_end %}
+    {% if start > end_t %}
+      {{ now_t >= start or now_t < end_t }}
+    {% else %}
+      {{ now_t >= start and now_t < end_t }}
+    {% endif %}
+
+  # Система в авто
+  is_auto: "{{ is_state(system_mode, 'auto') }}"
+  is_maintenance: "{{ is_state(system_mode, 'maintenance') }}"
+  is_stop: "{{ is_state(system_mode, 'stop') }}"
+
+  # Бак готов
+  tank_is_ready: "{{ is_state(tank_state, 'ready') }}"
+  tank_is_filling: "{{ is_state(tank_state, 'filling') }}"
+  tank_is_warmup: "{{ is_state(tank_state, 'warmup') }}"
+  tank_is_empty: "{{ is_state(tank_state, 'empty') }}"
+  tank_is_error: "{{ is_state(tank_state, 'error') }}"
+
+  # Полив разрешён (общий)
+  watering_allowed: >
+    {{ is_auto
+       and tank_is_ready
+       and in_watering_window
+       and tank_sensor_ok
+       and not tank_is_filling
+       and is_state(error_system, 'off') }}
+
+  # Какие зоны сейчас поливаются
+  cucumbers_watering: "{{ is_state(zone_cucumbers_state, 'watering') }}"
+  tomatoes_watering: "{{ is_state(zone_tomatoes_state, 'watering') }}"
+  any_watering: "{{ cucumbers_watering or tomatoes_watering }}"
+
+  # Прогрев
+  warmup_remaining_seconds: >
+    {% set end_str = states(tank_warmup_end_time) %}
+    {% if end_str in invalid_states %}
+      {{ 0 }}
+    {% else %}
+      {{ [(as_timestamp(end_str) - as_timestamp(now())) | int, 0] | max }}
+    {% endif %}
+
+  # Все приводы для массовых операций
+  all_valves:
+    - "{{ main_valve }}"
+    - "{{ tank_fill_valve }}"
+    - "{{ cucumbers_valve }}"
+    - "{{ tomatoes_valve }}"
+
+  # Недоступные устройства
+  unavailable_devices: >
+    {% set ns = namespace(items=[]) %}
+    {% for v in all_valves %}
+      {% if states(v) in invalid_states %}
+        {% set ns.items = ns.items + [v] %}
+      {% endif %}
+    {% endfor %}
+    {% if states(tank_level_sensor) in invalid_states %}
+      {% set ns.items = ns.items + [tank_level_sensor] %}
+    {% endif %}
+    {% if states(moisture_cucumbers_sensor) in invalid_states %}
+      {% set ns.items = ns.items + [moisture_cucumbers_sensor] %}
+    {% endif %}
+    {% if states(moisture_tomatoes_sensor) in invalid_states %}
+      {% set ns.items = ns.items + [moisture_tomatoes_sensor] %}
+    {% endif %}
+    {{ ns.items }}
+
+  ###########################################################################
+  # ЯКОРЯ: переиспользуемые блоки действий
+  ###########################################################################
+
+  #=========================================================================
+  # Логирование
+  #=========================================================================
+
+  do_log: &do_log
+    sequence:
+      - if:
+          - condition: template
+            value_template: "{{ logging_enable }}"
+        then:
+          - action: logbook.log
+            data:
+              name: "Полив"
+              message: "{{ log_message }}"
+              entity_id: "{{ log_entity | default('') }}"
+          - if:
+              - condition: template
+                value_template: "{{ notify_target != [] }}"
+            then:
+              - action: notify.send_message
+                target:
+                  entity_id: !input notify_target
+                data:
+                  title: "Полив: {{ log_title | default('Событие') }}"
+                  message: "{{ log_message }}"
+                continue_on_error: true
+
+  #=========================================================================
+  # Открыть кран с проверкой и повтором
+  #=========================================================================
+
+  do_open_valve: &do_open_valve
+    sequence:
+      - action: "{{ valve_open_action }}"
+        target:
+          entity_id: "{{ valve_entity }}"
+      - delay:
+          seconds: "{{ valve_action_timeout | int }}"
+      - if:
+          - condition: template
+            value_template: "{{ states(valve_entity) not in open_states }}"
+        then:
+          # Повторная попытка
+          - action: "{{ valve_open_action }}"
+            target:
+              entity_id: "{{ valve_entity }}"
+          - delay:
+              seconds: "{{ valve_action_timeout | int }}"
+          - if:
+              - condition: template
+                value_template: "{{ states(valve_entity) not in open_states }}"
+            then:
+              - variables:
+                  log_message: >
+                    ОШИБКА: кран {{ valve_entity }} не открылся после двух попыток.
+                    Текущее состояние: {{ states(valve_entity) }}.
+                  log_entity: "{{ valve_entity }}"
+                  log_title: "Ошибка привода"
+              - *do_log
+              - stop: "valve_open_failed"
+                error: true
+
+  #=========================================================================
+  # Закрыть кран с проверкой и повтором
+  #=========================================================================
+
+  do_close_valve: &do_close_valve
+    sequence:
+      - action: "{{ valve_close_action }}"
+        target:
+          entity_id: "{{ valve_entity }}"
+      - delay:
+          seconds: "{{ valve_action_timeout | int }}"
+      - if:
+          - condition: template
+            value_template: "{{ states(valve_entity) not in closed_states }}"
+        then:
+          - action: "{{ valve_close_action }}"
+            target:
+              entity_id: "{{ valve_entity }}"
+          - delay:
+              seconds: "{{ valve_action_timeout | int }}"
+          - if:
+              - condition: template
+                value_template: "{{ states(valve_entity) not in closed_states }}"
+            then:
+              - variables:
+                  log_message: >
+                    ОШИБКА: кран {{ valve_entity }} не закрылся после двух попыток.
+                    Текущее состояние: {{ states(valve_entity) }}.
+                  log_entity: "{{ valve_entity }}"
+                  log_title: "Ошибка привода"
+              - *do_log
+              - stop: "valve_close_failed"
+                error: true
+
+  #=========================================================================
+  # Закрыть все краны (аварийно / принудительно — без проверки)
+  #=========================================================================
+
+  do_close_all_force: &do_close_all_force
+    sequence:
+      - action: "{{ main_valve_close_action }}"
+        target:
+          entity_id: !input main_valve
+        continue_on_error: true
+      - action: "{{ fill_valve_close_action }}"
+        target:
+          entity_id: !input tank_fill_valve
+        continue_on_error: true
+      - action: "{{ cucumbers_valve_close_action }}"
+        target:
+          entity_id: !input cucumbers_valve
+        continue_on_error: true
+      - action: "{{ tomatoes_valve_close_action }}"
+        target:
+          entity_id: !input tomatoes_valve
+        continue_on_error: true
+
+  #=========================================================================
+  # Закрыть все краны с проверкой
+  #=========================================================================
+
+  do_close_all_checked: &do_close_all_checked
+    sequence:
+      - variables:
+          valve_entity: !input cucumbers_valve
+          valve_close_action: "{{ cucumbers_valve_close_action }}"
+      - *do_close_valve
+      - variables:
+          valve_entity: !input tomatoes_valve
+          valve_close_action: "{{ tomatoes_valve_close_action }}"
+      - *do_close_valve
+      - variables:
+          valve_entity: !input tank_fill_valve
+          valve_close_action: "{{ fill_valve_close_action }}"
+      - *do_close_valve
+      - variables:
+          valve_entity: !input main_valve
+          valve_close_action: "{{ main_valve_close_action }}"
+      - *do_close_valve
+
+  #=========================================================================
+  # Аварийная остановка
+  #=========================================================================
+
+  do_emergency_stop: &do_emergency_stop
+    sequence:
+      - *do_close_all_force
+      - action: timer.cancel
+        target:
+          entity_id:
+            - !input timer_fill_timeout
+            - !input timer_no_rise
+            - !input timer_warmup
+            - !input timer_cucumbers_timeout
+            - !input timer_tomatoes_timeout
+        continue_on_error: true
+      - action: input_boolean.turn_on
+        target:
+          entity_id: !input error_system
+      - action: input_select.select_option
+        target:
+          entity_id: !input tank_state
+        data:
+          option: "error"
+      - variables:
+          log_message: >
+            АВАРИЙНАЯ ОСТАНОВКА: все краны закрыты,
+            таймеры остановлены, система заблокирована.
+          log_title: "Аварийная остановка"
+      - *do_log
+
+  #=========================================================================
+  # Запуск прогрева
+  #=========================================================================
+
+  do_start_warmup: &do_start_warmup
+    sequence:
+      - action: input_select.select_option
+        target:
+          entity_id: !input tank_state
+        data:
+          option: "warmup"
+      - action: input_boolean.turn_on
+        target:
+          entity_id: !input tank_warmup_active
+      - action: input_datetime.set_datetime
+        target:
+          entity_id: !input tank_warmup_end_time
+        data:
+          datetime: >
+            {{ (now() + timedelta(minutes=warmup_duration_minutes | int))
+               .strftime('%Y-%m-%d %H:%M:%S') }}
+      - action: timer.start
+        target:
+          entity_id: !input timer_warmup
+        data:
+          duration: "{{ warmup_duration_minutes | int * 60 }}"
+      - variables:
+          log_message: >
+            Прогрев бака запущен на {{ warmup_duration_minutes }} мин.
+            Ожидаемое окончание:
+            {{ (now() + timedelta(minutes=warmup_duration_minutes | int))
+               .strftime('%H:%M') }}.
+          log_title: "Прогрев запущен"
+      - *do_log
+
+  #=========================================================================
+  # Завершение прогрева
+  #=========================================================================
+
+  do_finish_warmup: &do_finish_warmup
+    sequence:
+      - action: input_boolean.turn_off
+        target:
+          entity_id: !input tank_warmup_active
+      - action: input_select.select_option
+        target:
+          entity_id: !input tank_state
+        data:
+          option: "ready"
+      - variables:
+          log_message: "Прогрев бака завершён. Бак готов к поливу."
+          log_title: "Прогрев завершён"
+      - *do_log
+
+  #=========================================================================
+  # Завершение наполнения бака
+  #=========================================================================
+
+  do_finish_fill: &do_finish_fill
+    sequence:
+      - variables:
+          valve_entity: !input tank_fill_valve
+          valve_close_action: "{{ fill_valve_close_action }}"
+      - *do_close_valve
+      - variables:
+          valve_entity: !input main_valve
+          valve_close_action: "{{ main_valve_close_action }}"
+      - *do_close_valve
+      - action: timer.cancel
+        target:
+          entity_id:
+            - !input timer_fill_timeout
+            - !input timer_no_rise
+      - variables:
+          log_message: >
+            Наполнение бака завершено.
+            Уровень: {{ tank_level }}%.
+          log_title: "Бак наполнен"
+      - *do_log
+      - *do_start_warmup
+
+  #=========================================================================
+  # Ошибка наполнения (общая — используется таймаутом и отсутствием роста)
+  #=========================================================================
+
+  do_fill_error: &do_fill_error
+    sequence:
+      - variables:
+          valve_entity: !input tank_fill_valve
+          valve_close_action: "{{ fill_valve_close_action }}"
+      - *do_close_valve
+      - variables:
+          valve_entity: !input main_valve
+          valve_close_action: "{{ main_valve_close_action }}"
+      - *do_close_valve
+      - action: timer.cancel
+        target:
+          entity_id:
+            - !input timer_fill_timeout
+            - !input timer_no_rise
+      - action: input_boolean.turn_on
+        target:
+          entity_id: !input error_tank
+      - action: input_select.select_option
+        target:
+          entity_id: !input tank_state
+        data:
+          option: "error"
+
+  #=========================================================================
+  # Открытие магистрального клапана (с проверкой)
+  #=========================================================================
+
+  do_open_main_valve: &do_open_main_valve
+    sequence:
+      - variables:
+          valve_entity: !input main_valve
+          valve_open_action: "{{ main_valve_open_action }}"
+      - *do_open_valve
+
+  #=========================================================================
+  # Закрытие магистрального клапана (с проверкой)
+  #=========================================================================
+
+  do_close_main_valve: &do_close_main_valve
+    sequence:
+      - variables:
+          valve_entity: !input main_valve
+          valve_close_action: "{{ main_valve_close_action }}"
+      - *do_close_valve
+
+  #=========================================================================
+  # Начать наполнение бака
+  #=========================================================================
+
+  do_start_fill: &do_start_fill
+    sequence:
+      - action: input_select.select_option
+        target:
+          entity_id: !input tank_state
+        data:
+          option: "filling"
+      - *do_open_main_valve
+      - variables:
+          valve_entity: !input tank_fill_valve
+          valve_open_action: "{{ fill_valve_open_action }}"
+      - *do_open_valve
+      - action: timer.start
+        target:
+          entity_id: !input timer_fill_timeout
+        data:
+          duration: "{{ fill_timeout_minutes | int * 60 }}"
+      - action: timer.start
+        target:
+          entity_id: !input timer_no_rise
+        data:
+          duration: "{{ no_rise_timeout_minutes | int * 60 }}"
+      - variables:
+          log_message: >
+            Наполнение бака запущено.
+            Текущий уровень: {{ tank_level }}%.
+            Целевой: {{ tank_level_auto_target }}%.
+            Таймаут: {{ fill_timeout_minutes }} мин.
+          log_title: "Наполнение запущено"
+      - *do_log
+
+  #=========================================================================
+  # Остановить полив зоны
+  #=========================================================================
+
+  do_stop_zone: &do_stop_zone
+    sequence:
+      # zone_name, zone_valve, zone_valve_close_action,
+      # zone_state_entity, zone_timeout_timer, zone_request,
+      # zone_error_flag, stop_reason
+      # должны быть определены через variables перед вызовом
+      - action: "{{ zone_valve_close_action }}"
+        target:
+          entity_id: "{{ zone_valve }}"
+      - delay:
+          seconds: "{{ valve_action_timeout | int }}"
+      - action: timer.cancel
+        target:
+          entity_id: "{{ zone_timeout_timer }}"
+      - choose:
+          - conditions:
+              - condition: template
+                value_template: "{{ stop_reason == 'completed' }}"
+            sequence:
+              - action: input_boolean.turn_off
+                target:
+                  entity_id: "{{ zone_request }}"
+              - action: input_select.select_option
+                target:
+                  entity_id: "{{ zone_state_entity }}"
+                data:
+                  option: "no_need"
+              - variables:
+                  log_message: "Полив {{ zone_name }} завершён — влажность достигнута."
+                  log_title: "Полив завершён"
+              - *do_log
+
+          - conditions:
+              - condition: template
+                value_template: "{{ stop_reason == 'tank_empty' }}"
+            sequence:
+              - action: input_select.select_option
+                target:
+                  entity_id: "{{ zone_state_entity }}"
+                data:
+                  option: "waiting_resume"
+              - variables:
+                  log_message: >
+                    Полив {{ zone_name }} приостановлен — бак пустой.
+                    Заявка сохранена для возобновления.
+                  log_title: "Полив приостановлен"
+              - *do_log
+
+          - conditions:
+              - condition: template
+                value_template: "{{ stop_reason in ['error', 'timeout'] }}"
+            sequence:
+              - action: input_select.select_option
+                target:
+                  entity_id: "{{ zone_state_entity }}"
+                data:
+                  option: "zone_error"
+              - action: input_boolean.turn_on
+                target:
+                  entity_id: "{{ zone_error_flag }}"
+              - variables:
+                  log_message: >
+                    ОШИБКА: полив {{ zone_name }} остановлен.
+                    Причина: {{ stop_reason }}.
+                  log_entity: "{{ zone_valve }}"
+                  log_title: "Ошибка полива"
+              - *do_log
+
+        default:
+          - action: input_select.select_option
+            target:
+              entity_id: "{{ zone_state_entity }}"
+            data:
+              option: "no_need"
+
+      # Если обе зоны не поливают — закрыть магистральный
+      - if:
+          - condition: template
+            value_template: >
+              {{ states(cucumbers_valve) in closed_states
+                 and states(tomatoes_valve) in closed_states }}
+        then:
+          - *do_close_main_valve
+
+  #=========================================================================
+  # Запустить полив зоны
+  #=========================================================================
+
+  do_start_zone: &do_start_zone
+    sequence:
+      # zone_name, zone_valve, zone_valve_open_action,
+      # zone_state_entity, zone_timeout_timer
+      # должны быть определены перед вызовом
+
+      # Открыть магистральный если закрыт
+      - if:
+          - condition: template
+            value_template: "{{ states(main_valve) in closed_states }}"
+        then:
+          - *do_open_main_valve
+
+      # Открыть кран зоны
+      - variables:
+          valve_entity: "{{ zone_valve }}"
+          valve_open_action: "{{ zone_valve_open_action }}"
+      - *do_open_valve
+
+      - action: input_select.select_option
+        target:
+          entity_id: "{{ zone_state_entity }}"
+        data:
+          option: "watering"
+
+      - action: timer.start
+        target:
+          entity_id: "{{ zone_timeout_timer }}"
+        data:
+          duration: "{{ zone_watering_timeout_minutes | int * 60 }}"
+
+      - variables:
+          log_message: >
+            Полив {{ zone_name }} запущен.
+            Таймаут: {{ zone_watering_timeout_minutes }} мин.
+          log_title: "Полив запущен"
+      - *do_log
+
+  #=========================================================================
+  # Пересчёт состояния системы (после рестарта)
+  #=========================================================================
+
+  do_recalculate: &do_recalculate
+    sequence:
+      # Датчик уровня
+      - if:
+          - condition: template
+            value_template: "{{ not tank_sensor_ok }}"
+        then:
+          - action: input_select.select_option
+            target:
+              entity_id: !input tank_state
+            data:
+              option: "error"
+          - action: input_boolean.turn_on
+            target:
+              entity_id: !input error_tank
+          - variables:
+              log_message: "Датчик уровня неисправен после пересчёта."
+              log_title: "Ошибка датчика"
+          - *do_log
+          - stop: "tank_sensor_error"
+
+      # Бак пустой?
+      - if:
+          - condition: template
+            value_template: "{{ (tank_level | float) < (tank_level_empty | float) }}"
+        then:
+          - action: input_select.select_option
+            target:
+              entity_id: !input tank_state
+            data:
+              option: "empty"
+          - variables:
+              log_message: "Бак пустой ({{ tank_level }}%). Требуется наполнение."
+              log_title: "Бак пустой"
+          - *do_log
+          - stop: "tank_empty"
+
+      # Прогрев ещё активен?
+      - if:
+          - condition: template
+            value_template: "{{ (warmup_remaining_seconds | int) > 0 }}"
+        then:
+          - action: input_select.select_option
+            target:
+              entity_id: !input tank_state
+            data:
+              option: "warmup"
+          - action: input_boolean.turn_on
+            target:
+              entity_id: !input tank_warmup_active
+          - action: timer.start
+            target:
+              entity_id: !input timer_warmup
+            data:
+              duration: "{{ warmup_remaining_seconds | int }}"
+          - variables:
+              log_message: >
+                Прогрев возобновлён после рестарта.
+                Осталось: {{ (warmup_remaining_seconds | int / 60) | round(0) }} мин.
+              log_title: "Прогрев возобновлён"
+          - *do_log
+          - stop: "warmup_resumed"
+
+      # Ничего из вышеперечисленного — бак готов
+      - action: input_select.select_option
+        target:
+          entity_id: !input tank_state
+        data:
+          option: "ready"
+
+      # Пересчёт заявок на полив
+      - if:
+          - condition: template
+            value_template: >
+              {{ cucumbers_sensor_ok
+                 and (moisture_cucumbers | float) < (cucumbers_moisture_low | float) }}
+        then:
+          - action: input_boolean.turn_on
+            target:
+              entity_id: !input watering_request_cucumbers
+          - action: input_select.select_option
+            target:
+              entity_id: !input zone_cucumbers_state
+            data:
+              option: "need_watering"
+
+      - if:
+          - condition: template
+            value_template: >
+              {{ tomatoes_sensor_ok
+                 and (moisture_tomatoes | float) < (tomatoes_moisture_low | float) }}
+        then:
+          - action: input_boolean.turn_on
+            target:
+              entity_id: !input watering_request_tomatoes
+          - action: input_select.select_option
+            target:
+              entity_id: !input zone_tomatoes_state
+            data:
+              option: "need_watering"
+
+      - variables:
+          log_message: "Пересчёт состояния завершён. Бак: ready."
+          log_title: "Система пересчитана"
+      - *do_log
+
+triggers:
+
+  #=========================================================================
+  # 1. Старт Home Assistant
+  #=========================================================================
+  - trigger: homeassistant
+    event: start
+    id: ha_start
+
+  #=========================================================================
+  # 2. Датчик уровня бака — стал недоступен
+  #=========================================================================
+  - trigger: template
+    value_template: "{{ tank_level | float == -1 }}"
+    for:
+      seconds: 10
+    id: tank_sensor_error
+
+  #=========================================================================
+  # 3. Датчик уровня бака — восстановился
+  #=========================================================================
+  - trigger: template
+    value_template: "{{ tank_level | float >= 0 }}"
+    for:
+      seconds: 30
+    id: tank_sensor_recovered
+
+  #=========================================================================
+  # 4. Бак опустел (ниже порога «пустой»)
+  #=========================================================================
+  - trigger: template
+    value_template: >
+      {{ tank_level | float >= 0
+         and (tank_level | float) < (_tank_level_empty.значение | float
+              if _tank_level_empty.active_choice == 'значение'
+              else (states(_tank_level_empty.сенсор) | float(default=10))) }}
+    for:
+      seconds: >
+        {{ _tank_level_debounce.значение | int
+           if _tank_level_debounce.active_choice == 'значение'
+           else (states(_tank_level_debounce.сенсор) | int(default=30)) }}
+    id: tank_empty
+
+  #=========================================================================
+  # 5. Бак наполнен до целевого автоуровня
+  #=========================================================================
+  - trigger: template
+    value_template: >
+      {{ tank_level | float >= 0
+         and (tank_level | float) >= (_tank_level_auto_target.значение | float
+              if _tank_level_auto_target.active_choice == 'значение'
+              else (states(_tank_level_auto_target.сенсор) | float(default=80))) }}
+    for:
+      seconds: >
+        {{ _tank_level_debounce.значение | int
+           if _tank_level_debounce.active_choice == 'значение'
+           else (states(_tank_level_debounce.сенсор) | int(default=30)) }}
+    id: tank_filled
+
+  #=========================================================================
+  # 6. Уровень бака растёт при наполнении (сброс таймера no_rise)
+  #=========================================================================
+  - trigger: state
+    entity_id: !input tank_level_sensor
+    id: tank_level_changed
+
+  #=========================================================================
+  # 7. Таймер таймаута наполнения — истёк
+  #=========================================================================
+  - trigger: state
+    entity_id: !input timer_fill_timeout
+    from: active
+    to: idle
+    id: fill_timeout_expired
+
+  #=========================================================================
+  # 8. Таймер отсутствия роста уровня — истёк
+  #=========================================================================
+  - trigger: state
+    entity_id: !input timer_no_rise
+    from: active
+    to: idle
+    id: no_rise_expired
+
+  #=========================================================================
+  # 9. Таймер прогрева — истёк
+  #=========================================================================
+  - trigger: state
+    entity_id: !input timer_warmup
+    from: active
+    to: idle
+    id: warmup_finished
+
+  #=========================================================================
+  # 10. Таймер таймаута полива огурцов — истёк
+  #=========================================================================
+  - trigger: state
+    entity_id: !input timer_cucumbers_timeout
+    from: active
+    to: idle
+    id: cucumbers_timeout_expired
+
+  #=========================================================================
+  # 11. Таймер таймаута полива помидоров — истёк
+  #=========================================================================
+  - trigger: state
+    entity_id: !input timer_tomatoes_timeout
+    from: active
+    to: idle
+    id: tomatoes_timeout_expired
+
+  #=========================================================================
+  # 12. Влажность огурцов — ниже нижнего порога (заявка)
+  #=========================================================================
+  - trigger: template
+    value_template: >
+      {% set val = states(moisture_cucumbers_sensor) | float(default=-1) %}
+      {% set low = _cucumbers_moisture_low.значение | float
+           if _cucumbers_moisture_low.active_choice == 'значение'
+           else (states(_cucumbers_moisture_low.сенсор) | float(default=40)) %}
+      {{ val >= 0 and val < low }}
+    for:
+      minutes: >
+        {{ _moisture_debounce_minutes.значение | int
+           if _moisture_debounce_minutes.active_choice == 'значение'
+           else (states(_moisture_debounce_minutes.сенсор) | int(default=5)) }}
+    id: cucumbers_moisture_low
+
+  #=========================================================================
+  # 13. Влажность огурцов — выше верхнего порога (снятие заявки)
+  #=========================================================================
+  - trigger: template
+    value_template: >
+      {% set val = states(moisture_cucumbers_sensor) | float(default=-1) %}
+      {% set high = _cucumbers_moisture_high.значение | float
+           if _cucumbers_moisture_high.active_choice == 'значение'
+           else (states(_cucumbers_moisture_high.сенсор) | float(default=70)) %}
+      {{ val >= 0 and val > high }}
+    for:
+      minutes: >
+        {{ _moisture_debounce_minutes.значение | int
+           if _moisture_debounce_minutes.active_choice == 'значение'
+           else (states(_moisture_debounce_minutes.сенсор) | int(default=5)) }}
+    id: cucumbers_moisture_high
+
+  #=========================================================================
+  # 14. Влажность помидоров — ниже нижнего порога
+  #=========================================================================
+  - trigger: template
+    value_template: >
+      {% set val = states(moisture_tomatoes_sensor) | float(default=-1) %}
+      {% set low = _tomatoes_moisture_low.значение | float
+           if _tomatoes_moisture_low.active_choice == 'значение'
+           else (states(_tomatoes_moisture_low.сенсор) | float(default=35)) %}
+      {{ val >= 0 and val < low }}
+    for:
+      minutes: >
+        {{ _moisture_debounce_minutes.значение | int
+           if _moisture_debounce_minutes.active_choice == 'значение'
+           else (states(_moisture_debounce_minutes.сенсор) | int(default=5)) }}
+    id: tomatoes_moisture_low
+
+  #=========================================================================
+  # 15. Влажность помидоров — выше верхнего порога
+  #=========================================================================
+  - trigger: template
+    value_template: >
+      {% set val = states(moisture_tomatoes_sensor) | float(default=-1) %}
+      {% set high = _tomatoes_moisture_high.значение | float
+           if _tomatoes_moisture_high.active_choice == 'значение'
+           else (states(_tomatoes_moisture_high.сенсор) | float(default=65)) %}
+      {{ val >= 0 and val > high }}
+    for:
+      minutes: >
+        {{ _moisture_debounce_minutes.значение | int
+           if _moisture_debounce_minutes.active_choice == 'значение'
+           else (states(_moisture_debounce_minutes.сенсор) | int(default=5)) }}
+    id: tomatoes_moisture_high
+
+  #=========================================================================
+  # 16. Датчик влажности огурцов — стал недоступен / завис
+  #=========================================================================
+  - trigger: template
+    value_template: >
+      {% set raw = states(moisture_cucumbers_sensor) %}
+      {% set age = (now() - states[moisture_cucumbers_sensor].last_updated).total_seconds() %}
+      {% set stale_sec = (_sensor_stale_timeout_minutes.значение | int
+           if _sensor_stale_timeout_minutes.active_choice == 'значение'
+           else (states(_sensor_stale_timeout_minutes.сенсор) | int(default=60))) * 60 %}
+      {{ raw in ['unknown', 'unavailable', 'none', '']
+         or (raw | float(default=-1)) < 0
+         or age >= stale_sec }}
+    for:
+      seconds: 30
+    id: cucumbers_sensor_error
+
+  #=========================================================================
+  # 17. Датчик влажности помидоров — стал недоступен / завис
+  #=========================================================================
+  - trigger: template
+    value_template: >
+      {% set raw = states(moisture_tomatoes_sensor) %}
+      {% set age = (now() - states[moisture_tomatoes_sensor].last_updated).total_seconds() %}
+      {% set stale_sec = (_sensor_stale_timeout_minutes.значение | int
+           if _sensor_stale_timeout_minutes.active_choice == 'значение'
+           else (states(_sensor_stale_timeout_minutes.сенсор) | int(default=60))) * 60 %}
+      {{ raw in ['unknown', 'unavailable', 'none', '']
+         or (raw | float(default=-1)) < 0
+         or age >= stale_sec }}
+    for:
+      seconds: 30
+    id: tomatoes_sensor_error
+
+  #=========================================================================
+  # 18. Режим системы изменился
+  #=========================================================================
+  - trigger: state
+    entity_id: !input system_mode
+    id: mode_changed
+
+  #=========================================================================
+  # 19. Заявка на полив появилась (огурцы или помидоры)
+  #=========================================================================
+  - trigger: state
+    entity_id:
+      - !input watering_request_cucumbers
+      - !input watering_request_tomatoes
+    to: "on"
+    id: watering_request_appeared
+
+  #=========================================================================
+  # 20. Бак стал ready
+  #=========================================================================
+  - trigger: state
+    entity_id: !input tank_state
+    to: "ready"
+    id: tank_became_ready
+
+  #=========================================================================
+  # 21. Вечернее окно — наступило (проверка каждую минуту)
+  #=========================================================================
+  - trigger: template
+    value_template: >
+      {% set now_t = now().strftime('%H:%M:%S') %}
+      {% set start = _watering_window_start.значение
+           if _watering_window_start.active_choice == 'значение'
+           else states(_watering_window_start.сенсор) %}
+      {% set end_t = _watering_window_end.значение
+           if _watering_window_end.active_choice == 'значение'
+           else states(_watering_window_end.сенсор) %}
+      {% if start > end_t %}
+        {{ now_t >= start or now_t < end_t }}
+      {% else %}
+        {{ now_t >= start and now_t < end_t }}
+      {% endif %}
+    id: watering_window_opened
+
+  #=========================================================================
+  # 22. Вечернее окно — закрылось
+  #=========================================================================
+  - trigger: template
+    value_template: >
+      {% set now_t = now().strftime('%H:%M:%S') %}
+      {% set start = _watering_window_start.значение
+           if _watering_window_start.active_choice == 'значение'
+           else states(_watering_window_start.сенсор) %}
+      {% set end_t = _watering_window_end.значение
+           if _watering_window_end.active_choice == 'значение'
+           else states(_watering_window_end.сенсор) %}
+      {% if start > end_t %}
+        {{ not (now_t >= start or now_t < end_t) }}
+      {% else %}
+        {{ not (now_t >= start and now_t < end_t) }}
+      {% endif %}
+    id: watering_window_closed
+
+  #=========================================================================
+  # 23. Кран набора воды открыт в режиме обслуживания
+  #=========================================================================
+  - trigger: state
+    entity_id: !input tank_fill_valve
+    id: fill_valve_toggled
+
+  #=========================================================================
+  # 24. Диагностика — событие проверки эффективности полива
+  #=========================================================================
+  - trigger: event
+    event_type: greenhouse_v2_diag_check
+    id: diag_check
+
+
+actions:
+  - choose:
+
+      #=====================================================================
+      # 1. ВОССТАНОВЛЕНИЕ ПОСЛЕ РЕСТАРТА HA
+      #=====================================================================
+      - conditions:
+          - condition: trigger
+            id: ha_start
+        sequence:
+          - delay:
+              seconds: "{{ startup_delay | int }}"
+          - *do_close_all_force
+          - delay:
+              seconds: 5
+          - variables:
+              log_message: >
+                Home Assistant перезапущен.
+                Все краны принудительно закрыты.
+                Запуск пересчёта состояния.
+              log_title: "Рестарт HA"
+          - *do_log
+          - *do_recalculate
+
+      #=====================================================================
+      # 2. КРИТИЧЕСКАЯ ОШИБКА ДАТЧИКА УРОВНЯ БАКА
+      #=====================================================================
+      - conditions:
+          - condition: trigger
+            id: tank_sensor_error
+          - condition: template
+            value_template: "{{ is_auto }}"
+        sequence:
+          - variables:
+              log_message: >
+                КРИТИЧЕСКАЯ ОШИБКА: датчик уровня бака недоступен
+                или возвращает некорректные данные.
+                Сенсор: {{ tank_level_sensor }}.
+                Значение: {{ states(tank_level_sensor) }}.
+              log_entity: "{{ tank_level_sensor }}"
+              log_title: "Ошибка датчика уровня"
+          - *do_log
+          - *do_emergency_stop
+
+      #=====================================================================
+      # 3. ДАТЧИК УРОВНЯ ВОССТАНОВИЛСЯ
+      #=====================================================================
+      - conditions:
+          - condition: trigger
+            id: tank_sensor_recovered
+          - condition: template
+            value_template: "{{ is_auto and tank_is_error }}"
+        sequence:
+          - action: input_boolean.turn_off
+            target:
+              entity_id:
+                - !input error_system
+                - !input error_tank
+                - !input error_tank_fill_timeout
+                - !input error_tank_no_level_rise
+          - variables:
+              log_message: >
+                Датчик уровня бака восстановлен.
+                Значение: {{ tank_level }}%.
+                Запуск пересчёта.
+              log_title: "Датчик восстановлен"
+          - *do_log
+          - *do_recalculate
+
+      #=====================================================================
+      # 4. БАК ОПУСТЕЛ
+      #=====================================================================
+      - conditions:
+          - condition: trigger
+            id: tank_empty
+          - condition: template
+            value_template: "{{ is_auto and tank_sensor_ok }}"
+          - condition: template
+            value_template: "{{ not tank_is_filling }}"
+        sequence:
+          # Остановить полив обеих зон, если идёт
+          - if:
+              - condition: template
+                value_template: "{{ cucumbers_watering }}"
+            then:
+              - variables:
+                  zone_name: "огурцов"
+                  zone_valve: !input cucumbers_valve
+                  zone_valve_close_action: "{{ cucumbers_valve_close_action }}"
+                  zone_state_entity: !input zone_cucumbers_state
+                  zone_timeout_timer: !input timer_cucumbers_timeout
+                  zone_request: !input watering_request_cucumbers
+                  zone_error_flag: !input error_zone_cucumbers
+                  stop_reason: "tank_empty"
+              - *do_stop_zone
+
+          - if:
+              - condition: template
+                value_template: "{{ tomatoes_watering }}"
+            then:
+              - variables:
+                  zone_name: "помидоров"
+                  zone_valve: !input tomatoes_valve
+                  zone_valve_close_action: "{{ tomatoes_valve_close_action }}"
+                  zone_state_entity: !input zone_tomatoes_state
+                  zone_timeout_timer: !input timer_tomatoes_timeout
+                  zone_request: !input watering_request_tomatoes
+                  zone_error_flag: !input error_zone_tomatoes
+                  stop_reason: "tank_empty"
+              - *do_stop_zone
+
+          - action: input_select.select_option
+            target:
+              entity_id: !input tank_state
+            data:
+              option: "empty"
+
+          - variables:
+              log_message: >
+                Бак пустой ({{ tank_level }}%).
+                Полив остановлен. Запуск наполнения.
+              log_title: "Бак пустой"
+          - *do_log
+
+          - *do_start_fill
+
+      #=====================================================================
+      # 5. БАК НАПОЛНЕН ДО ЦЕЛЕВОГО УРОВНЯ
+      #=====================================================================
+      - conditions:
+          - condition: trigger
+            id: tank_filled
+          - condition: template
+            value_template: "{{ tank_is_filling }}"
+        sequence:
+          - *do_finish_fill
+
+      #=====================================================================
+      # 6. УРОВЕНЬ БАКА РАСТЁТ ПРИ НАПОЛНЕНИИ — СБРОС ТАЙМЕРА NO_RISE
+      #=====================================================================
+      - conditions:
+          - condition: trigger
+            id: tank_level_changed
+          - condition: template
+            value_template: "{{ tank_is_filling }}"
+          - condition: template
+            value_template: >
+              {% set old = trigger.from_state.state | float(default=-1) %}
+              {% set new = trigger.to_state.state | float(default=-1) %}
+              {{ old >= 0 and new >= 0 and new > old }}
+        sequence:
+          - action: timer.start
+            target:
+              entity_id: !input timer_no_rise
+            data:
+              duration: "{{ no_rise_timeout_minutes | int * 60 }}"
+
+      #=====================================================================
+      # 7. ТАЙМАУТ НАПОЛНЕНИЯ БАКА
+      #=====================================================================
+      - conditions:
+          - condition: trigger
+            id: fill_timeout_expired
+          - condition: template
+            value_template: "{{ tank_is_filling }}"
+        sequence:
+          - *do_fill_error
+          - action: input_boolean.turn_on
+            target:
+              entity_id: !input error_tank_fill_timeout
+          - variables:
+              log_message: >
+                ОШИБКА: таймаут наполнения бака.
+                Уровень: {{ tank_level }}%.
+                Целевой: {{ tank_level_auto_target }}%.
+                Лимит: {{ fill_timeout_minutes }} мин.
+              log_entity: "{{ tank_level_sensor }}"
+              log_title: "Таймаут наполнения"
+          - *do_log
+
+      #=====================================================================
+      # 8. НЕТ РОСТА УРОВНЯ ПРИ НАПОЛНЕНИИ
+      #=====================================================================
+      - conditions:
+          - condition: trigger
+            id: no_rise_expired
+          - condition: template
+            value_template: "{{ tank_is_filling }}"
+        sequence:
+          - *do_fill_error
+          - action: input_boolean.turn_on
+            target:
+              entity_id: !input error_tank_no_level_rise
+          - variables:
+              log_message: >
+                ОШИБКА: уровень воды не растёт при наполнении.
+                Текущий уровень: {{ tank_level }}%.
+                Возможные причины: вода не поступает,
+                датчик завис, кран не сработал.
+              log_entity: "{{ tank_level_sensor }}"
+              log_title: "Нет роста уровня"
+          - *do_log
+
+      #=====================================================================
+      # 9. ПРОГРЕВ ЗАВЕРШЁН
+      #=====================================================================
+      - conditions:
+          - condition: trigger
+            id: warmup_finished
+          - condition: template
+            value_template: "{{ tank_is_warmup }}"
+        sequence:
+          - *do_finish_warmup
+
+      #=====================================================================
+      # 10. ТАЙМАУТ ПОЛИВА ОГУРЦОВ
+      #=====================================================================
+      - conditions:
+          - condition: trigger
+            id: cucumbers_timeout_expired
+          - condition: template
+            value_template: "{{ cucumbers_watering }}"
+        sequence:
+          - variables:
+              zone_name: "огурцов"
+              zone_valve: !input cucumbers_valve
+              zone_valve_close_action: "{{ cucumbers_valve_close_action }}"
+              zone_state_entity: !input zone_cucumbers_state
+              zone_timeout_timer: !input timer_cucumbers_timeout
+              zone_request: !input watering_request_cucumbers
+              zone_error_flag: !input error_cucumbers_timeout
+              stop_reason: "timeout"
+          - *do_stop_zone
+
+      #=====================================================================
+      # 11. ТАЙМАУТ ПОЛИВА ПОМИДОРОВ
+      #=====================================================================
+      - conditions:
+          - condition: trigger
+            id: tomatoes_timeout_expired
+          - condition: template
+            value_template: "{{ tomatoes_watering }}"
+        sequence:
+          - variables:
+              zone_name: "помидоров"
+              zone_valve: !input tomatoes_valve
+              zone_valve_close_action: "{{ tomatoes_valve_close_action }}"
+              zone_state_entity: !input zone_tomatoes_state
+              zone_timeout_timer: !input timer_tomatoes_timeout
+              zone_request: !input watering_request_tomatoes
+              zone_error_flag: !input error_tomatoes_timeout
+              stop_reason: "timeout"
+          - *do_stop_zone
+
+      #=====================================================================
+      # 12. ЗАЯВКА НА ПОЛИВ ОГУРЦОВ — ВЛАЖНОСТЬ НИЖЕ ПОРОГА
+      #=====================================================================
+      - conditions:
+          - condition: trigger
+            id: cucumbers_moisture_low
+          - condition: template
+            value_template: "{{ cucumbers_sensor_ok }}"
+          - condition: template
+            value_template: >
+              {{ is_state(watering_request_cucumbers, 'off') }}
+        sequence:
+          - action: input_boolean.turn_on
+            target:
+              entity_id: !input watering_request_cucumbers
+          - action: input_select.select_option
+            target:
+              entity_id: !input zone_cucumbers_state
+            data:
+              option: "need_watering"
+          - variables:
+              log_message: >
+                Заявка на полив огурцов создана.
+                Влажность: {{ moisture_cucumbers }}%.
+                Порог: {{ cucumbers_moisture_low }}%.
+              log_title: "Заявка: огурцы"
+          - *do_log
+
+      #=====================================================================
+      # 13. СНЯТИЕ ЗАЯВКИ — ОГУРЦЫ (ВЛАЖНОСТЬ ВЫШЕ ВЕРХНЕГО ПОРОГА)
+      #=====================================================================
+      - conditions:
+          - condition: trigger
+            id: cucumbers_moisture_high
+        sequence:
+          - action: input_boolean.turn_off
+            target:
+              entity_id: !input watering_request_cucumbers
+          - if:
+              - condition: template
+                value_template: "{{ cucumbers_watering }}"
+            then:
+              - variables:
+                  zone_name: "огурцов"
+                  zone_valve: !input cucumbers_valve
+                  zone_valve_close_action: "{{ cucumbers_valve_close_action }}"
+                  zone_state_entity: !input zone_cucumbers_state
+                  zone_timeout_timer: !input timer_cucumbers_timeout
+                  zone_request: !input watering_request_cucumbers
+                  zone_error_flag: !input error_zone_cucumbers
+                  stop_reason: "completed"
+              - *do_stop_zone
+            else:
+              - action: input_select.select_option
+                target:
+                  entity_id: !input zone_cucumbers_state
+                data:
+                  option: "no_need"
+          - variables:
+              log_message: >
+                Заявка огурцов снята.
+                Влажность: {{ moisture_cucumbers }}%.
+              log_title: "Заявка снята: огурцы"
+          - *do_log
+
+      #=====================================================================
+      # 14. ЗАЯВКА НА ПОЛИВ ПОМИДОРОВ — ВЛАЖНОСТЬ НИЖЕ ПОРОГА
+      #=====================================================================
+      - conditions:
+          - condition: trigger
+            id: tomatoes_moisture_low
+          - condition: template
+            value_template: "{{ tomatoes_sensor_ok }}"
+          - condition: template
+            value_template: >
+              {{ is_state(watering_request_tomatoes, 'off') }}
+        sequence:
+          - action: input_boolean.turn_on
+            target:
+              entity_id: !input watering_request_tomatoes
+          - action: input_select.select_option
+            target:
+              entity_id: !input zone_tomatoes_state
+            data:
+              option: "need_watering"
+          - variables:
+              log_message: >
+                Заявка на полив помидоров создана.
+                Влажность: {{ moisture_tomatoes }}%.
+                Порог: {{ tomatoes_moisture_low }}%.
+              log_title: "Заявка: помидоры"
+          - *do_log
+
+      #=====================================================================
+      # 15. СНЯТИЕ ЗАЯВКИ — ПОМИДОРЫ
+      #=====================================================================
+      - conditions:
+          - condition: trigger
+            id: tomatoes_moisture_high
+        sequence:
+          - action: input_boolean.turn_off
+            target:
+              entity_id: !input watering_request_tomatoes
+          - if:
+              - condition: template
+                value_template: "{{ tomatoes_watering }}"
+            then:
+              - variables:
+                  zone_name: "помидоров"
+                  zone_valve: !input tomatoes_valve
+                  zone_valve_close_action: "{{ tomatoes_valve_close_action }}"
+                  zone_state_entity: !input zone_tomatoes_state
+                  zone_timeout_timer: !input timer_tomatoes_timeout
+                  zone_request: !input watering_request_tomatoes
+                  zone_error_flag: !input error_zone_tomatoes
+                  stop_reason: "completed"
+              - *do_stop_zone
+            else:
+              - action: input_select.select_option
+                target:
+                  entity_id: !input zone_tomatoes_state
+                data:
+                  option: "no_need"
+          - variables:
+              log_message: >
+                Заявка помидоров снята.
+                Влажность: {{ moisture_tomatoes }}%.
+              log_title: "Заявка снята: помидоры"
+          - *do_log
+
+      #=====================================================================
+      # 16. ОШИБКА ДАТЧИКА ВЛАЖНОСТИ — ОГУРЦЫ
+      #=====================================================================
+      - conditions:
+          - condition: trigger
+            id: cucumbers_sensor_error
+        sequence:
+          - action: input_boolean.turn_on
+            target:
+              entity_id: !input error_zone_cucumbers
+          - if:
+              - condition: template
+                value_template: "{{ cucumbers_watering }}"
+            then:
+              - variables:
+                  zone_name: "огурцов"
+                  zone_valve: !input cucumbers_valve
+                  zone_valve_close_action: "{{ cucumbers_valve_close_action }}"
+                  zone_state_entity: !input zone_cucumbers_state
+                  zone_timeout_timer: !input timer_cucumbers_timeout
+                  zone_request: !input watering_request_cucumbers
+                  zone_error_flag: !input error_zone_cucumbers
+                  stop_reason: "error"
+              - *do_stop_zone
+            else:
+              - action: input_select.select_option
+                target:
+                  entity_id: !input zone_cucumbers_state
+                data:
+                  option: "zone_error"
+          - variables:
+              log_message: >
+                ОШИБКА: датчик влажности огурцов недоступен или завис.
+                Сенсор: {{ moisture_cucumbers_sensor }}.
+                Значение: {{ states(moisture_cucumbers_sensor) }}.
+              log_entity: "{{ moisture_cucumbers_sensor }}"
+              log_title: "Ошибка датчика огурцов"
+          - *do_log
+
+      #=====================================================================
+      # 17. ОШИБКА ДАТЧИКА ВЛАЖНОСТИ — ПОМИДОРЫ
+      #=====================================================================
+      - conditions:
+          - condition: trigger
+            id: tomatoes_sensor_error
+        sequence:
+          - action: input_boolean.turn_on
+            target:
+              entity_id: !input error_zone_tomatoes
+          - if:
+              - condition: template
+                value_template: "{{ tomatoes_watering }}"
+            then:
+              - variables:
+                  zone_name: "помидоров"
+                  zone_valve: !input tomatoes_valve
+                  zone_valve_close_action: "{{ tomatoes_valve_close_action }}"
+                  zone_state_entity: !input zone_tomatoes_state
+                  zone_timeout_timer: !input timer_tomatoes_timeout
+                  zone_request: !input watering_request_tomatoes
+                  zone_error_flag: !input error_zone_tomatoes
+                  stop_reason: "error"
+              - *do_stop_zone
+            else:
+              - action: input_select.select_option
+                target:
+                  entity_id: !input zone_tomatoes_state
+                data:
+                  option: "zone_error"
+          - variables:
+              log_message: >
+                ОШИБКА: датчик влажности помидоров недоступен или завис.
+                Сенсор: {{ moisture_tomatoes_sensor }}.
+                Значение: {{ states(moisture_tomatoes_sensor) }}.
+              log_entity: "{{ moisture_tomatoes_sensor }}"
+              log_title: "Ошибка датчика помидоров"
+          - *do_log
+
+      #=====================================================================
+      # 18. РЕЖИМ СИСТЕМЫ ИЗМЕНИЛСЯ
+      #=====================================================================
+      - conditions:
+          - condition: trigger
+            id: mode_changed
+        sequence:
+          - choose:
+              #--- Переключение в СТОП ---
+              - conditions:
+                  - condition: template
+                    value_template: "{{ is_stop }}"
+                sequence:
+                  - *do_close_all_force
+                  - action: timer.cancel
+                    target:
+                      entity_id:
+                        - !input timer_fill_timeout
+                        - !input timer_no_rise
+                        - !input timer_cucumbers_timeout
+                        - !input timer_tomatoes_timeout
+                    continue_on_error: true
+                  - variables:
+                      log_message: "Система переведена в режим СТОП. Все краны закрыты."
+                      log_title: "Режим: Стоп"
+                  - *do_log
+
+              #--- Переключение в ОБСЛУЖИВАНИЕ ---
+              - conditions:
+                  - condition: template
+                    value_template: "{{ is_maintenance }}"
+                sequence:
+                  # Остановить наполнение если идёт
+                  - if:
+                      - condition: template
+                        value_template: "{{ tank_is_filling }}"
+                    then:
+                      - variables:
+                          valve_entity: !input tank_fill_valve
+                          valve_close_action: "{{ fill_valve_close_action }}"
+                      - *do_close_valve
+                      - variables:
+                          valve_entity: !input main_valve
+                          valve_close_action: "{{ main_valve_close_action }}"
+                      - *do_close_valve
+                      - action: timer.cancel
+                        target:
+                          entity_id:
+                            - !input timer_fill_timeout
+                            - !input timer_no_rise
+
+                  # Остановить полив если идёт
+                  - if:
+                      - condition: template
+                        value_template: "{{ cucumbers_watering }}"
+                    then:
+                      - variables:
+                          zone_name: "огурцов"
+                          zone_valve: !input cucumbers_valve
+                          zone_valve_close_action: "{{ cucumbers_valve_close_action }}"
+                          zone_state_entity: !input zone_cucumbers_state
+                          zone_timeout_timer: !input timer_cucumbers_timeout
+                          zone_request: !input watering_request_cucumbers
+                          zone_error_flag: !input error_zone_cucumbers
+                          stop_reason: "manual"
+                      - *do_stop_zone
+
+                  - if:
+                      - condition: template
+                        value_template: "{{ tomatoes_watering }}"
+                    then:
+                      - variables:
+                          zone_name: "помидоров"
+                          zone_valve: !input tomatoes_valve
+                          zone_valve_close_action: "{{ tomatoes_valve_close_action }}"
+                          zone_state_entity: !input zone_tomatoes_state
+                          zone_timeout_timer: !input timer_tomatoes_timeout
+                          zone_request: !input watering_request_tomatoes
+                          zone_error_flag: !input error_zone_tomatoes
+                          stop_reason: "manual"
+                      - *do_stop_zone
+
+                  - variables:
+                      log_message: "Система переведена в режим ОБСЛУЖИВАНИЕ."
+                      log_title: "Режим: Обслуживание"
+                  - *do_log
+
+              #--- Возврат в АВТО ---
+              - conditions:
+                  - condition: template
+                    value_template: "{{ is_auto }}"
+                sequence:
+                  - *do_close_all_force
+                  - delay:
+                      seconds: 5
+
+                  # Если бак наполнялся вручную — прогрев
+                  - if:
+                      - condition: template
+                        value_template: >
+                          {{ is_state(tank_filled_in_maintenance, 'on') }}
+                    then:
+                      - action: input_boolean.turn_off
+                        target:
+                          entity_id: !input tank_filled_in_maintenance
+                      - variables:
+                          log_message: >
+                            Возврат в АВТО после обслуживания.
+                            Бак наполнялся вручную — запуск прогрева.
+                          log_title: "Прогрев после обслуживания"
+                      - *do_log
+                      - *do_start_warmup
+                    else:
+                      - variables:
+                          log_message: "Возврат в режим АВТО. Пересчёт состояния."
+                          log_title: "Режим: Авто"
+                      - *do_log
+                      - *do_recalculate
+
+      #=====================================================================
+      # 19. ДИСПЕТЧЕР ЗАПУСКА ПОЛИВА
+      #     (заявка появилась / бак готов / окно открылось)
+      #=====================================================================
+      - conditions:
+          - condition: trigger
+            id:
+              - watering_request_appeared
+              - tank_became_ready
+              - watering_window_opened
+          - condition: template
+            value_template: "{{ watering_allowed }}"
+        sequence:
+          # Запуск огурцов
+          - if:
+              - condition: template
+                value_template: >
+                  {{ is_state(watering_request_cucumbers, 'on')
+                     and cucumbers_sensor_ok
+                     and not cucumbers_watering }}
+            then:
+              - variables:
+                  zone_name: "огурцов"
+                  zone_valve: !input cucumbers_valve
+                  zone_valve_open_action: "{{ cucumbers_valve_open_action }}"
+                  zone_state_entity: !input zone_cucumbers_state
+                  zone_timeout_timer: !input timer_cucumbers_timeout
+              - *do_start_zone
+
+          # Запуск помидоров
+          - if:
+              - condition: template
+                value_template: >
+                  {{ is_state(watering_request_tomatoes, 'on')
+                     and tomatoes_sensor_ok
+                     and not tomatoes_watering }}
+            then:
+              - variables:
+                  zone_name: "помидоров"
+                  zone_valve: !input tomatoes_valve
+                  zone_valve_open_action: "{{ tomatoes_valve_open_action }}"
+                  zone_state_entity: !input zone_tomatoes_state
+                  zone_timeout_timer: !input timer_tomatoes_timeout
+              - *do_start_zone
+
+      #=====================================================================
+      # 20. ПОДГОТОВИТЕЛЬНОЕ НАПОЛНЕНИЕ БАКА
+      #     (заявка есть, бак ниже целевого, не внутри окна с прогретым баком)
+      #=====================================================================
+      - conditions:
+          - condition: trigger
+            id:
+              - watering_request_appeared
+              - tank_became_ready
+          - condition: template
+            value_template: "{{ is_auto and tank_sensor_ok }}"
+          - condition: template
+            value_template: >
+              {{ is_state(watering_request_cucumbers, 'on')
+                 or is_state(watering_request_tomatoes, 'on') }}
+          - condition: template
+            value_template: "{{ not tank_is_filling and not tank_is_warmup }}"
+          - condition: template
+            value_template: "{{ not any_watering }}"
+          - condition: template
+            value_template: >
+              {{ (tank_level | float) < (tank_level_auto_target | float) }}
+          # Не доливать внутри окна, если бак прогрет и выше min_working
+          - condition: template
+            value_template: >
+              {% if in_watering_window and tank_is_ready
+                    and (tank_level | float) >= (tank_level_min_working | float) %}
+                false
+              {% else %}
+                true
+              {% endif %}
+        sequence:
+          - variables:
+              log_message: >
+                Подготовительное наполнение бака.
+                Уровень: {{ tank_level }}%.
+                Целевой: {{ tank_level_auto_target }}%.
+              log_title: "Подготовительное наполнение"
+          - *do_log
+          - *do_start_fill
+
+      #=====================================================================
+      # 21. ВЕЧЕРНЕЕ ОКНО ЗАКРЫЛОСЬ
+      #=====================================================================
+      - conditions:
+          - condition: trigger
+            id: watering_window_closed
+        sequence:
+          # Обновить состояния зон, у которых есть заявка, но не поливаются
+          - if:
+              - condition: template
+                value_template: >
+                  {{ is_state(watering_request_cucumbers, 'on')
+                     and not cucumbers_watering }}
+            then:
+              - action: input_select.select_option
+                target:
+                  entity_id: !input zone_cucumbers_state
+                data:
+                  option: "waiting_conditions"
+          - if:
+              - condition: template
+                value_template: >
+                  {{ is_state(watering_request_tomatoes, 'on')
+                     and not tomatoes_watering }}
+            then:
+              - action: input_select.select_option
+                target:
+                  entity_id: !input zone_tomatoes_state
+                data:
+                  option: "waiting_conditions"
+          - variables:
+              log_message: >
+                Вечернее окно полива закрылось.
+                Новый полив не запускается.
+                {% if cucumbers_watering or tomatoes_watering %}
+                Уже идущий полив продолжается.
+                {% endif %}
+              log_title: "Окно закрылось"
+          - *do_log
+
+      #=====================================================================
+      # 22. КРАН НАБОРА ОТКРЫТ В РЕЖИМЕ ОБСЛУЖИВАНИЯ
+      #     (фиксируем факт ручного наполнения)
+      #=====================================================================
+      - conditions:
+          - condition: trigger
+            id: fill_valve_toggled
+          - condition: template
+            value_template: "{{ is_maintenance }}"
+          - condition: template
+            value_template: >
+              {{ trigger.to_state.state in open_states }}
+        sequence:
+          - action: input_boolean.turn_on
+            target:
+              entity_id: !input tank_filled_in_maintenance
+          - variables:
+              log_message: >
+                Кран набора открыт в режиме обслуживания.
+                После возврата в АВТО будет запущен прогрев.
+              log_title: "Ручное наполнение"
+          - *do_log
+
+      #=====================================================================
+      # 23. ДИАГНОСТИКА — ПРОВЕРКА ЭФФЕКТИВНОСТИ ПОЛИВА
+      #=====================================================================
+      - conditions:
+          - condition: trigger
+            id: diag_check
+        sequence:
+          - variables:
+              diag_zone: "{{ trigger.event.data.zone | default('') }}"
+              diag_sensor: "{{ trigger.event.data.sensor | default('') }}"
+              diag_before: "{{ trigger.event.data.moisture_before | float(default=-1) }}"
+
+          - if:
+              - condition: template
+                value_template: >
+                  {{ diag_no_moisture_rise_enable
+                     and diag_sensor != ''
+                     and (diag_before | float) >= 0
+                     and states(diag_sensor) not in invalid_states }}
+            then:
+              - delay:
+                  minutes: "{{ diag_check_after_minutes | int }}"
+
+              - variables:
+                  diag_after: "{{ states(diag_sensor) | float(default=-1) }}"
+                  diag_delta: "{{ ((diag_after | float) - (diag_before | float)) | round(1) }}"
+
+              - if:
+                  - condition: template
+                    value_template: >
+                      {{ (diag_after | float) >= 0
+                         and (diag_delta | float) < (diag_min_moisture_delta | float) }}
+                then:
+                  - variables:
+                      log_message: >
+                        ПРЕДУПРЕЖДЕНИЕ: полив {{ diag_zone }} идёт,
+                        но влажность не растёт.
+                        До полива: {{ diag_before }}%.
+                        Текущая: {{ diag_after }}%.
+                        Изменение: {{ diag_delta }}%.
+                        Минимально ожидаемое: {{ diag_min_moisture_delta }}%.
+                        Возможные причины: засор линии, вода не доходит,
+                        проблема с датчиком.
+                      log_entity: "{{ diag_sensor }}"
+                      log_title: "Диагностика полива"
+                  - *do_log
+
+mode: parallel
+max: 10
