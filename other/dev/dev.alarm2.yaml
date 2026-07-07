@@ -1,0 +1,653 @@
+blueprint:
+  name: Управление ночником и чайником по будильнику
+  description: |
+    ### Будильник с управлением устройствами.
+    <small>Версия 2026.06.01 Сборка 4</small> 
+
+    <small><a href="https://github.com/S0ft0r/ha-blueprints/blob/main/as-is.md">Отказ от ответственности</a></small>
+  domain: automation
+  source_url: https://github.com/S0ft0r/ha-blueprints/blob/main/other/dev/dev.alarm2.yaml
+  author: Softor
+
+  input:
+    alarm_schedule_section:
+      name: Расписание будильника
+      icon: mdi:calendar-clock
+      collapsed: false
+      input:
+        mon_section:
+          name: Понедельник
+          icon: mdi:calendar-today
+          collapsed: true
+          input:
+            alarm_mon_enabled:
+              name: "Включен"
+              default: true
+              selector:
+                boolean: {}
+            alarm_mon:
+              name: "Время"
+              default: "06:30:00"
+              selector:
+                time: {}
+            alarm_mon_options:
+              name: "Устройства"
+              default:
+                - on_kettle
+                - on_light
+              selector:
+                select:
+                  options:
+                    - label: Чайник
+                      value: on_kettle
+                    - label: Ночник
+                      value: on_light
+                    - label: Фраза
+                      value: on_phrase
+                    - label: Музыка
+                      value: on_music
+                  sort: false
+                  multiple: true
+                  custom_value: false
+                  mode: list
+
+        tue_section:
+          name: Вторник
+          icon: mdi:calendar-today
+          collapsed: true
+          input:
+            alarm_tue_enabled:
+              name: "Включен"
+              default: true
+              selector:
+                boolean: {}
+            alarm_tue:
+              name: "Время"
+              default: "06:30:00"
+              selector:
+                time: {}
+            alarm_tue_options:
+              name: "Устройства"
+              default:
+                - on_kettle
+                - on_light
+              selector:
+                select:
+                  options:
+                    - label: Чайник
+                      value: on_kettle
+                    - label: Ночник
+                      value: on_light
+                    - label: Фраза
+                      value: on_phrase
+                    - label: Музыка
+                      value: on_music
+                  sort: false
+                  multiple: true
+                  custom_value: false
+                  mode: list
+
+        wed_section:
+          name: Среда
+          icon: mdi:calendar-today
+          collapsed: true
+          input:
+            alarm_wed_enabled:
+              name: "Включен"
+              default: true
+              selector:
+                boolean: {}
+            alarm_wed:
+              name: "Время"
+              default: "06:30:00"
+              selector:
+                time: {}
+            alarm_wed_options:
+              name: "Устройства"
+              default:
+                - on_kettle
+                - on_light
+              selector:
+                select:
+                  options:
+                    - label: Чайник
+                      value: on_kettle
+                    - label: Ночник
+                      value: on_light
+                    - label: Фраза
+                      value: on_phrase
+                    - label: Музыка
+                      value: on_music
+                  sort: false
+                  multiple: true
+                  custom_value: false
+                  mode: list
+
+        thu_section:
+          name: Четверг
+          icon: mdi:calendar-today
+          collapsed: true
+          input:
+            alarm_thu_enabled:
+              name: "Включен"
+              default: true
+              selector:
+                boolean: {}
+            alarm_thu:
+              name: "Время"
+              default: "06:30:00"
+              selector:
+                time: {}
+            alarm_thu_options:
+              name: "Устройства"
+              default:
+                - on_kettle
+                - on_light
+              selector:
+                select:
+                  options:
+                    - label: Чайник
+                      value: on_kettle
+                    - label: Ночник
+                      value: on_light
+                    - label: Фраза
+                      value: on_phrase
+                    - label: Музыка
+                      value: on_music
+                  sort: false
+                  multiple: true
+                  custom_value: false
+                  mode: list
+
+        fri_section:
+          name: Пятница
+          icon: mdi:calendar-today
+          collapsed: true
+          input:
+            alarm_fri_enabled:
+              name: "Включен"
+              default: true
+              selector:
+                boolean: {}
+            alarm_fri:
+              name: "Время"
+              default: "06:30:00"
+              selector:
+                time: {}
+            alarm_fri_options:
+              name: "Устройства"
+              default:
+                - on_kettle
+                - on_light
+              selector:
+                select:
+                  options:
+                    - label: Чайник
+                      value: on_kettle
+                    - label: Ночник
+                      value: on_light
+                    - label: Фраза
+                      value: on_phrase
+                    - label: Музыка
+                      value: on_music
+                  sort: false
+                  multiple: true
+                  custom_value: false
+                  mode: list
+
+        sat_section:
+          name: Суббота
+          icon: mdi:calendar-weekend
+          collapsed: true
+          input:
+            alarm_sat_enabled:
+              name: "Включен"
+              default: false
+              selector:
+                boolean: {}
+            alarm_sat:
+              name: "Время"
+              default: "08:00:00"
+              selector:
+                time: {}
+            alarm_sat_options:
+              name: "Устройства"
+              default: []
+              selector:
+                select:
+                  options:
+                    - label: Чайник
+                      value: on_kettle
+                    - label: Ночник
+                      value: on_light
+                    - label: Фраза
+                      value: on_phrase
+                    - label: Музыка
+                      value: on_music
+                  sort: false
+                  multiple: true
+                  custom_value: false
+                  mode: list
+
+        sun_section:
+          name: Воскресенье
+          icon: mdi:calendar-weekend
+          collapsed: true
+          input:
+            alarm_sun_enabled:
+              name: "Включен"
+              default: false
+              selector:
+                boolean: {}
+            alarm_sun:
+              name: "Время"
+              default: "08:00:00"
+              selector:
+                time: {}
+            alarm_sun_options:
+              name: "Устройства"
+              default: []
+              selector:
+                select:
+                  options:
+                    - label: Чайник
+                      value: on_kettle
+                    - label: Ночник
+                      value: on_light
+                    - label: Фраза
+                      value: on_phrase
+                    - label: Музыка
+                      value: on_music
+                  sort: false
+                  multiple: true
+                  custom_value: false
+                  mode: list
+
+    kettle_section:
+      name: Настройка чайника
+      icon: mdi:kettle-steam
+      collapsed: true
+      input:
+        kettle_switch:
+          name: Чайник
+          description: |
+            Чайник
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - water_heater
+              multiple: false
+
+        set_kettle_before_alarm:
+          name: Включать чайник до будильника за
+          default: "00:10:00"
+          selector:
+            time: {}
+
+        set_temperature_boil:
+          name: Температура кипячения
+          description: Температура, ниже которой включается режим кипячения
+          default: 40
+          selector:
+            number:
+              min: 1
+              max: 100
+              step: 1
+              mode: slider
+              unit_of_measurement: "°C"
+
+        set_temperature_heat:
+          name: Температура подогрева
+          default: 80
+          selector:
+            number:
+              min: 1
+              max: 100
+              step: 1
+              mode: slider
+              unit_of_measurement: "°C"
+
+    light_section:
+      name: Настройка ночника
+      icon: mdi:lamp
+      collapsed: true
+      input:
+        light_switch:
+          name: Ночник
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - light
+              multiple: true
+
+        set_light_before_alarm:
+          name: Включать ночник до будильника за
+          default: "00:00:00"
+          selector:
+            time: {}
+
+        set_sunset:
+          name: Включать после рассвета?
+          default: false
+          selector:
+            boolean:
+
+        sun_sensor:
+          name: Датчик солнца
+          default: sun.sun
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - sun
+              multiple: false
+
+    media_section:
+      name: Настройка медиаплейера
+      description: Алиса
+      icon: mdi:music
+      collapsed: true
+      input:
+        media_player:
+          name: Медиаплейер
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - media_player
+              multiple: false
+
+        set_phrase:
+          name: Фраза
+          default: "Вставай, соня. Пора творить!"
+          selector:
+            text:
+
+        set_command_base:
+          name: Фраза-обращение к колонке
+          default: "Алиса, включи"
+          selector:
+            text:
+
+        set_command_music:
+          name: Текстовая фраза для включения музыки
+          description: |
+            Фраза будет добавлена после обращения.
+            Можно использовать несколько фраз, перечисленных через точку с запятой.
+          default: "пение птиц; шум моря"
+          selector:
+            text:
+
+        set_random_command:
+          name: Случайный выбор фраз
+          default: true
+          selector:
+            boolean:
+
+        set_music_before_alarm:
+          name: Включать музыку до будильника за
+          default: "00:00:00"
+          selector:
+            time: {}
+
+    person_section:
+      name: Настройка персоны
+      icon: mdi:account
+      collapsed: true
+      input:
+        person_home:
+          name: Учитывать положение персоны
+          default: false
+          selector:
+            boolean:
+
+        person_sensor:
+          name: Персона
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - person
+              multiple: true
+
+    events_section:
+      name: Настройка событий
+      icon: mdi:bell-ring-outline
+      collapsed: true
+      input:
+        event_enabled:
+          name: Генерировать событие при срабатывании
+          description: |
+            Другие автоматизации смогут подписаться на
+            событие <strong>blueprint_alarm</strong>
+            с действием <strong>triggered</strong>.
+             + <small>Событие генерируется каждый день в заданное время,
+             даже если будильник на этот день выключен.
+             Поле <em>alarm_active</em> покажет, активен ли будильник.</small>
+          default: false
+          selector:
+            boolean:
+
+trigger_variables:
+  alarm_schedule:
+    mon: { time: !input alarm_mon, enabled: !input alarm_mon_enabled, options: !input alarm_mon_options }
+    tue: { time: !input alarm_tue, enabled: !input alarm_tue_enabled, options: !input alarm_tue_options }
+    wed: { time: !input alarm_wed, enabled: !input alarm_wed_enabled, options: !input alarm_wed_options }
+    thu: { time: !input alarm_thu, enabled: !input alarm_thu_enabled, options: !input alarm_thu_options }
+    fri: { time: !input alarm_fri, enabled: !input alarm_fri_enabled, options: !input alarm_fri_options }
+    sat: { time: !input alarm_sat, enabled: !input alarm_sat_enabled, options: !input alarm_sat_options }
+    sun: { time: !input alarm_sun, enabled: !input alarm_sun_enabled, options: !input alarm_sun_options }
+
+  today_key: "{{ now().strftime('%a') | lower }}"
+  today_schedule: "{{ alarm_schedule[today_key] }}"
+  alarm_time: "{{ today_schedule.time }}"
+  alarm_active: "{{ today_schedule.enabled }}"
+  alarm_options: "{{ today_schedule.options }}"
+
+  kettle_switch: !input kettle_switch
+  light_switch: !input light_switch
+  media_player: !input media_player
+  person_sensor: !input person_sensor
+
+  set_kettle_before_alarm: !input set_kettle_before_alarm
+  set_light_before_alarm: !input set_light_before_alarm
+  set_music_before_alarm: !input set_music_before_alarm
+
+  set_temperature_boil: !input set_temperature_boil
+  set_temperature_heat: !input set_temperature_heat
+
+  person_home: !input person_home
+  event_enabled: !input event_enabled
+
+  person_home_enabled: "{{ person_home }}"
+  kettle_enabled: "{{ alarm_active and 'on_kettle' in alarm_options }}"
+  light_enabled: "{{ alarm_active and 'on_light' in alarm_options }}"
+  phrase_enabled: "{{ alarm_active and 'on_phrase' in alarm_options }}"
+  music_enabled: "{{ alarm_active and 'on_music' in alarm_options }}"
+
+  invalid_states:
+    - ''
+    - 'unavailable'
+    - 'unknown'
+    - 'none'
+    - 'None'
+    - 'null'
+
+variables:
+  set_light_before_alarm: !input set_light_before_alarm
+  set_command_base: !input set_command_base
+  set_command_music: !input set_command_music
+  set_random_command: !input set_random_command
+
+  light_before_alarm_in_seconds: |
+    {{ set_light_before_alarm.split(':')[0] | int * 3600 + set_light_before_alarm.split(':')[1] | int * 60 + set_light_before_alarm.split(':')[2] | int }}
+  light_delay_seconds: "{{ ((light_before_alarm_in_seconds | int / 254) | round(3) | string).split('.')[0] | int }}"
+  light_delay_milliseconds: "{{ ((light_before_alarm_in_seconds | int / 254) | round(3) | string).split('.')[1] | int }}"
+
+  commands_music: |
+    {{ (set_command_music | regex_replace('\\s+', ' ', true) | replace('; ', ';')).split(';') | list }}
+  commands_music_count: "{{ commands_music | count }}"
+  command_music: >
+    {% if set_random_command %}
+      {{ set_command_base ~ ' ' ~ commands_music[range(0, commands_music_count) | random] }}
+    {% else %}
+      {{ set_command_base ~ ' ' ~ commands_music[0] }}
+    {% endif %}
+
+triggers:
+  - trigger: template
+    id: alarm_triggered
+    value_template: >-
+      {{ as_timestamp(now()) | timestamp_custom("%H:%M") ==
+         as_timestamp(today_at(alarm_time)) | timestamp_custom('%H:%M', false) }}
+    enabled: "{{ event_enabled }}"
+
+  - trigger: template
+    id: kettle_on
+    value_template: >-
+      {{ as_timestamp(now()) | timestamp_custom("%H:%M") ==
+         (as_timestamp(today_at(alarm_time)) - as_timestamp(today_at(set_kettle_before_alarm))) | timestamp_custom('%H:%M', false) }}
+    enabled: "{{ kettle_enabled }}"
+
+  - trigger: template
+    id: light_on
+    value_template: >-
+      {{ as_timestamp(now()) | timestamp_custom("%H:%M") ==
+         (as_timestamp(today_at(alarm_time)) - as_timestamp(today_at(set_light_before_alarm))) | timestamp_custom('%H:%M', false) }}
+    enabled: "{{ light_enabled }}"
+
+  - trigger: template
+    id: music_on
+    value_template: >-
+      {{ as_timestamp(now()) | timestamp_custom("%H:%M") ==
+         (as_timestamp(today_at(alarm_time)) - as_timestamp(today_at(set_music_before_alarm))) | timestamp_custom('%H:%M', false) }}
+    enabled: "{{ music_enabled }}"
+
+  - trigger: template
+    id: phrase_on
+    value_template: >-
+      {{ as_timestamp(now()) | timestamp_custom("%H:%M") ==
+         as_timestamp(today_at(alarm_time)) | timestamp_custom('%H:%M', false) }}
+    enabled: "{{ phrase_enabled }}"
+
+conditions:
+  - condition: template
+    value_template: |
+      {% set i = namespace(cnt=int(0)) %}
+      {% for person in person_sensor %}
+        {% set i.cnt = i.cnt + (1 if is_state(person,'home') else 0) | int %}
+      {% endfor %}
+      {{ true if not person_home_enabled else i.cnt > 0 }}
+
+actions:
+  - choose:
+
+      #####################################################################
+      # СОБЫТИЕ
+      #####################################################################
+
+      - conditions:
+          - condition: trigger
+            id:
+              - alarm_triggered
+        sequence:
+          - event: blueprint_alarm
+            event_data:
+              action: triggered
+              alarm_time: "{{ alarm_time }}"
+              alarm_active: "{{ alarm_active }}"
+              alarm_options: "{{ alarm_options }}"
+              day: "{{ today_key }}"
+              source_entity_id: "{{ this.entity_id }}"
+              source_name: "{{ this.attributes.friendly_name }}"
+
+      #####################################################################
+      # ЧАЙНИК
+      #####################################################################
+
+      - conditions:
+          - condition: trigger
+            id:
+              - kettle_on
+        sequence:
+          - action: water_heater.set_temperature
+            target:
+              entity_id: !input kettle_switch
+            data:
+              temperature: "{{ set_temperature_heat | int }}"
+          - action: water_heater.set_operation_mode
+            target:
+              entity_id: !input kettle_switch
+            data:
+              operation_mode: |
+                {{ 'boil_heat' if (state_attr(kettle_switch,'current_temperature') | int < set_temperature_boil | int) else 'heat' }}
+
+      #####################################################################
+      # НОЧНИК
+      #####################################################################
+
+      - conditions:
+          - condition: trigger
+            id:
+              - light_on
+        sequence:
+          - repeat:
+              count: 254
+              sequence:
+                - action: light.turn_on
+                  target:
+                    entity_id: !input light_switch
+                  data:
+                    brightness: "{{ 254 / (254 - 1) * (repeat.index - 1) + 1 }}"
+                    color_temp_kelvin: 2000
+                  continue_on_error: true
+                - delay:
+                    seconds: "{{ light_delay_seconds }}"
+                    milliseconds: "{{ light_delay_milliseconds }}"
+
+      #####################################################################
+      # МУЗЫКА
+      #####################################################################
+
+      - conditions:
+          - condition: trigger
+            id:
+              - music_on
+        sequence:
+          - delay:
+              seconds: 1
+          - action: media_player.play_media
+            entity_id: !input media_player
+            data:
+              media_content_id: "{{ command_music }}"
+              media_content_type: command
+              extra:
+                volume_level: 0.3
+
+      #####################################################################
+      # ФРАЗА
+      #####################################################################
+
+      - conditions:
+          - condition: trigger
+            id:
+              - phrase_on
+        sequence:
+          - delay:
+              seconds: 1
+          - action: media_player.play_media
+            entity_id: !input media_player
+            data:
+              media_content_id: !input set_phrase
+              media_content_type: text
+              extra:
+                volume_level: 0.8
+
+mode: parallel
+max: 5
