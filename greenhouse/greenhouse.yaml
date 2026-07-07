@@ -2,7 +2,7 @@ blueprint:
   name: Управление поливом теплицы
   description: |
     ### Управление поливом теплицы.
-    <small>Версия 2026.07.01, сборка 8</small>
+    <small>Версия 2026.07.01 Сборка 8</small>
 
     <a href="https://raw.githubusercontent.com/S0ft0r/ha-blueprints/main/docs/greenhouse/readme.md">Описание</a>
     <a href="https://raw.githubusercontent.com/S0ft0r/ha-blueprints/main/docs/greenhouse/changelog.md">История изменений</a>
@@ -35,7 +35,7 @@ blueprint:
     pump_off_auto:
       name: Таймер автоматического отключения
       description: |
-        <strong>Обязательный параметр</strong> - вспомогательный элемент [timer](https://my.home-assistant.io/redirect/helpers/)
+        <strong>Обязательный параметр</strong> - вспомогательный элемент [timer](https://www.home-assistant.io/integrations/timer/)
         <small>* для отсчета автоматического отключения электромагнитного клапана / защита от перегрева (перелива)</small>
       selector:
         entity:
@@ -852,7 +852,7 @@ blueprint:
           default: "00:30:00"
           selector:
             time: {}
-            
+
     ####################################################################
     # Секция: Логирование ошибок
     ####################################################################
@@ -923,7 +923,7 @@ trigger_variables:
   set_rain_number_forecast_hours: !input set_rain_number_forecast_hours
 
   set_person_check: !input set_person_check
-  
+
   set_check_devices_enable: !input set_check_devices_enable
   set_stale_time: !input set_stale_time
 
