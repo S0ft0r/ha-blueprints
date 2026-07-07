@@ -10,6 +10,14 @@ blueprint:
   author: Softor
 
   input:
+    light_switch:
+      name: Ночник
+      selector:
+        entity:
+          filter:
+            - domain:
+                - light
+          multiple: true
 
     kettle_switch:
       name: Чайник
@@ -23,15 +31,15 @@ blueprint:
                 - water_heater
           multiple: false
 
-    light_switch:
-      name: Ночник
+    media_player:
+      name: Медиаплейер
+      default: []
       selector:
         entity:
           filter:
             - domain:
-                - light
-          multiple: true
-
+                - media_player
+          multiple: false
 
     mon_section:
       name: Понедельник
@@ -348,16 +356,6 @@ blueprint:
       icon: mdi:music
       collapsed: true
       input:
-        media_player:
-          name: Медиаплейер
-          default: []
-          selector:
-            entity:
-              filter:
-                - domain:
-                    - media_player
-              multiple: false
-
         set_phrase:
           name: Фраза
           default: "Вставай, соня. Пора творить!"
@@ -421,7 +419,7 @@ blueprint:
           name: Генерировать событие при срабатывании
           description: |
             Другие автоматизации смогут подписаться на
-            событие <strong>blueprint_alarm</strong>
+            событие <strong>custom_event_alarm</strong>
             с действием <strong>triggered</strong>.
              + <small>Событие генерируется каждый день в заданное время,
              даже если будильник на этот день выключен.
@@ -472,8 +470,6 @@ trigger_variables:
     - 'unavailable'
     - 'unknown'
     - 'none'
-    - 'None'
-    - 'null'
 
 variables:
   set_light_before_alarm: !input set_light_before_alarm
@@ -496,12 +492,13 @@ variables:
       {{ set_command_base ~ ' ' ~ commands_music[0] }}
     {% endif %}
 
+  
+
 triggers:
   - trigger: template
     id: alarm_triggered
     value_template: >-
-      {{ as_timestamp(now()) | timestamp_custom("%H:%M") ==
-         as_timestamp(today_at(alarm_time)) | timestamp_custom('%H:%M', false) }}
+      {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(alarm_time)) | timestamp_custom('%H:%M', false) }}
     enabled: "{{ event_enabled }}"
 
   - trigger: template
@@ -553,7 +550,7 @@ actions:
             id:
               - alarm_triggered
         sequence:
-          - event: blueprint_alarm
+          - event: custom_event_alarm
             event_data:
               action: triggered
               alarm_time: "{{ alarm_time }}"
