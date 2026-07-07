@@ -1641,9 +1641,9 @@ actions:
           - condition: trigger
             id:
               - time_before_morning_trigger
-          - condition: template
-            value_template: |
-              {{ is_waterpump_defined and states(waterpump_switch) not in invalid_states }}
+          # - condition: template
+          #   value_template: |
+          #     {{ is_waterpump_defined and states(waterpump_switch) not in invalid_states }}
           - condition: template
             value_template: |
               {{ true if ('every_over_day_morning' not in set_working_day_morning) else ((now().timestamp() / 86400) | int % 2 == 0) }}
@@ -1704,9 +1704,9 @@ actions:
           - condition: trigger
             id:
               - time_before_evening_trigger
-          - condition: template
-            value_template: |
-              {{ is_waterpump_defined and states(waterpump_switch) not in invalid_states }}
+          # - condition: template
+          #   value_template: |
+          #     {{ is_waterpump_defined and states(waterpump_switch) not in invalid_states }}
           - condition: template
             value_template: |
               {{ true if ('every_over_day_evening' not in set_working_day_evening) else ((now().timestamp() / 86400) | int % 2 == 0) }}
@@ -1776,9 +1776,9 @@ actions:
           - condition: template
             value_template: |
               {{ true if ('select_morning' not in set_working_day_morning) else selected_days_morning }}
-          - condition: template
-            value_template: |
-              {{ not is_waterpump_defined or states(waterpump_switch) in open_states }}
+          # - condition: template
+          #   value_template: |
+          #     {{ not is_waterpump_defined or states(waterpump_switch) in open_states }}
           - condition: template
             value_template: |
               {{ watering_morning_enable }}
@@ -1824,9 +1824,9 @@ actions:
           - condition: template
             value_template: |
               {{ true if ('select_evening' not in set_working_day_evening) else selected_days_evening }}
-          - condition: template
-            value_template: |
-              {{ not is_waterpump_defined or states(waterpump_switch) in open_states }}
+          # - condition: template
+          #   value_template: |
+          #     {{ not is_waterpump_defined or states(waterpump_switch) in open_states }}
           - condition: template
             value_template: |
               {{ watering_evening_enable }}
@@ -1981,7 +1981,7 @@ actions:
                 {% endif %}
 
               time_work_current: "{{ set_soil_watering_duration }}"
-              current_watervalve: "{{ triggered_valve }}"
+              current_watervalve: "{{ [triggered_valve] if triggered_valve != '' else [] }}"
           - *check_devices
 
           - if:
