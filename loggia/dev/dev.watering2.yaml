@@ -441,7 +441,8 @@ actions:
         sequence:
           - service: homeassistant.turn_on
             metadata: {}            
-            target: !input waterpump
+            target: 
+              entity_id: !input waterpump
           - delay:
               seconds: !input set_time_work_morning
           - service: homeassistant.turn_off
