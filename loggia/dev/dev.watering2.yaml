@@ -60,66 +60,6 @@ blueprint:
     #           sort: false
     #           custom_value: false
 
-    plant_section:
-      name: Настройки управления по показаниям датчика почвы
-      description: |
-        Настройки датчика почвы.
-      icon: mdi:flower-tulip-outline
-      input:
-        plant_enabled:
-          name: Включать систему орошения по показаниям датчика
-          default: false
-          selector:
-            boolean: {}
-        set_time_work_plant:
-          name: Включать на
-          description: Время, на которое включается система орошения 
-          default: 1
-          selector:
-            number:
-              min: 1
-              max: 240
-              step: 1
-              mode: box
-              unit_of_measurement: "сек"
-        set_soil_moisture_min:
-          name: Нижний предел влажности
-          description: |
-            Включение системы орошения при понижении предела влажности почвы.
-            <small>* При включенной опции <em>Включать по показаниям сенсора почвы</em></small> 
-          default: 1
-          selector:
-            number:
-              min: 1
-              max: 100
-              step: 1
-              mode: slider
-              unit_of_measurement: "%"
-        set_soil_moisture_max:
-          name: Верхний предел влажности
-          description: При привышении предела влажности почвы система орошения включаться не будет.
-          default: 1
-          selector:
-            number:
-              min: 1
-              max: 100
-              step: 1
-              mode: slider
-              unit_of_measurement: "%"
-        set_debounce_pause:
-          name: Включить защиту от перелива
-          default: false
-          selector:
-            boolean: {}
-        set_debounce_time:
-          name: Пауза перед запуском
-          description: > 
-            Пауза перед следующем включением автоматизации. Используется только в режиме включения по показаниям датчика почвы 
-            <small>* Для защиты от перелива при медленном изменении показаний датчика почвы
-          default: "00:10:00"
-          selector:
-            time: {}
-
     morning_section:
       name: Настройки системы для работы утром
       description: |
@@ -149,7 +89,7 @@ blueprint:
               unit_of_measurement: "сек"
         set_mode_morning:
           name: Режим работы системы
-          default: mode_2_morning
+          default: mode_1_morning
           selector:
             select:
               options:
@@ -327,6 +267,67 @@ blueprint:
               multiple: true
               custom_value: false
               mode: list
+
+    plant_section:
+      name: Настройки управления по показаниям датчика почвы
+      description: |
+        Настройки датчика почвы.
+      icon: mdi:flower-tulip-outline
+      collapsed: true
+      input:
+        plant_enabled:
+          name: Включать систему орошения по показаниям датчика
+          default: false
+          selector:
+            boolean: {}
+        set_time_work_plant:
+          name: Включать на
+          description: Время, на которое включается система орошения 
+          default: 1
+          selector:
+            number:
+              min: 1
+              max: 240
+              step: 1
+              mode: box
+              unit_of_measurement: "сек"
+        set_soil_moisture_min:
+          name: Нижний предел влажности
+          description: |
+            Включение системы орошения при понижении предела влажности почвы.
+            <small>* При включенной опции <em>Включать по показаниям сенсора почвы</em></small> 
+          default: 1
+          selector:
+            number:
+              min: 1
+              max: 100
+              step: 1
+              mode: slider
+              unit_of_measurement: "%"
+        set_soil_moisture_max:
+          name: Верхний предел влажности
+          description: При привышении предела влажности почвы система орошения включаться не будет.
+          default: 1
+          selector:
+            number:
+              min: 1
+              max: 100
+              step: 1
+              mode: slider
+              unit_of_measurement: "%"
+        set_debounce_pause:
+          name: Включить защиту от перелива
+          default: false
+          selector:
+            boolean: {}
+        set_debounce_time:
+          name: Пауза перед запуском
+          description: > 
+            Пауза перед следующем включением автоматизации. Используется только в режиме включения по показаниям датчика почвы 
+            <small>* Для защиты от перелива при медленном изменении показаний датчика почвы
+          default: "00:10:00"
+          selector:
+            time: {}
       
 trigger_variables:
   waterpump: !input waterpump
