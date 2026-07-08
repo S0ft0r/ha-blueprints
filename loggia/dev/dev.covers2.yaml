@@ -428,14 +428,9 @@ blueprint:
           description: |
             Величина задержки при скачках изменений освещенности 
              + <small>Для того, чтобы отсечь очень частые пограничные изменения освещенности</small>
-          default: 60
+          default: "00:02:00"
           selector:
-            number:
-              min: 0
-              max: 600
-              step: 10
-              mode: slider
-              unit_of_measurement: "секунд"
+            time: {}
 
         repeat_for:
           name: Количество повторов
