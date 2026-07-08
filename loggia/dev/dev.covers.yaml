@@ -705,50 +705,50 @@ triggers:
 actions:
 
   - variables:
-    open_blinds: &open_blinds
-      sequence:
-        - repeat:
-            count: !input repeat_for
+      open_blinds: &open_blinds
+        sequence:
+          - repeat:
+              count: !input repeat_for
 
-            sequence:
-              - action: cover.set_cover_position
-                target:
-                  entity_id: "{{ blinds_target | default(blinds) }}"
-                data:
-                  position: >-
-                    {% set position = (up_limit | int(100)) - (repeat_for | int(1) - repeat.index) %}
-                    {{ [0, [position, 100] | min] | max }}
+              sequence:
+                - action: cover.set_cover_position
+                  target:
+                    entity_id: "{{ blinds_target | default(blinds) }}"
+                  data:
+                    position: >-
+                      {% set position = (up_limit | int(100)) - (repeat_for | int(1) - repeat.index) %}
+                      {{ [0, [position, 100] | min] | max }}
 
-              - delay:
-                  seconds: "{{ delay_for_repeat | int(1) }}"
+                - delay:
+                    seconds: "{{ delay_for_repeat | int(1) }}"
 
-    close_blinds: &close_blinds
-      sequence:
-        - repeat:
-            count: !input repeat_for
+      close_blinds: &close_blinds
+        sequence:
+          - repeat:
+              count: !input repeat_for
 
-            sequence:
-              - action: cover.set_cover_position
-                target:
-                  entity_id: "{{ blinds_target | default(blinds) }}"
-                data:
-                  position: >-
-                    {% set position = (down_limit | int(0)) + (repeat_for | int(1) - repeat.index) %}
-                    {{ [0, [position, 100] | min] | max }}
+              sequence:
+                - action: cover.set_cover_position
+                  target:
+                    entity_id: "{{ blinds_target | default(blinds) }}"
+                  data:
+                    position: >-
+                      {% set position = (down_limit | int(0)) + (repeat_for | int(1) - repeat.index) %}
+                      {{ [0, [position, 100] | min] | max }}
 
-              - delay:
-                  seconds: "{{ delay_for_repeat | int(1) }}"
+                - delay:
+                    seconds: "{{ delay_for_repeat | int(1) }}"
 
-    stop_blinds: &stop_blinds
-      sequence:
-        - repeat:
-            count: !input repeat_for
+      stop_blinds: &stop_blinds
+        sequence:
+          - repeat:
+              count: !input repeat_for
 
-            sequence:
-              - action: cover.stop_cover
-                target:
-                  entity_id: "{{ blinds_target | default(blinds) }}"
-                data: {}
+              sequence:
+                - action: cover.stop_cover
+                  target:
+                    entity_id: "{{ blinds_target | default(blinds) }}"
+                  data: {}
 
   - choose:
 
