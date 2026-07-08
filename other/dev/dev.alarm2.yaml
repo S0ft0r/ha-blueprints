@@ -494,11 +494,6 @@ variables:
   alarm_active: "{{ today_schedule.enabled }}"
   alarm_options: "{{ today_schedule.options }}"
 
-  kettle_enabled: "{{ alarm_active and 'on_kettle' in alarm_options }}"
-  light_enabled: "{{ alarm_active and 'on_light' in alarm_options }}"
-  phrase_enabled: "{{ alarm_active and 'on_phrase' in alarm_options }}"
-  music_enabled: "{{ alarm_active and 'on_music' in alarm_options }}"
-
   person_in_home: |
     {% set i = namespace(cnt=int(0)) %}
     {% for person in person_sensor %}
@@ -583,9 +578,14 @@ actions:
             id:
               - kettle_on
           - condition: template
-            value_template: "{{ kettle_enabled }}"
+            value_template: "{{ alarm_active and 'on_kettle' in alarm_options }}"
           - condition: template
-            value_template: "{{ person_in_home }}"
+            value_template: |
+              {% set i = namespace(cnt=int(0)) %}
+              {% for person in person_sensor %}
+                {% set i.cnt = i.cnt + (1 if is_state(person,'home') else 0) | int %}
+              {% endfor %}
+              {{ true if not set_person_check else i.cnt > 0 }}
         sequence:
           - action: water_heater.set_temperature
             target:
@@ -609,11 +609,16 @@ actions:
               - light_on
           - condition: template
             value_template: "{{ alarm_active and 'on_light' in alarm_options }}"
-          # - condition: template
-          #   value_template: "{{ person_in_home }}"
-          # - condition: template
-          #   value_template: |
-          #         {{ set_sunset or states(sun_sensor) in invalid_states or states(sun_sensor) == 'below_horizon' }}
+          - condition: template
+            value_template: |
+              {% set i = namespace(cnt=int(0)) %}
+              {% for person in person_sensor %}
+                {% set i.cnt = i.cnt + (1 if is_state(person,'home') else 0) | int %}
+              {% endfor %}
+              {{ true if not set_person_check else i.cnt > 0 }}
+          - condition: template
+            value_template: |
+                  {{ true if not set_sunset else (states(sun_sensor) not in invalid_states and states(sun_sensor) == 'below_horizon') }}
         sequence:
           - repeat:
               count: 254
@@ -638,9 +643,14 @@ actions:
             id:
               - music_on
           - condition: template
-            value_template: "{{ music_enabled }}"
+            value_template: "{{ alarm_active and 'on_music' in alarm_options }}"
           - condition: template
-            value_template: "{{ person_in_home }}"
+            value_template: |
+              {% set i = namespace(cnt=int(0)) %}
+              {% for person in person_sensor %}
+                {% set i.cnt = i.cnt + (1 if is_state(person,'home') else 0) | int %}
+              {% endfor %}
+              {{ true if not set_person_check else i.cnt > 0 }}
         sequence:
           - delay:
               seconds: 1
@@ -661,9 +671,14 @@ actions:
             id:
               - phrase_on
           - condition: template
-            value_template: "{{ phrase_enabled }}"
+            value_template: "{{ alarm_active and 'on_phrase' in alarm_options }}"
           - condition: template
-            value_template: "{{ person_in_home }}"
+            value_template: |
+              {% set i = namespace(cnt=int(0)) %}
+              {% for person in person_sensor %}
+                {% set i.cnt = i.cnt + (1 if is_state(person,'home') else 0) | int %}
+              {% endfor %}
+              {{ true if not set_person_check else i.cnt > 0 }}
         sequence:
           - delay:
               seconds: 1
