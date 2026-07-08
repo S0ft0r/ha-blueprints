@@ -1,0 +1,1052 @@
+blueprint:
+  name: Управление рулонными шторами
+  description: |
+    ### Управление шторами по положению солнца.
+    <small>Версия 2026.05.01 Сборка 5</small> 
+    <small><a href="https://4pda.to/forum/index.php?showtopic=871505&view=findpost&p=143572987">Специально для 4PDA</a></small>
+    **Особенности:**
+     + Отсрочка открытия штор до определенного времени 
+     + Время включения определяется по кастомеому событию
+     + Установка времени закрытия штор в определенное время до заката
+     + Управление открытием/закрытием штор для защиты от попадания прямых лучей солнца
+     + Учитывается прогноз погоды и/или датчик освещенности 
+     + Установка лимита открытия/закрытия штор
+     + Защита от ошибок открытия/закрытия штор 
+     + Управление работы штор с устройств со встроенным слайдером
+     + Использование внешних сенсоров для некоторых параметров
+     + Добавлена установка паузы для защиты от часто срабатывающего датчика освещения (например, Xiaomi BLE)
+    **Изменения**
+     + Обновлен интерфейс настроек проекта
+    <small><a href="https://github.com/S0ft0r/ha-blueprints/blob/main/as-is.md">Отказ от ответственности</a></small>
+  domain: automation
+  source_url: https://github.com/S0ft0r/ha-blueprints/blob/main/loggia/dev/dev.covers.yaml
+  author: Softor
+
+  input:
+    blinds:
+      name: Шторы
+      description: Какими приводами штор необходимо управлять?
+      selector:
+        entity:
+          filter:
+            - domain:
+                - cover
+          reorder: false
+          multiple: true
+
+    sun_sensor:
+      name: Датчик солнца
+      description: Датчик, по которому определяется положение солнца
+      default: "sun.sun"
+      selector:
+        entity:
+          filter:
+            - domain:
+                - sun
+          multiple: false
+
+    automation_section:
+      name: Настройки автоматизации
+      icon: mdi:window-shutter-cog
+      collapsed: false
+      input:
+        automation_extra:
+          name: Режимы работы 
+          description: Режимы работы автоматизации
+          default: []
+          selector:
+            select:
+              options:
+                - label: Защита от прямых лучей солнца
+                  value: extra_sun_protect
+                - label: Учитывать освещенность
+                  value: extra_illuminance
+                - label: Учитывать прогноз погоды
+                  value: extra_forecast
+                - label: Управление по слайдеру
+                  value: extra_slider
+                - label: Ограничение по времени открытия
+                  value: extra_opening_until
+                - label: Ограничение по времени закрытия
+                  value: extra_close_until
+              sort: false
+              multiple: true
+              custom_value: false
+              mode: list
+
+        illuminance_sensor:
+          name: Сенсор освещенности
+          description: |
+            Сенсор, определяющий уровень освещенности.
+             + <small>Параметр обязателен только при выборе параметра <em>"Учитывать освещенность"</em> и отсутствии сенсора погоды. Если ничего не выбрано, то дополнительный параметр учитываться не будет.</small>
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - sensor
+                  device_class: 
+                    - illuminance
+
+        forecast_sensor:
+          name: Прогнозный сенсор
+          description: |
+            Сенсор, определяющий прогноз погоды.
+             + <small>Параметр обязателен только при выборе параметра <em>"Учитывать прогноз погоды"</em>. Если ничего не выбрано, то дополнительный параметр учитываться не будет.</small>
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - weather
+              multiple: false
+
+        slider_device:
+          name: Выключатель/слайдер
+          description: |
+            Выключатель типа <strong>Aqara Z1 Pro</strong> со встроенным слайдером. Может быть подключен через MQTT или ZHA.
+             + <small>Параметр обязателен только при выборе параметра <em>"Управление по слайдеру"</em>. Если ничего не выбрано, то дополнительный параметр учитываться не будет.</small>
+          default: []
+          selector:
+            device:
+              entity:
+                - integration: mqtt
+                - integration: zha
+              multiple: false
+
+    time_section:
+      name: Настройки ограничения по времени
+      description: |
+        Устанавливается время открытия/закрытия штор.
+      icon: mdi:clock-time-eight-outline
+      input:
+        set_custom_event_enabled:
+          name: Открыть по событию будильника
+          default: true
+          selector: 
+            boolean: {}
+
+        set_custom_event_type:
+          name: Событие будильника
+          default: "custom_event_alarm"
+          selector: 
+            text: {}
+        
+        set_event_duration:
+          name: Отложить открытие штор на
+          default: "00:10:00"
+          selector:
+            time: {}
+
+        # set_up_time_workday:
+        #   name: Открыть шторы в будни не ранее
+        #   default: "06:10:00"
+        #   selector:
+        #     time: {}
+
+        set_up_time:
+          name: Открыть шторы не ранее
+          description: "Используется, если отключена опция <em>Открыть по событию будильника</em>"
+          default: "07:00:00"
+          selector:
+            time: {}
+
+        set_down_time:
+          name: Закрыть шторы на закате, но не позднее
+          default: "21:00:00"
+          selector:
+            time: {}
+
+    sun_protect_section:
+      name: Настройка защиты от попадания прямых лучей
+      icon: mdi:sun-wireless-outline
+      input:
+        blinds_for_protect:
+          name: Шторы
+          description: |
+            Какими шторами необходимо управлять для защиты от прямых лучей солнца?
+             + <small>Параметр не обязателен. Если ничего не выбрано, то используются все шторы.</small>
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - cover
+              reorder: false
+              multiple: true
+
+        sun_azimuth_config:
+          name: Азимут солнца
+          description: |
+            Угол между направлением на север и направлением на солнце.
+            + <small>Для автоматического закрытия штор при включенной опции защиты от прямых лучей солнца.</small>
+          default:
+            active_choice: угол
+            угол: 0
+            сенсор: []            
+          selector:
+            choose:
+              choices:
+                'угол':
+                  selector:
+                    number:
+                      min: 0
+                      max: 359
+                      step: 1
+                      unit_of_measurement: "°"
+                      mode: slider
+                'сенсор':
+                  selector:
+                    entity:
+                      filter:
+                        - domain: 
+                            - input_number
+                      multiple: false
+
+        # set_sun_azimuth:
+        #   name: Азимут солнца
+        #   description: |
+        #     Угол между направлением на север и направлением на солнце. 
+        #      + <small>Для автоматического закрытия штор при включенной опции защиты от прямых лучей солнца.</small>
+        #   default: 0
+        #   selector:
+        #     number:
+        #       min: 0
+        #       max: 359
+        #       step: 1
+        #       unit_of_measurement: "°"
+        #       mode: slider
+
+        # set_sun_azimuth_sensor:
+        #   name: Сенсор азимута солнца
+        #   description: |
+        #     Сенсор, определяющий азимут солнца для выключения подсветки.
+        #      + <small>При выборе сенсора, азимут солнца, заданный в проекте, учитываться не будет.</small>
+        #   default: []
+        #   selector:
+        #     entity:
+        #       filter:
+        #         - domain: 
+        #             - input_number
+        #       multiple: false
+
+        sun_elevation_config:
+          name: Высота солнца
+          description: |
+            Угол возвышения солнца над горизонтом.
+            + <small>Для автоматического открытия штор при включенной защите от прямых лучей солнца.</small>
+          default:
+            active_choice: угол
+            угол: 0
+            сенсор: []            
+          selector:
+            choose:
+              choices:
+                'угол':
+                  selector:
+                    number:
+                      min: 0
+                      max: 45
+                      step: 1
+                      unit_of_measurement: "°"
+                      mode: slider
+                'сенсор':
+                  selector:
+                    entity:
+                      filter:
+                        - domain: 
+                            - input_number
+                      multiple: false
+
+        # set_sun_elevation:
+        #   name: Высота солнца
+        #   description: |
+        #     Угол возвышения солнца над горизонтом. 
+        #      + <small>Для автоматического открытия штор при включенной защите от прямых лучей солнца.</small>
+        #   default: 0
+        #   selector:
+        #     number:
+        #       min: 0
+        #       max: 45
+        #       step: 1
+        #       unit_of_measurement: "°"
+        #       mode: slider
+
+        # set_sun_elevation_sensor:
+        #   name: Сенсор высоты солнца
+        #   description: |
+        #     Сенсор, определяющий высоту солнца для открытия штор.
+        #      + <small>При выборе сенсора, высота солнца, заданная в проекте, учитываться не будет.</small>
+        #   default: []
+        #   selector:
+        #     entity:
+        #       filter:
+        #         - domain: 
+        #             - input_number
+        #       multiple: false
+
+    options_section:
+      name: "Дополнительные настройки"
+      icon: mdi:cog
+      input:
+        # set_up_limit:
+        #   name: Верхний предел
+        #   description: |
+        #     Верхний предел при открытии штор.
+        #      + <small>Если нет нужды открывать шторы до конца.</small>
+        #   default: 99
+        #   selector:
+        #     number:
+        #       min: 0
+        #       max: 100
+        #       step: 1
+        #       unit_of_measurement: "%"
+        #       mode: slider
+
+        # set_up_limit_sensor:
+        #   name: Сенсор верхнего предела
+        #   description: |
+        #     Сенсор, определяющий нижний предел при закрытии штор.
+        #      + <small>При выборе сенсора, нижний предел, заданная в проекте, учитываться не будет.</small>
+        #   default: []
+        #   selector:
+        #     entity:
+        #       filter:
+        #         - domain: 
+        #             - input_number
+        #       multiple: false
+
+        up_limit_config:
+          name: Верхний предел
+          description: |
+            Верхний предел при открытии штор.
+            + <small>Если нет нужды открывать шторы до конца.</small>
+          default:
+            active_choice: процент
+            процент: 100
+            сенсор: []            
+          selector:
+            choose:
+              choices:
+                'процент':
+                  selector:
+                    number:
+                      min: 0
+                      max: 100
+                      step: 1
+                      unit_of_measurement: "%"
+                      mode: slider
+                'сенсор':
+                  selector:
+                    entity:
+                      filter:
+                        - domain: 
+                            - input_number
+                      multiple: false
+
+        down_limit_config:
+          name: Нижний предел
+          description: |
+            Нижний предел при закрытии штор.
+            + <small>Если нет нужды закрывать шторы до конца.</small>
+          default:
+            active_choice: процент
+            процент: 0
+            сенсор: []            
+          selector:
+            choose:
+              choices:
+                'процент':
+                  selector:
+                    number:
+                      min: 0
+                      max: 100
+                      step: 1
+                      unit_of_measurement: "%"
+                      mode: slider
+                'сенсор':
+                  selector:
+                    entity:
+                      filter:
+                        - domain: 
+                            - input_number
+                      multiple: false
+
+        forecasts:
+          name: Прогноз погоды
+          description: |
+            Прогноз погоды, при котором будет активна защита от попадания прямых лучей
+          default:
+            - sunny
+            - partlycloudy
+          selector:
+            select:
+              options:
+                - label: Ясно
+                  value: sunny
+                - label: Переменная облачность
+                  value: partlycloudy
+                - label: Облачно
+                  value: cloudy
+                - label: Туман
+                  value: fog
+              sort: false
+              multiple: true
+              custom_value: false
+              mode: list
+
+        set_min_illuminance:
+          name: Нижний порог освещенности
+          description: |
+            Нижний порог освещенности 
+             + <small>Для открытия штор при включенной защите от попадания прямых лучей.</small>
+          default: 0
+          selector:
+            number:
+              min: 0
+              max: 100000
+              step: 100
+              mode: box
+              unit_of_measurement: "люкс"
+
+        set_max_illuminance:
+          name: Верхний порог освещенности
+          description: |
+            Верхний порог освещенности 
+             + <small>Для закрытия штор при включенной защите от попадания прямых лучей.</small>
+          default: 0
+          selector:
+            number:
+              min: 0
+              max: 100000
+              step: 100
+              mode: box
+              unit_of_measurement: "люкс"
+
+        set_illuminance_delay:
+          name: Задержка при скачках изменений освещенности
+          description: |
+            Величина задержки при скачках изменений освещенности 
+             + <small>Для того, чтобы отсечь очень частые пограничные изменения освещенности</small>
+          default: 60
+          selector:
+            number:
+              min: 0
+              max: 600
+              step: 10
+              mode: slider
+              unit_of_measurement: "секунд"
+
+        repeat_for:
+          name: Количество повторов
+          description: |
+            Для защиты от несработки открытия/закрытия штор.
+             + <small>При значении равным 1 защита отключена.</small>
+          default: 2
+          selector:
+            number:
+              min: 1
+              max: 5
+              step: 1
+              mode: box
+
+    device_section:
+      name: Настройки устройства управления шторами
+      icon: mdi:dip-switch
+      collapsed: true
+      input:
+        basic_topic:
+          name: Базовый топик
+          description: |
+            Базовый топик устройства, подключенного через MQTT. Обычно это <strong><em>zigbee2mqtt/+/action</em></strong>, где вместо знака + будет АВТОМАТИЧЕСКИ подставлено имя выключателя/слайдера.
+             + <small>При выборе устройства, подключенного через ZHA, не учитывается.
+          default: "zigbee2mqtt/+/action"
+          selector:
+            text:
+
+        payload_up:
+          name: Сообщение движениия вверх
+          description: |
+            Сообщение, публикуемое устройством для определения движения вверх.
+          default: "slider_up"
+          selector:
+            text:
+
+        payload_down:
+          name: Сообщение движения вниз
+          description: |
+            Сообщение, публикуемое устройством для определения движения вниз.
+          default: "slider_down"
+          selector:
+            text:
+
+        payload_stop:
+          name: Сообщение остановки
+          description: |
+            Сообщение, публикуемое устройством для определения остановки.
+          default: "single_wireless"
+          selector:
+            text:
+
+    # helpers_section:
+    #   name: Настройки вспомогательных сенсоров
+    #   icon: mdi:settings-helper
+    #   input:
+    #     text_rising_setting_sensor:
+    #       name: Текстовый сенсор
+    #       description: Текстовый сенсор, используемый для отображения следующего времени открытия/закрытия штор
+    #       default: []
+    #       selector:
+    #         entity:
+    #           filter:
+    #             - domain: 
+    #                 - input_text
+    #           multiple: false
+
+
+mode: queued
+max: 10
+max_exceeded: silent
+
+trigger_variables:
+  automation_extra: !input automation_extra
+
+  up_limit_config: !input up_limit_config
+  down_limit_config: !input down_limit_config
+  sun_azimuth_config: !input sun_azimuth_config
+  sun_elevation_config: !input sun_elevation_config
+
+  blinds: !input blinds
+  blinds_for_protect: !input blinds_for_protect
+
+  forecast_sensor: !input forecast_sensor
+  sun_sensor: !input sun_sensor
+  slider_device: !input slider_device
+  illuminance_sensor: !input illuminance_sensor
+#  text_rising_setting_sensor: !input text_rising_setting_sensor
+
+  forecasts: !input forecasts
+  # set_sun_azimuth: !input set_sun_azimuth
+  # set_sun_azimuth_sensor: !input set_sun_azimuth_sensor
+  # set_sun_elevation: !input set_sun_elevation
+  # set_sun_elevation_sensor: !input set_sun_elevation_sensor
+  # set_up_time_workday: !input set_up_time_workday
+  set_up_time: !input set_up_time
+  set_down_time: !input set_down_time
+
+  # set_up_limit: !input set_up_limit
+  # set_up_limit_sensor: !input set_up_limit_sensor
+#  set_down_limit: !input set_down_limit
+#  set_down_limit_sensor: !input set_down_limit_sensor
+  repeat_for: !input repeat_for
+  set_min_illuminance: !input set_min_illuminance
+  set_max_illuminance: !input set_max_illuminance
+  set_illuminance_delay: !input set_illuminance_delay
+
+  set_custom_event_type: !input set_custom_event_type
+  set_event_duration: !input set_event_duration
+  set_custom_event_enabled: !input set_custom_event_enabled
+
+  is_forecast_enabled: "{{ forecast_sensor != [] and 'extra_forecast' in automation_extra }}"
+  is_illuminance_enabled: "{{ illuminance_sensor != [] and 'extra_illuminance' in automation_extra }}"
+  is_slider_enabled: "{{ slider_device != [] and 'extra_slider' in automation_extra }}"
+  is_sun_protect_enabled: "{{ sun_sensor != [] and 'extra_sun_protect' in automation_extra }}"
+  is_open_until_enabled: "{{ 'extra_opening_until' in automation_extra }}"
+  is_close_until_enabled: "{{ 'extra_close_until' in automation_extra }}"
+  is_event_enabled: "{{ set_custom_event_enabled }}"
+
+
+variables:
+  # workday: "{{ now().weekday() < 5 }}"
+  # weekend: "{{ not workday }}"
+  # nextday: "{{ (now().weekday() + 1) % 7 }}"
+  
+  delay_for_repeat: 1
+
+  is_mqtt_device: "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device) | first | default('')), 'domain') == 'mqtt' }}"
+  is_zha_device: "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device) | first | default('')), 'domain') == 'zha' }}"
+
+  up_time: "{{ set_up_time }}"
+  down_time: "{{ set_down_time }}"
+
+  # sun_azimuth: "{{ set_sun_azimuth if set_sun_azimuth_sensor == [] else states(set_sun_azimuth_sensor) }}"
+  # sun_elevation: "{{ set_sun_elevation if set_sun_elevation_sensor == [] else states(set_sun_elevation_sensor) }}"
+  chosen_type_sun_azimuth: "{{ sun_azimuth_config.active_choice }}"
+  chosen_type_sun_elevation: "{{ sun_elevation_config.active_choice }}"
+
+  sun_azimuth: |
+    {{ sun_azimuth_config.угол | int(0)
+      if chosen_type_sun_azimuth == 'угол' 
+      else (0 if sun_azimuth_config.сенсор == [] else states(sun_azimuth_config.сенсор)) }}
+  sun_elevation: |
+    {{ sun_elevation_config.угол | int(0)
+      if chosen_type_sun_elevation == 'угол' 
+      else (0 if sun_elevation_config.сенсор == [] else states(sun_elevation_config.сенсор)) }}
+
+  # maxp: |
+  #   {% set ns = namespace(items=[]) %}
+  #   {% for item in blinds %}
+  #     {% set ns.items = ns.items + [state_attr(item,'current_position')] %}
+  #   {% endfor %}
+  #   {{ ns.items | max }}
+  # minp: |
+  #   {% set ns = namespace(items=[]) %}
+  #   {% for item in blinds %}
+  #     {% set ns.items = ns.items + [state_attr(item,'current_position')] %}
+  #   {% endfor %}
+  #   {{ ns.items | min }}
+
+  # maxpp: |
+  #   {% set ns = namespace(items=[]) %}
+  #   {% for item in blinds_for_protect %}
+  #     {% set ns.items = ns.items + [state_attr(item,'current_position')] %}
+  #   {% endfor %}
+  #   {{ ns.items | max }}
+  # minpp: |
+  #   {% set ns = namespace(items=[]) %}
+  #   {% for item in blinds_for_protect %}
+  #     {% set ns.items = ns.items + [state_attr(item,'current_position')] %}
+  #   {% endfor %}
+  #   {{ ns.items | min }}
+
+  # error: "{{ minp != maxp and minpp != maxpp }}"
+
+  # text_helper: |
+  #   {% set rising = (state_attr(sun_sensor,'next_rising').strftime('%H:%M:%S') | as_datetime | as_local) if not is_open_until_enabled else up_time %}
+  #   {% set rising = rising.split(':')[0] ~ ":" ~ rising.split(':')[1]%}
+  #   {% set setting = (state_attr(sun_sensor,'next_setting') | as_datetime | as_local).strftime('%H:%M:%S') if not is_close_until_enabled else down_time %}
+  #   {% set setting = setting.split(':')[0] ~ ":" ~ setting.split(':')[1] %}
+  #   {{ 'Откроются в ' ~ rising if now() > today_at(down_time) else 'Закроются в ' ~ setting }}
+
+  chosen_type_up_limit: "{{ up_limit_config.active_choice }}"
+  chosen_type_down_limit: "{{ down_limit_config.active_choice }}"
+
+  up_limit: |
+    {{ up_limit_config.процент | int(100)
+      if chosen_type_up_limit == 'процент' 
+      else (0 if up_limit_config.сенсор == [] else states(up_limit_config.сенсор)) }}
+  down_limit: |
+    {{ down_limit_config.процент | int(0)
+      if chosen_type_down_limit == 'процент' 
+      else (0 if down_limit_config.сенсор == [] else states(down_limit_config.сенсор)) }}
+
+triggers:
+  # - trigger: time
+  #   at: !input set_up_time_workday
+  #   id: up_time_workday_trigger
+  #   enabled: "{{ is_open_until_enabled }}"
+
+  - trigger: time
+    at: !input set_up_time
+    id: up_time_trigger
+    enabled: "{{ not is_event_enabled }}"
+
+  - trigger: time
+    at: !input set_down_time
+    id: down_time_trigger
+    enabled: "{{ is_close_until_enabled }}"
+
+  - trigger: event
+    event_type: !input set_custom_event_type
+    event_data:
+      action: triggered
+    id: event_type_trigger
+    enabled: "{{ is_event_enabled }}"
+  
+  - trigger: sun
+    event: sunrise
+    id: sunrise_trigger
+
+  - trigger: sun
+    event: sunset
+    id: sunset_trigger
+
+  - trigger: state
+    entity_id: !input forecast_sensor
+    id: forecast_trigger
+    enabled: "{{ is_forecast_enabled }}"
+
+  - trigger: state
+    entity_id: !input illuminance_sensor
+    id: illuminance_trigger
+    enabled: "{{ is_illuminance_enabled }}"
+
+  - trigger: template
+    value_template: "{{ state_attr(sun_sensor,'azimuth') | float > (sun_azimuth | int) }}"
+    id: sun_azimut_trigger
+    enabled: "{{ is_sun_protect_enabled }}"
+
+  - trigger: template
+    value_template: "{{ state_attr(sun_sensor,'elevation') | float < (sun_elevation | int) }}"
+    id: sun_elevation_trigger
+    enabled: "{{ is_sun_protect_enabled }}"
+
+  - trigger: mqtt
+    topic: !input basic_topic
+    payload: !input payload_down
+    id: mqtt_slider_down_trigger
+    enabled: "{{ is_slider_enabled }}"
+
+  - trigger: mqtt
+    topic: !input basic_topic
+    payload: !input payload_up
+    id: mqtt_slider_up_trigger
+    enabled: "{{ is_slider_enabled }}"
+
+  - trigger: mqtt
+    topic: !input basic_topic
+    payload: !input payload_stop
+    id: mqtt_slider_stop_trigger
+    enabled: "{{ is_slider_enabled }}"
+
+  - trigger: event
+    event_type: zha_event
+    event_data:
+      device_id: !input slider_device
+      command: !input payload_down
+    id: zha_slider_down_trigger
+    enabled: "{{ is_slider_enabled }}"
+    
+  - trigger: event
+    event_type: zha_event
+    event_data:
+      device_id: !input slider_device
+      command: !input payload_up
+    id: zha_slider_up_trigger
+    enabled: "{{ is_slider_enabled }}"
+
+  - trigger: event
+    event_type: zha_event
+    event_data:
+      device_id: !input slider_device
+      command: !input payload_stop
+    id: zha_slider_stop_trigger
+    enabled: "{{ is_slider_enabled }}"
+
+actions:
+
+  - variables:
+    open_blinds: &open_blinds
+      sequence:
+        - repeat:
+            count: !input repeat_for
+
+            sequence:
+              - action: cover.set_cover_position
+                target:
+                  entity_id: "{{ blinds_target | default(blinds) }}"
+                data:
+                  position: >-
+                    {% set position = (up_limit | int(100)) - (repeat_for | int(1) - repeat.index) %}
+                    {{ [0, [position, 100] | min] | max }}
+
+              - delay:
+                  seconds: "{{ delay_for_repeat | int(1) }}"
+
+    close_blinds: &close_blinds
+      sequence:
+        - repeat:
+            count: !input repeat_for
+
+            sequence:
+              - action: cover.set_cover_position
+                target:
+                  entity_id: "{{ blinds_target | default(blinds) }}"
+                data:
+                  position: >-
+                    {% set position = (down_limit | int(0)) + (repeat_for | int(1) - repeat.index) %}
+                    {{ [0, [position, 100] | min] | max }}
+
+              - delay:
+                  seconds: "{{ delay_for_repeat | int(1) }}"
+
+    stop_blinds: &stop_blinds
+      sequence:
+        - repeat:
+            count: !input repeat_for
+
+            sequence:
+              - action: cover.stop_cover
+                target:
+                  entity_id: "{{ blinds_target | default(blinds) }}"
+                data: {}
+
+  - choose:
+
+#########################################################################################################
+#
+# УПРАВЛЕНИЕ ПО УСТРОЙСТВУ
+#
+#########################################################################################################
+
+      - conditions: # Открыть по слайдеру
+          - condition: trigger
+            id:
+              - mqtt_slider_up_trigger
+              - zha_slider_up_trigger
+          - condition: template # При наличии устройства и включенной опции
+            value_template: "{{ false if slider_device == [] else is_slider_enabled }}"
+          - condition: template
+            value_template: "{{ true if is_zha_device else device_attr(slider_device, 'name') == trigger.topic.split('/')[1] }}"
+
+        sequence:
+          - variables:
+              blinds_target: !input blinds
+          - *open_blinds          
+
+      - conditions: # Остановить по кнопке 
+          - condition: trigger
+            id:
+              - mqtt_slider_stop_trigger
+              - zha_slider_stop_trigger
+          - condition: template # При наличии устройства и включенной опции
+            value_template: "{{ false if slider_device == [] else is_slider_enabled }}"
+          - condition: template
+            value_template: "{{ true if is_zha_device else device_attr(slider_device, 'name') == trigger.topic.split('/')[1] }}"
+
+        sequence:
+          - variables:
+              blinds_target: !input blinds
+          - *stop_blinds          
+
+      - conditions: # Закрыть по слайдеру
+          - condition: trigger
+            id:
+              - mqtt_slider_down_trigger
+              - zha_slider_down_trigger
+          - condition: template # При наличии устройства и включенной опции
+            value_template: "{{ false if slider_device == [] else is_slider_enabled }}"
+          - condition: template
+            value_template: "{{ true if is_zha_device else device_attr(slider_device, 'name') == trigger.topic.split('/')[1] }}"
+
+        sequence:
+          - variables:
+              blinds_target: !input blinds
+          - *close_blinds          
+
+#########################################################################################################
+#
+# ВРЕМЯ ИЛИ СОБЫТИЕ
+#
+#########################################################################################################
+
+      - conditions: 
+          - condition: trigger
+            id: 
+              - event_type_trigger
+          # - condition: template
+          #   value_template: "{{ is_open_until_enabled }}"
+        sequence:
+          - variables:
+              blinds_target: !input blinds
+          - delay: !input set_event_duration
+          - *open_blinds          
+
+      - conditions: # Время открытия
+          - condition: trigger
+            id:
+              - up_time_trigger
+          # - condition: template # Будни
+          #   value_template: "{{ workday }}" 
+
+      #   sequence:
+      #     - variables:
+      #         blinds_target: !input blinds
+      #     - *open_blinds          
+
+      # - conditions: # Время открытия в выходные
+      #     - condition: trigger
+      #       id:
+      #         - up_time_weekend_trigger
+      #     - condition: template # Выходные
+      #       value_template: "{{ weekend }}"
+
+        sequence:
+          - variables:
+              blinds_target: !input blinds
+          - *open_blinds          
+
+      - conditions: # Время закрытия
+          - condition: trigger
+            id:
+              - down_time_trigger
+
+        sequence:
+          - variables:
+              blinds_target: !input blinds
+          - *close_blinds          
+
+#########################################################################################################
+#
+# РАССВЕТ/ЗАКАТ
+#
+#########################################################################################################
+
+      - conditions: # Солнце взошло
+          - condition: trigger
+            id:
+              - sunrise_trigger
+          - condition: template
+            value_template: "{{ not is_open_until_enabled and not is_event_enabled }}"
+
+        sequence:
+          - variables:
+              blinds_target: !input blinds
+          - *open_blinds          
+
+      - conditions: # Солнце село
+          - condition: trigger
+            id:
+              - sunset_trigger
+
+        sequence:
+          - variables:
+              blinds_target: !input blinds
+          - *close_blinds          
+
+#########################################################################################################
+#
+# ЗАЩИТА ОТ ПРЯМЫХ ЛУЧЕЙ СОЛНЦА
+#
+#########################################################################################################
+
+      - conditions: # Открыть шторы при защите от прямых лучей солнца
+          - condition: trigger
+            id:
+              - sun_elevation_trigger
+          - condition: template
+            value_template: "{{ now() <= today_at(set_down_time) }}"
+
+        sequence:
+          - variables:
+              blinds_target: "{{ blinds if blinds_for_protect == [] else blinds_for_protect }}"
+          - *open_blinds
+
+      - conditions: # Закрыть шторы при защите от прямых лучей солнца
+          - condition: trigger
+            id:
+              - sun_azimut_trigger
+          - condition: template
+            value_template: |
+              {{ true if not is_forecast_enabled else (states(forecast_sensor) in forecasts) }}
+          - condition: template
+            value_template: |
+              {{ true if not is_illuminance_enabled else states(illuminance_sensor) | int >= set_max_illuminance }}
+
+        sequence:
+          - variables:
+              blinds_target: "{{ blinds if blinds_for_protect == [] else blinds_for_protect }}"
+          - *close_blinds
+
+#########################################################################################################
+#
+# УПРАВЛЕНИЕ ПО ПОГОДЕ
+#
+#########################################################################################################
+
+      - conditions: # Закрыть при изменении погоды при включенном режиме защиты от прямых лучей
+          - condition: trigger
+            id:
+              - forecast_trigger
+          - condition: template
+            value_template: |
+              {{ states(forecast_sensor) in forecasts }}
+          - condition: template
+            value_template: |
+              {{ is_sun_protect_enabled and
+                (state_attr(sun_sensor,'azimuth') | float(default=45) > sun_azimuth | int
+                and state_attr(sun_sensor,'elevation') | float(default=389) > sun_elevation | int) }}
+          - condition: template
+            value_template: |
+              {{ true if not is_open_until_enabled else now() >= today_at(up_time) }}
+          - condition: template
+            value_template: |
+              {{ true if not is_close_until_enabled else now() <= today_at(down_time) }}
+          - condition: template
+            value_template: |
+              {{ states(sun_sensor) == 'above_horizon' }}
+
+        sequence:
+          - variables:
+              blinds_target: "{{ blinds if blinds_for_protect == [] else blinds_for_protect }}"
+          - *close_blinds
+
+      - conditions: # Открыть при изменении погоды при включенном режиме защиты от прямых лучей
+          - condition: trigger
+            id:
+              - forecast_trigger
+          - condition: template
+            value_template: |
+              {{ states(forecast_sensor) not in forecasts }}
+          - condition: template
+            value_template: |
+              {{ is_sun_protect_enabled and
+                (state_attr(sun_sensor,'azimuth') | float(default=45) > sun_azimuth | int
+                and state_attr(sun_sensor,'elevation') | float(default=359) > sun_elevation | int) }}
+          - condition: template
+            value_template: |
+              {{ true if not is_open_until_enabled else now() >= today_at(up_time) }}
+          - condition: template
+            value_template: |
+              {{ true if not is_close_until_enabled else now() <= today_at(down_time) }}
+          - condition: template
+            value_template: |
+              {{ states(sun_sensor) == 'above_horizon' }}
+
+        sequence:
+          - variables:
+              blinds_target: "{{ blinds if blinds_for_protect == [] else blinds_for_protect }}"
+          - *open_blinds
+
+#########################################################################################################
+#
+# УПРАВЛЕНИЕ ПО ОСВЕЩЕННОСТИ
+#
+#########################################################################################################
+
+      - conditions: # Управлять при изменении уровня освещенности при включенном режиме защиты от прямых лучей
+          - condition: trigger
+            id:
+              - illuminance_trigger
+          - condition: template
+            value_template: |
+              {{ this.attributes.last_triggered is none or (now() - this.attributes.last_triggered).total_seconds() > set_illuminance_delay | int }}             
+          - condition: template
+            value_template: |
+              {{ true if not is_sun_protect_enabled 
+                else (state_attr(sun_sensor,'azimuth') | float(default=45) > (sun_azimuth | int) 
+                and state_attr(sun_sensor,'elevation') | float(default=389) > (sun_elevation | int)) }}
+          - condition: template
+            value_template: |
+              {{ true if not is_open_until_enabled else now() >= today_at(up_time) }}
+          - condition: template
+            value_template: |
+              {{ true if not is_close_until_enabled else now() <= today_at(down_time) }}
+          - condition: template
+            value_template: |
+              {{ states(sun_sensor) == 'above_horizon' }}
+          - condition: template
+            value_template: |
+              {{ (set_min_illuminance > 0 or set_max_illuminance > 0) }}
+
+        sequence:
+          - choose:
+              - conditions: 
+                  - condition: template
+                    value_template: |
+                      {{ states(illuminance_sensor) | int >= set_max_illuminance }}
+
+                sequence:
+                  - variables:
+                      blinds_target: "{{ blinds if blinds_for_protect == [] else blinds_for_protect }}"
+                  - *close_blinds
+
+              - conditions: 
+                  - condition: template
+                    value_template: |
+                      {{ states(illuminance_sensor) | int <= set_min_illuminance }}
+
+                sequence:
+                  - variables:
+                      blinds_target: "{{ blinds if blinds_for_protect == [] else blinds_for_protect }}"
+                  - *open_blinds

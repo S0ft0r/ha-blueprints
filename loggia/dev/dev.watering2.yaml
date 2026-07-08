@@ -1,0 +1,493 @@
+blueprint:
+  name: Управление оросительной системой
+  description: |
+    ###  Управление оросительной системой по времени и/или показаниям датчика влажности почвы.
+    <small>Версия 2026.05.01 Сборка 2</small> 
+    <small><a href="https://4pda.to/forum/index.php?showtopic=871505&view=findpost&p=143572987">Специально для 4PDA</a></small>
+    **Особенности:**
+     + Включение по времени и/или по датчику влажности почвы
+     + Настройка расписания включения (ежедневно, раз в два дня или по определенным дням недели), один или два раза в день
+     + Настройка режима работы
+     + Настройка времени работы системы
+     + Настройка нижнего и верхнего уровня влажности почвы
+     + Защита от "перелива" - при медленном изменении уровня влажности
+    <small><a href="https://github.com/S0ft0r/ha-blueprints/blob/main/as-is.md">Отказ от ответственности</a></small>
+  domain: automation
+  source_url: https://github.com/S0ft0r/ha-blueprints/blob/main/loggia/dev/dev.watering2.yaml
+  author: Softor
+
+  input:
+    waterpump:
+      name: Оросительная система
+      description: Какими системами необходимо управлять?
+      selector:
+        entity:
+          filter:
+            - domain: switch
+    plant:
+      name: Датчик влажности почвы
+      description: Использовать датчик для определения состояния почвы.
+      selector:
+        entity:
+          filter:
+            - integration: plant
+              domain: sensor
+              device_class: moisture
+    global_plant_protect:
+      name: Учитывать показания датчика состояния почвы при включение системы в назначенное время
+      default: false
+      selector:
+        boolean: {}
+
+    # automation_section:
+    #   name: Настройки автоматизации
+    #   icon: mdi:window-shutter-cog
+    #   collapsed: false
+    #   input:
+    #     automation_options:
+    #       name: Настройки управления орошением
+    #       description: |
+    #         Настройки.
+    #       default:
+    #         - protect_plant
+    #       selector:
+    #         select:
+    #           options:
+    #             - label: Учитывать показания датчика почвы
+    #               value: protect_plant
+    #           multiple: true
+    #           sort: false
+    #           custom_value: false
+
+    plant_section:
+      name: Настройки управления по показаниям датчика почвы
+      description: |
+        Настройки датчика почвы.
+      icon: mdi:flower-tulip-outline
+      input:
+        plant_enabled:
+          name: Включать систему орошения по показаниям датчика
+          default: false
+          selector:
+            boolean: {}
+        set_time_work_plant:
+          name: Включать на
+          description: Время, на которое включается система орошения 
+          default: 1
+          selector:
+            number:
+              min: 1
+              max: 240
+              step: 1
+              mode: box
+              unit_of_measurement: "сек"
+        set_soil_moisture_min:
+          name: Нижний предел влажности
+          description: |
+            Включение системы орошения при понижении предела влажности почвы.
+            <small>* При включенной опции <em>Включать по показаниям сенсора почвы</em></small> 
+          default: 1
+          selector:
+            number:
+              min: 1
+              max: 100
+              step: 1
+              mode: slider
+              unit_of_measurement: "%"
+        set_soil_moisture_max:
+          name: Верхний предел влажности
+          description: При привышении предела влажности почвы система орошения включаться не будет.
+          default: 1
+          selector:
+            number:
+              min: 1
+              max: 100
+              step: 1
+              mode: slider
+              unit_of_measurement: "%"
+        set_debounce_pause:
+          name: Включить защиту от перелива
+          default: false
+          selector:
+            boolean: {}
+        set_debounce_time:
+          name: Пауза перед запуском
+          description: > 
+            Пауза перед следующем включением автоматизации. Используется только в режиме включения по показаниям датчика почвы 
+            <small>* Для защиты от перелива при медленном изменении показаний датчика почвы
+          default: "00:10:00"
+          selector:
+            time: {}
+
+    morning_section:
+      name: Настройки системы для работы утром
+      description: |
+        Устанавливается время включения, режим работы системы орошения.
+      icon: mdi:clock-time-four-outline
+      input:
+        morning_enabled:
+          name: Включать систему орошения утром
+          default: false
+          selector:
+            boolean: {}
+        set_on_time_morning:
+          name: Включить утром в
+          default: "08:00:00"
+          selector:
+            time: {}
+        set_time_work_morning:
+          name: Включать на
+          description: Время, на которе включается система орошения 
+          default: 1
+          selector:
+            number:
+              min: 1
+              max: 240
+              step: 1
+              mode: box
+              unit_of_measurement: "сек"
+        set_mode_morning:
+          name: Режим работы системы
+          default: mode_2_morning
+          selector:
+            select:
+              options:
+                - label: Однократно
+                  value: mode_1_morning
+                - label: Дважды с паузой
+                  value: mode_2_morning
+                - label: Трижды с паузой
+                  value: mode_3_morning
+              mode: dropdown
+        set_mode_pause_morning:
+          name: Величина паузы
+          description: Величина паузы между включениями при режимах работы с паузами 
+          default: 1
+          selector:
+            number:
+              min: 1
+              max: 240
+              step: 1
+              mode: box
+              unit_of_measurement: сек
+        set_working_day_morning:
+          name: Режим включения
+          default: every_day_morning
+          selector:
+            select:
+              options:
+                - label: Ежедневно
+                  value: every_day_morning
+                - label: Через день
+                  value: every_over_day_morning
+                - label: Выбор
+                  value: select_morning
+              mode: dropdown
+        set_select_days_morning:
+          name: Выбор дней 
+          description: Выбор дней
+          default: []
+          selector:
+            select:
+              options:
+                # - label: Понедельник
+                #   value: day_0_morning
+                # - label: Вторник
+                #   value: day_1_morning
+                # - label: Среда
+                #   value: day_2_morning
+                # - label: Четверг
+                #   value: day_3_morning
+                # - label: Пятница
+                #   value: day_4_morning
+                # - label: Суббота
+                #   value: day_5_morning
+                # - label: Воскресенье
+                #   value: day_6_morning
+                - label: Понедельник
+                  value: '0'
+                - label: Вторник
+                  value: '1'
+                - label: Среда
+                  value: '2'
+                - label: Четверг
+                  value: '3'
+                - label: Пятница
+                  value: '4'
+                - label: Суббота
+                  value: '5'
+                - label: Воскресенье
+                  value: '6'
+              sort: false
+              multiple: true
+              custom_value: false
+              mode: list
+
+    evening_section:
+      name: Настройки системы для работы вечером
+      description: |
+        Устанавливается время включения, режим работы системы орошения.
+      icon: mdi:clock-time-eight-outline
+      input:
+        evening_enabled:
+          name: Включать систему орошения вечером
+          default: false
+          selector:
+            boolean: {}
+        set_on_time_evening:
+          name: Включить вечером в
+          default: "20:00:00"
+          selector:
+            time: {}
+        set_time_work_evening:
+          name: Включать на
+          description: Время, на которое включается система орошения 
+          default: 1
+          selector:
+            number:
+              min: 1
+              max: 240
+              step: 1
+              mode: box
+              unit_of_measurement: "сек"
+        set_mode_evening:
+          name: Режим работы системы вечером
+          default: mode_1_evening
+          selector:
+            select:
+              options:
+                - label: Однократно
+                  value: mode_1_evening
+                - label: Дважды с паузой
+                  value: mode_2_evening
+                - label: Трижды с паузой
+                  value: mode_3_evening
+              mode: dropdown
+        set_mode_pause_evening:
+          name: Величина паузы
+          description: Величина паузы между включениями при режимах работы с паузами 
+          default: 1
+          selector:
+            number:
+              min: 1
+              max: 240
+              step: 1
+              mode: box
+              unit_of_measurement: сек
+        set_working_day_evening:
+          name: Режим включения вечером
+          default: every_day_evening
+          selector:
+            select:
+              options:
+                - label: Ежедневно
+                  value: every_day_evening
+                - label: Через день
+                  value: every_over_day_evening
+                - label: Выбор
+                  value: select_evening
+              mode: dropdown
+        set_select_days_evening:
+          name: Выбор дней 
+          description: Выбор дней
+          default: []
+          selector:
+            select:
+              options:
+                # - label: Понедельник
+                #   value: day_0_evening
+                # - label: Вторник
+                #   value: day_1_evening
+                # - label: Среда
+                #   value: day_2_evening
+                # - label: Четверг
+                #   value: day_3_evening
+                # - label: Пятница
+                #   value: day_4_evening
+                # - label: Суббота
+                #   value: day_5_evening
+                # - label: Воскресенье
+                #   value: day_6_evening
+                - label: Понедельник
+                  value: '0'
+                - label: Вторник
+                  value: '1'
+                - label: Среда
+                  value: '2'
+                - label: Четверг
+                  value: '3'
+                - label: Пятница
+                  value: '4'
+                - label: Суббота
+                  value: '5'
+                - label: Воскресенье
+                  value: '6'
+              sort: false
+              multiple: true
+              custom_value: false
+              mode: list
+      
+trigger_variables:
+  waterpump: !input waterpump
+  plant: !input plant
+# #  rain: !input rain
+
+  set_working_day_morning: !input set_working_day_morning
+  set_working_day_evening: !input set_working_day_evening
+  set_mode_morning: !input set_mode_morning
+  set_mode_evening: !input set_mode_evening
+
+  set_select_days_morning: !input set_select_days_morning
+  set_select_days_evening: !input set_select_days_evening
+
+  set_debounce_pause: !input set_debounce_pause
+  set_debounce_time: !input set_debounce_time
+
+  set_soil_moisture_min: !input set_soil_moisture_min
+  set_soil_moisture_max: !input set_soil_moisture_max
+
+  global_plant_protect: !input global_plant_protect
+
+variables:
+  mode_repeat_morning: "{{ set_mode_morning.split('_')[1] | int(1) - 1 }}"
+  mode_repeat_evening: "{{ set_mode_evening.split('_')[1] | int(1) - 1 }}"
+
+#  waterpump_entities: "{{ device_entities(waterpump.device_id) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'switch.') | list + waterpump.entity_id}}"
+
+  # soil_moisture_entity: "{{ (device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('search', 'soil_moisture') | list | first ) }}"
+#   temperature_entities: "{{ (device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('search', 'temperature') | list) | join }}"
+#   humidity_entities: "{{ (device_entities(plant) | reject('is_state', ['unavailable', 'unknown']) | select('match', 'sensor.') | select('search', 'air_humidity') | list) | join }}"
+
+  debounce_delay: |
+    {{ set_debounce_time.split(':')[0] | int(default=0) * 3600 +
+      set_debounce_time.split(':')[1] | int(default=0) * 60 +
+      set_debounce_time.split(':')[2] | int(default=0) }}
+
+  # selected_days_morning: |
+  #   {% set ns = namespace(items=[]) %}
+  #   {% for item in set_select_days_morning %}
+  #     {% set ns.items = ns.items + [item.split('_')[1]|int] %}
+  #   {% endfor %}
+  #   {{ now().weekday() in ns.items }}
+
+  # selected_days_evening: |
+  #   {% set ns = namespace(items=[]) %}
+  #   {% for item in set_select_days_evening %}
+  #     {% set ns.items = ns.items + [item.split('_')[1]|int] %}
+  #   {% endfor %}
+  #   {{ now().weekday() in ns.items }}
+
+  selected_days_morning: |
+    {{ now().weekday() in set_select_days_morning }}
+
+  selected_days_evening: |
+    {{ now().weekday() in set_select_days_evening }}
+
+triggers:
+  - platform: time
+    at: !input set_on_time_morning
+    id: on_time_morning_trigger
+    enabled: !input morning_enabled
+
+  - platform: time
+    at: !input set_on_time_evening
+    id: on_time_evening_trigger
+    enabled: !input evening_enabled
+
+  - platform: state
+    entity_id: !input plant
+    id: plant_state_trigger
+    enabled: !input plant_enabled
+
+conditions:
+  - condition: template
+    value_template: "{{ true if not global_plant_protect else (states(plant) | int < set_soil_moisture_max) }}"
+
+actions:
+  - choose:
+      - conditions: # Состояние почвы
+          - condition: trigger
+            id:
+              - plant_state_trigger
+          - condition: numeric_state
+            entity_id: !input plant
+            below: !input set_soil_moisture_min
+          - condition: template
+            value_template: |
+              {{ true if not set_debounce_pause else this.attributes.last_triggered is none or (now() - this.attributes.last_triggered).total_seconds() > debounce_delay }}
+        sequence:
+          - service: homeassistant.turn_on
+            metadata: {}            
+            target: !input waterpump
+          - delay:
+              seconds: !input set_time_work_plant
+          - service: homeassistant.turn_off
+            metadata: {}            
+            target: !input waterpump
+
+      - conditions: # Время включения утром
+          - condition: trigger
+            id:
+              - on_time_morning_trigger
+          - condition: template
+            value_template: |
+              {{ true if ('every_over_day_morning' not in set_working_day_morning) else ((now().timestamp() / 86400) | int % 2 == 0) }}
+          - condition: template
+            value_template: |
+              {{ true if ('select_morning' not in set_working_day_morning) else selected_days_morning }}
+        sequence:
+          - service: homeassistant.turn_on
+            metadata: {}            
+            target: !input waterpump
+          - delay:
+              seconds: !input set_time_work_morning
+          - service: homeassistant.turn_off
+            metadata: {}            
+            target: !input waterpump
+          - repeat:
+              count: "{{ mode_repeat_morning }}"
+              sequence:
+                - delay:
+                    seconds: !input set_mode_pause_morning
+                - service: homeassistant.turn_on
+                  metadata: {}            
+                  target: !input waterpump
+                - delay:
+                    seconds: !input set_time_work_morning
+                - service: homeassistant.turn_off
+                  metadata: {}            
+                  target: !input waterpump
+
+      - conditions: # Время включения вечером
+          - condition: trigger
+            id:
+              - on_time_evening_trigger
+          - condition: template
+            value_template: |
+              {{ true if ('every_over_day_evening' not in set_working_day_evening) else ((now().timestamp() / 86400) | int % 2 == 0) }}
+          - condition: template
+            value_template: |
+              {{ true if ('select_evening' not in set_working_day_evening) else selected_days_evening }}
+        sequence:
+          - service: homeassistant.turn_on
+            metadata: {}            
+            target: !input waterpump
+          - delay:
+              seconds: !input set_time_work_evening
+          - service: homeassistant.turn_off
+            metadata: {}            
+            target: !input waterpump
+          - repeat:
+              count: "{{ mode_repeat_evening }}"
+              sequence:
+                - delay:
+                    seconds: !input set_mode_pause_evening
+                - service: homeassistant.turn_on
+                  metadata: {}            
+                  target: !input waterpump
+                - delay:
+                    seconds: !input set_time_work_evening
+                - service: homeassistant.turn_off
+                  metadata: {}            
+                  target: !input waterpump
+mode: single
