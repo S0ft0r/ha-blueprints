@@ -441,8 +441,8 @@ trigger_variables:
   # today_key: "{{ now().strftime('%a') | lower }}"
   # today_schedule: "{{ alarm_schedule[today_key] }}"
   # alarm_time: "{{ today_schedule.time }}"
-  alarm_active: "{{ today_schedule.enabled }}"
-  alarm_options: "{{ today_schedule.options }}"
+  # alarm_active: "{{ today_schedule.enabled }}"
+  # alarm_options: "{{ today_schedule.options }}"
 
   kettle_switch: !input kettle_switch
   light_switch: !input light_switch
@@ -474,25 +474,30 @@ trigger_variables:
     - 'none'
 
 variables:
-  set_light_before_alarm: !input set_light_before_alarm
-  set_command_base: !input set_command_base
-  set_command_music: !input set_command_music
-  set_random_command: !input set_random_command
+  # set_light_before_alarm: !input set_light_before_alarm
+  # set_command_base: !input set_command_base
+  # set_command_music: !input set_command_music
+  # set_random_command: !input set_random_command
 
-  light_before_alarm_in_seconds: |
-    {{ set_light_before_alarm.split(':')[0] | int * 3600 + set_light_before_alarm.split(':')[1] | int * 60 + set_light_before_alarm.split(':')[2] | int }}
-  light_delay_seconds: "{{ ((light_before_alarm_in_seconds | int / 254) | round(3) | string).split('.')[0] | int }}"
-  light_delay_milliseconds: "{{ ((light_before_alarm_in_seconds | int / 254) | round(3) | string).split('.')[1] | int }}"
+  # light_before_alarm_in_seconds: |
+  #   {{ set_light_before_alarm.split(':')[0] | int * 3600 + set_light_before_alarm.split(':')[1] | int * 60 + set_light_before_alarm.split(':')[2] | int }}
+  # light_delay_seconds: "{{ ((light_before_alarm_in_seconds | int / 254) | round(3) | string).split('.')[0] | int }}"
+  # light_delay_milliseconds: "{{ ((light_before_alarm_in_seconds | int / 254) | round(3) | string).split('.')[1] | int }}"
 
-  commands_music: |
-    {{ (set_command_music | regex_replace('\\s+', ' ', true) | replace('; ', ';')).split(';') | list }}
-  commands_music_count: "{{ commands_music | count }}"
-  command_music: >
-    {% if set_random_command %}
-      {{ set_command_base ~ ' ' ~ commands_music[range(0, commands_music_count) | random] }}
-    {% else %}
-      {{ set_command_base ~ ' ' ~ commands_music[0] }}
-    {% endif %}
+  # commands_music: |
+  #   {{ (set_command_music | regex_replace('\\s+', ' ', true) | replace('; ', ';')).split(';') | list }}
+  # commands_music_count: "{{ commands_music | count }}"
+  # command_music: >
+  #   {% if set_random_command %}
+  #     {{ set_command_base ~ ' ' ~ commands_music[range(0, commands_music_count) | random] }}
+  #   {% else %}
+  #     {{ set_command_base ~ ' ' ~ commands_music[0] }}
+  #   {% endif %}
+  today_key: "{{ now().strftime('%a') | lower }}"
+  today_schedule: "{{ alarm_schedule[today_key] }}"
+  alarm_time: "{{ today_schedule.time }}"
+  alarm_active: "{{ today_schedule.enabled }}"
+  alarm_options: "{{ today_schedule.options }}"
 
 triggers:
   - trigger: template
@@ -504,44 +509,44 @@ triggers:
       {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(alarm_time)) | timestamp_custom('%H:%M') }}
 #    enabled: "{{ event_enabled }}"
 
-  - trigger: template
-    id: kettle_on
-    value_template: >-
-      {% set today_key = now().strftime('%a') | lower %}
-      {% set today_schedule = alarm_schedule[today_key] %}
-      {% set alarm_time = today_schedule.time %}
-      {{ as_timestamp(now()) | timestamp_custom("%H:%M") ==
-         (as_timestamp(today_at(alarm_time)) - as_timestamp(today_at(set_kettle_before_alarm))) | timestamp_custom('%H:%M') }}
-#    enabled: "{{ kettle_enabled }}"
+#   - trigger: template
+#     id: kettle_on
+#     value_template: >-
+#       {% set today_key = now().strftime('%a') | lower %}
+#       {% set today_schedule = alarm_schedule[today_key] %}
+#       {% set alarm_time = today_schedule.time %}
+#       {{ as_timestamp(now()) | timestamp_custom("%H:%M") ==
+#          (as_timestamp(today_at(alarm_time)) - as_timestamp(today_at(set_kettle_before_alarm))) | timestamp_custom('%H:%M') }}
+# #    enabled: "{{ kettle_enabled }}"
 
-  - trigger: template
-    id: light_on
-    value_template: >-
-      {% set today_key = now().strftime('%a') | lower %}
-      {% set today_schedule = alarm_schedule[today_key] %}
-      {% set alarm_time = today_schedule.time %}
-      {{ as_timestamp(now()) | timestamp_custom("%H:%M") ==
-         (as_timestamp(today_at(alarm_time)) - as_timestamp(today_at(set_light_before_alarm))) | timestamp_custom('%H:%M') }}
-#    enabled: "{{ light_enabled }}"
+#   - trigger: template
+#     id: light_on
+#     value_template: >-
+#       {% set today_key = now().strftime('%a') | lower %}
+#       {% set today_schedule = alarm_schedule[today_key] %}
+#       {% set alarm_time = today_schedule.time %}
+#       {{ as_timestamp(now()) | timestamp_custom("%H:%M") ==
+#          (as_timestamp(today_at(alarm_time)) - as_timestamp(today_at(set_light_before_alarm))) | timestamp_custom('%H:%M') }}
+# #    enabled: "{{ light_enabled }}"
 
-  - trigger: template
-    id: music_on
-    value_template: >-
-      {% set today_key = now().strftime('%a') | lower %}
-      {% set today_schedule = alarm_schedule[today_key] %}
-      {% set alarm_time = today_schedule.time %}
-      {{ as_timestamp(now()) | timestamp_custom("%H:%M") ==
-         (as_timestamp(today_at(alarm_time)) - as_timestamp(today_at(set_music_before_alarm))) | timestamp_custom('%H:%M') }}
-#    enabled: "{{ music_enabled }}"
+#   - trigger: template
+#     id: music_on
+#     value_template: >-
+#       {% set today_key = now().strftime('%a') | lower %}
+#       {% set today_schedule = alarm_schedule[today_key] %}
+#       {% set alarm_time = today_schedule.time %}
+#       {{ as_timestamp(now()) | timestamp_custom("%H:%M") ==
+#          (as_timestamp(today_at(alarm_time)) - as_timestamp(today_at(set_music_before_alarm))) | timestamp_custom('%H:%M') }}
+# #    enabled: "{{ music_enabled }}"
 
-  - trigger: template
-    id: phrase_on
-    value_template: >-
-      {% set today_key = now().strftime('%a') | lower %}
-      {% set today_schedule = alarm_schedule[today_key] %}
-      {% set alarm_time = today_schedule.time %}
-      {{ as_timestamp(now()) | timestamp_custom("%H:%M") ==
-         as_timestamp(today_at(alarm_time)) | timestamp_custom('%H:%M') }}
+#   - trigger: template
+#     id: phrase_on
+#     value_template: >-
+#       {% set today_key = now().strftime('%a') | lower %}
+#       {% set today_schedule = alarm_schedule[today_key] %}
+#       {% set alarm_time = today_schedule.time %}
+#       {{ as_timestamp(now()) | timestamp_custom("%H:%M") ==
+#          as_timestamp(today_at(alarm_time)) | timestamp_custom('%H:%M') }}
 #    enabled: "{{ phrase_enabled }}"
 
 # conditions:
@@ -575,90 +580,90 @@ actions:
               source_entity_id: "{{ this.entity_id }}"
               source_name: "{{ this.attributes.friendly_name }}"
 
-      #####################################################################
-      # ЧАЙНИК
-      #####################################################################
+      # #####################################################################
+      # # ЧАЙНИК
+      # #####################################################################
 
-      - conditions:
-          - condition: trigger
-            id:
-              - kettle_on
-        sequence:
-          - action: water_heater.set_temperature
-            target:
-              entity_id: !input kettle_switch
-            data:
-              temperature: "{{ set_temperature_heat | int }}"
-          - action: water_heater.set_operation_mode
-            target:
-              entity_id: !input kettle_switch
-            data:
-              operation_mode: |
-                {{ 'boil_heat' if (state_attr(kettle_switch,'current_temperature') | int < set_temperature_boil | int) else 'heat' }}
+      # - conditions:
+      #     - condition: trigger
+      #       id:
+      #         - kettle_on
+      #   sequence:
+      #     - action: water_heater.set_temperature
+      #       target:
+      #         entity_id: !input kettle_switch
+      #       data:
+      #         temperature: "{{ set_temperature_heat | int }}"
+      #     - action: water_heater.set_operation_mode
+      #       target:
+      #         entity_id: !input kettle_switch
+      #       data:
+      #         operation_mode: |
+      #           {{ 'boil_heat' if (state_attr(kettle_switch,'current_temperature') | int < set_temperature_boil | int) else 'heat' }}
 
-      #####################################################################
-      # НОЧНИК
-      #####################################################################
+      # #####################################################################
+      # # НОЧНИК
+      # #####################################################################
 
-      - conditions:
-          - condition: trigger
-            id:
-              - light_on
-          - condition: template
-            value_template: |
-                  {{ set_sunset or states(sun_sensor) in invalid_states or states(sun_sensor) == 'below_horizon' }}
-        sequence:
-          - repeat:
-              count: 254
-              sequence:
-                - action: light.turn_on
-                  target:
-                    entity_id: !input light_switch
-                  data:
-                    brightness: "{{ 254 / (254 - 1) * (repeat.index - 1) + 1 }}"
-                    color_temp_kelvin: 2000
-                  continue_on_error: true
-                - delay:
-                    seconds: "{{ light_delay_seconds }}"
-                    milliseconds: "{{ light_delay_milliseconds }}"
+      # - conditions:
+      #     - condition: trigger
+      #       id:
+      #         - light_on
+      #     - condition: template
+      #       value_template: |
+      #             {{ set_sunset or states(sun_sensor) in invalid_states or states(sun_sensor) == 'below_horizon' }}
+      #   sequence:
+      #     - repeat:
+      #         count: 254
+      #         sequence:
+      #           - action: light.turn_on
+      #             target:
+      #               entity_id: !input light_switch
+      #             data:
+      #               brightness: "{{ 254 / (254 - 1) * (repeat.index - 1) + 1 }}"
+      #               color_temp_kelvin: 2000
+      #             continue_on_error: true
+      #           - delay:
+      #               seconds: "{{ light_delay_seconds }}"
+      #               milliseconds: "{{ light_delay_milliseconds }}"
 
-      #####################################################################
-      # МУЗЫКА
-      #####################################################################
+      # #####################################################################
+      # # МУЗЫКА
+      # #####################################################################
 
-      - conditions:
-          - condition: trigger
-            id:
-              - music_on
-        sequence:
-          - delay:
-              seconds: 1
-          - action: media_player.play_media
-            entity_id: !input media_player
-            data:
-              media_content_id: "{{ command_music }}"
-              media_content_type: command
-              extra:
-                volume_level: 0.3
+      # - conditions:
+      #     - condition: trigger
+      #       id:
+      #         - music_on
+      #   sequence:
+      #     - delay:
+      #         seconds: 1
+      #     - action: media_player.play_media
+      #       entity_id: !input media_player
+      #       data:
+      #         media_content_id: "{{ command_music }}"
+      #         media_content_type: command
+      #         extra:
+      #           volume_level: 0.3
 
-      #####################################################################
-      # ФРАЗА
-      #####################################################################
+      # #####################################################################
+      # # ФРАЗА
+      # #####################################################################
 
-      - conditions:
-          - condition: trigger
-            id:
-              - phrase_on
-        sequence:
-          - delay:
-              seconds: 1
-          - action: media_player.play_media
-            entity_id: !input media_player
-            data:
-              media_content_id: !input set_phrase
-              media_content_type: text
-              extra:
-                volume_level: 0.8
+      # - conditions:
+      #     - condition: trigger
+      #       id:
+      #         - phrase_on
+      #   sequence:
+      #     - delay:
+      #         seconds: 1
+      #     - action: media_player.play_media
+      #       entity_id: !input media_player
+      #       data:
+      #         media_content_id: !input set_phrase
+      #         media_content_type: text
+      #         extra:
+      #           volume_level: 0.8
 
 mode: parallel
 max: 5
