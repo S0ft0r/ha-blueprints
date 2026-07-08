@@ -607,8 +607,8 @@ actions:
           - condition: trigger
             id:
               - light_on
-          # - condition: template
-          #   value_template: "{{ light_enabled }}"
+          - condition: template
+            value_template: "{{ alarm_active and 'on_light' in alarm_options }}"
           # - condition: template
           #   value_template: "{{ person_in_home }}"
           # - condition: template
