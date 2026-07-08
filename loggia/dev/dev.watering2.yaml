@@ -27,6 +27,7 @@ blueprint:
     plant:
       name: Датчик влажности почвы
       description: Использовать датчик для определения состояния почвы.
+      default: []
       selector:
         entity:
           filter:
@@ -401,7 +402,7 @@ triggers:
 
 conditions:
   - condition: template
-    value_template: "{{ true if not global_plant_protect else (states(plant) | int < set_soil_moisture_max) }}"
+    value_template: "{{ true if not global_plant_protect and plant == [] else (states(plant) | int < set_soil_moisture_max) }}"
 
 actions:
   - choose:
