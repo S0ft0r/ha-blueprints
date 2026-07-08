@@ -438,9 +438,9 @@ trigger_variables:
     sat: { time: !input alarm_sat, enabled: !input alarm_sat_enabled, options: !input alarm_sat_options }
     sun: { time: !input alarm_sun, enabled: !input alarm_sun_enabled, options: !input alarm_sun_options }
 
-  today_key: "{{ now().strftime('%a') | lower }}"
-  today_schedule: "{{ alarm_schedule[today_key] }}"
-  alarm_time: "{{ today_schedule.time }}"
+  # today_key: "{{ now().strftime('%a') | lower }}"
+  # today_schedule: "{{ alarm_schedule[today_key] }}"
+  # alarm_time: "{{ today_schedule.time }}"
   alarm_active: "{{ today_schedule.enabled }}"
   alarm_options: "{{ today_schedule.options }}"
 
@@ -498,45 +498,60 @@ triggers:
   - trigger: template
     id: alarm_triggered
     value_template: >-
+      {% set today_key = now().strftime('%a') | lower %}
+      {% set today_schedule = alarm_schedule[today_key] %}
+      {% set alarm_time = today_schedule.time %}
       {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(alarm_time)) | timestamp_custom('%H:%M') }}
-    enabled: "{{ event_enabled }}"
+#    enabled: "{{ event_enabled }}"
 
   - trigger: template
     id: kettle_on
     value_template: >-
+      {% set today_key = now().strftime('%a') | lower %}
+      {% set today_schedule = alarm_schedule[today_key] %}
+      {% set alarm_time = today_schedule.time %}
       {{ as_timestamp(now()) | timestamp_custom("%H:%M") ==
          (as_timestamp(today_at(alarm_time)) - as_timestamp(today_at(set_kettle_before_alarm))) | timestamp_custom('%H:%M') }}
-    enabled: "{{ kettle_enabled }}"
+#    enabled: "{{ kettle_enabled }}"
 
   - trigger: template
     id: light_on
     value_template: >-
+      {% set today_key = now().strftime('%a') | lower %}
+      {% set today_schedule = alarm_schedule[today_key] %}
+      {% set alarm_time = today_schedule.time %}
       {{ as_timestamp(now()) | timestamp_custom("%H:%M") ==
          (as_timestamp(today_at(alarm_time)) - as_timestamp(today_at(set_light_before_alarm))) | timestamp_custom('%H:%M') }}
-    enabled: "{{ light_enabled }}"
+#    enabled: "{{ light_enabled }}"
 
   - trigger: template
     id: music_on
     value_template: >-
+      {% set today_key = now().strftime('%a') | lower %}
+      {% set today_schedule = alarm_schedule[today_key] %}
+      {% set alarm_time = today_schedule.time %}
       {{ as_timestamp(now()) | timestamp_custom("%H:%M") ==
          (as_timestamp(today_at(alarm_time)) - as_timestamp(today_at(set_music_before_alarm))) | timestamp_custom('%H:%M') }}
-    enabled: "{{ music_enabled }}"
+#    enabled: "{{ music_enabled }}"
 
   - trigger: template
     id: phrase_on
     value_template: >-
+      {% set today_key = now().strftime('%a') | lower %}
+      {% set today_schedule = alarm_schedule[today_key] %}
+      {% set alarm_time = today_schedule.time %}
       {{ as_timestamp(now()) | timestamp_custom("%H:%M") ==
          as_timestamp(today_at(alarm_time)) | timestamp_custom('%H:%M') }}
-    enabled: "{{ phrase_enabled }}"
+#    enabled: "{{ phrase_enabled }}"
 
-conditions:
-  - condition: template
-    value_template: |
-      {% set i = namespace(cnt=int(0)) %}
-      {% for person in person_sensor %}
-        {% set i.cnt = i.cnt + (1 if is_state(person,'home') else 0) | int %}
-      {% endfor %}
-      {{ true if not person_home_enabled else i.cnt > 0 }}
+# conditions:
+  # - condition: template
+  #   value_template: |
+  #     {% set i = namespace(cnt=int(0)) %}
+  #     {% for person in person_sensor %}
+  #       {% set i.cnt = i.cnt + (1 if is_state(person,'home') else 0) | int %}
+  #     {% endfor %}
+  #     {{ true if not person_home_enabled else i.cnt > 0 }}
 
 actions:
   - choose:
