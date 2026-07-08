@@ -523,7 +523,7 @@ triggers:
       {% set today_schedule = alarm_schedule[today_key] %}
       {% set alarm_time = today_schedule.time %}
       {{ as_timestamp(now()) | timestamp_custom("%H:%M") ==
-         (as_timestamp(today_at(alarm_time)) - as_timestamp(today_at(set_kettle_before_alarm))) | timestamp_custom('%H:%M') }}
+         (as_timestamp(today_at(alarm_time)) - as_timestamp(today_at(set_kettle_before_alarm))) | timestamp_custom('%H:%M', false) }}
 
   - trigger: template
     id: light_on
@@ -532,7 +532,7 @@ triggers:
       {% set today_schedule = alarm_schedule[today_key] %}
       {% set alarm_time = today_schedule.time %}
       {{ as_timestamp(now()) | timestamp_custom("%H:%M") ==
-         (as_timestamp(today_at(alarm_time)) - as_timestamp(today_at(set_light_before_alarm))) | timestamp_custom('%H:%M') }}
+         (as_timestamp(today_at(alarm_time)) - as_timestamp(today_at(set_light_before_alarm))) | timestamp_custom('%H:%M', false) }}
 
   - trigger: template
     id: music_on
@@ -541,7 +541,7 @@ triggers:
       {% set today_schedule = alarm_schedule[today_key] %}
       {% set alarm_time = today_schedule.time %}
       {{ as_timestamp(now()) | timestamp_custom("%H:%M") ==
-         (as_timestamp(today_at(alarm_time)) - as_timestamp(today_at(set_music_before_alarm))) | timestamp_custom('%H:%M') }}
+         (as_timestamp(today_at(alarm_time)) - as_timestamp(today_at(set_music_before_alarm))) | timestamp_custom('%H:%M', false) }}
 
   - trigger: template
     id: phrase_on
@@ -549,8 +549,7 @@ triggers:
       {% set today_key = now().strftime('%a') | lower %}
       {% set today_schedule = alarm_schedule[today_key] %}
       {% set alarm_time = today_schedule.time %}
-      {{ as_timestamp(now()) | timestamp_custom("%H:%M") ==
-         as_timestamp(today_at(alarm_time)) | timestamp_custom('%H:%M') }}
+      {{ as_timestamp(now()) | timestamp_custom("%H:%M") == as_timestamp(today_at(alarm_time)) | timestamp_custom('%H:%M') }}
 
 
 actions:
