@@ -607,13 +607,13 @@ actions:
           - condition: trigger
             id:
               - light_on
-          - condition: template
-            value_template: "{{ light_enabled }}"
-          - condition: template
-            value_template: "{{ person_in_home }}"
-          - condition: template
-            value_template: |
-                  {{ set_sunset or states(sun_sensor) in invalid_states or states(sun_sensor) == 'below_horizon' }}
+          # - condition: template
+          #   value_template: "{{ light_enabled }}"
+          # - condition: template
+          #   value_template: "{{ person_in_home }}"
+          # - condition: template
+          #   value_template: |
+          #         {{ set_sunset or states(sun_sensor) in invalid_states or states(sun_sensor) == 'below_horizon' }}
         sequence:
           - repeat:
               count: 254
