@@ -102,7 +102,7 @@ blueprint:
             entity:
               filter:
                 - domain: notify
-              multiple: false
+              multiple: true
 
 trigger_variables:
   thermostats: !input thermostats
