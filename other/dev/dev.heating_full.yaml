@@ -1,0 +1,367 @@
+blueprint:
+  name: Мониторинг системы отопления
+  description: |
+    ### Мониторинг термостатов и обогревателей.
+    <small>Версия 2026.07.01 Сборка 3</small>
+
+    Проверки:
+    - доступность термостатов и обогревателей
+    - перегрев (температура выше цели)
+    - зависание в режиме нагрева (температура не растёт)
+    - мощность обогревателя не соответствует состоянию
+    - автоматический перезапуск проблемного обогревателя
+    - обогреватели и сенсоры мощности определяются автоматически
+
+    <small><a href="https://github.com/S0ft0r/ha-blueprints/blob/main/as-is.md">Отказ от ответственности</a></small>
+  domain: automation
+  author: Softor
+
+  input:
+    thermostats:
+      name: Термостаты
+      description: Все термостаты системы отопления
+      selector:
+        entity:
+          filter:
+            - domain: climate
+          multiple: true
+
+    settings_section:
+      name: Настройки проверок
+      icon: mdi:thermometer-alert
+      input:
+        overheat_delta:
+          name: Порог перегрева
+          description: |
+            На сколько градусов текущая температура может
+            превышать целевую.
+          default: 2.0
+          selector:
+            number:
+              min: 0.5
+              max: 10
+              step: 0.5
+              mode: slider
+              unit_of_measurement: "°C"
+
+        check_stale_enabled:
+          name: Проверять зависание нагрева
+          description: |
+            Если термостат греет, но температура не растёт
+            заданное время — считать проблемой.
+          default: true
+          selector:
+            boolean: {}
+
+        stale_minutes:
+          name: Время без роста температуры
+          description: |
+            Сколько минут термостат может греть без изменения
+            температуры, прежде чем будет предупреждение.
+          default: 30
+          selector:
+            number:
+              min: 5
+              max: 120
+              step: 5
+              mode: slider
+              unit_of_measurement: "мин"
+
+        check_power_enabled:
+          name: Проверять мощность обогревателя
+          description: |
+            Если включено, система будет проверять,
+            соответствует ли потребляемая мощность
+            состоянию обогревателя.
+          default: false
+          selector:
+            boolean: {}
+
+        power_zero_threshold:
+          name: Порог нулевой мощности
+          description: |
+            Мощность ниже этого значения считается нулевой.
+            Учитывает погрешность измерения.
+          default: 5
+          selector:
+            number:
+              min: 0
+              max: 50
+              step: 1
+              mode: slider
+              unit_of_measurement: "Вт"
+
+        restart_on_problem:
+          name: Перезапускать проблемный обогреватель
+          description: |
+            При обнаружении зависания или несоответствия мощности —
+            выключить и снова включить связанный обогреватель.
+          default: false
+          selector:
+            boolean: {}
+
+        restart_delay:
+          name: Пауза при перезапуске
+          description: Время между выключением и включением обогревателя
+          default: 10
+          selector:
+            number:
+              min: 5
+              max: 60
+              step: 5
+              mode: slider
+              unit_of_measurement: "сек"
+
+    notify_section:
+      name: Уведомления
+      icon: mdi:bell-outline
+      collapsed: true
+      input:
+        notify_target:
+          name: Получатель уведомлений
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain: notify
+              multiple: false
+
+trigger_variables:
+  thermostats: !input thermostats
+  overheat_delta: !input overheat_delta
+  check_stale_enabled: !input check_stale_enabled
+  stale_minutes: !input stale_minutes
+  check_power_enabled: !input check_power_enabled
+  power_zero_threshold: !input power_zero_threshold
+  restart_on_problem: !input restart_on_problem
+  restart_delay: !input restart_delay
+  notify_target: !input notify_target
+
+  invalid_states:
+    - ""
+    - "unavailable"
+    - "unknown"
+    - "none"
+
+triggers:
+  - trigger: state
+    entity_id: !input thermostats
+    attribute: hvac_action
+    id: hvac_action_changed
+
+  - trigger: state
+    entity_id: !input thermostats
+    to: "unavailable"
+    id: thermostat_unavailable
+
+variables:
+  heater_map: >
+    {% set ns = namespace(items=[]) %}
+    {% for therm in thermostats %}
+      {% set dev = device_id(therm) %}
+      {% if dev %}
+        {% set entities = device_entities(dev) %}
+        {% set heater = entities
+           | select('match', 'switch.')
+           | list | first | default('') %}
+        {% set ps = namespace(entity='') %}
+        {% for ent in entities %}
+          {% if ent.startswith('sensor.') and ps.entity == '' %}
+            {% if state_attr(ent, 'device_class') == 'power' or 'power' in ent %}
+              {% set ps.entity = ent %}
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+        {% set ns.items = ns.items + [{
+        'thermostat': therm,
+        'heater': heater,
+        'power_sensor': ps.entity
+      }] %}
+      {% else %}
+        {% set ns.items = ns.items + [{
+          'thermostat': therm,
+          'heater': '',
+          'power_sensor': ''
+        }] %}
+      {% endif %}
+    {% endfor %}
+    {{ ns.items }}
+
+  problems: >
+    {% set ns = namespace(items=[]) %}
+    {% for therm in thermostats %}
+      {% set entry = heater_map
+         | selectattr('thermostat', 'eq', therm)
+         | first | default({}) %}
+      {% set heater = entry.heater | default('') %}
+      {% set power_sensor = entry.power_sensor | default('') %}
+      {% set therm_state = states(therm) %}
+      {% set hvac_action = state_attr(therm, 'hvac_action') | default('') %}
+      {% set current = state_attr(therm, 'current_temperature') | float(-999) %}
+      {% set target = state_attr(therm, 'temperature') | float(-999) %}
+      {% set therm_name = state_attr(therm, 'friendly_name') | default(therm) %}
+
+      {# 1. Термостат недоступен #}
+      {% if therm_state in invalid_states %}
+        {% set ns.items = ns.items + [{
+          'type': 'unavailable',
+          'entity': therm,
+          'heater': heater,
+          'message': therm_name ~ ' — термостат недоступен'
+        }] %}
+
+      {% else %}
+
+        {# 2. Выключатель/реле недоступено #}
+        {% if heater != '' and states(heater) in invalid_states %}
+          {% set ns.items = ns.items + [{
+            'type': 'heater_unavailable',
+            'entity': heater,
+            'thermostat': therm,
+            'message': state_attr(heater, 'friendly_name') | default(heater) ~ ' — обогреватель недоступен'
+          }] %}
+        {% endif %}
+
+        {% if current > -999 and target > -999 %}
+
+          {# 3. Перегрев #}
+          {% if current > target + (overheat_delta | float(2)) %}
+            {% set ns.items = ns.items + [{
+              'type': 'overheat',
+              'entity': therm,
+              'heater': heater,
+              'message': therm_name ~ ' — перегрев: ' ~ current ~ '°C при цели ' ~ target ~ '°C'
+            }] %}
+          {% endif %}
+
+          {# 4. Завис в heating #}
+          {% if check_stale_enabled and hvac_action == 'heating' %}
+            {% set last_update = states[therm].last_updated %}
+            {% set heating_minutes = ((now() - last_update).total_seconds() / 60) | int %}
+            {% if heating_minutes >= (stale_minutes | int(30)) and current <= target - 0.5 %}
+              {% set ns.items = ns.items + [{
+                'type': 'stale',
+                'entity': therm,
+                'heater': heater,
+                'message': therm_name ~ ' — греет ' ~ heating_minutes ~ ' мин, но температура не растёт (' ~ current ~ '°C)'
+              }] %}
+            {% endif %}
+          {% endif %}
+
+        {% endif %}
+
+        {# 5. Проверка мощности #}
+        {% if check_power_enabled and heater != '' and power_sensor != '' %}
+          {% set power = states(power_sensor) | float(-1) %}
+          {% set heater_state = states(heater) %}
+
+          {# 5a. Включён, но мощность нулевая #}
+          {% if heater_state == 'on' and power >= 0 and power < (power_zero_threshold | float(5)) %}
+            {% set ns.items = ns.items + [{
+              'type': 'power_zero',
+              'entity': therm,
+              'heater': heater,
+              'power_sensor': power_sensor,
+              'message': therm_name ~ ' — обогреватель включён, но мощность ' ~ power ~ ' Вт'
+            }] %}
+          {% endif %}
+
+          {# 5b. Выключен, но мощность ненулевая #}
+          {% if heater_state == 'off' and power > (power_zero_threshold | float(5)) %}
+            {% set ns.items = ns.items + [{
+              'type': 'power_stuck',
+              'entity': therm,
+              'heater': heater,
+              'power_sensor': power_sensor,
+              'message': therm_name ~ ' — обогреватель выключен, но мощность ' ~ power ~ ' Вт'
+            }] %}
+          {% endif %}
+        {% endif %}
+
+      {% endif %}
+    {% endfor %}
+    {{ ns.items }}
+
+  heaters_to_restart: >
+    {% set ns = namespace(items=[]) %}
+    {% for problem in problems %}
+      {% if problem.type in ['stale', 'power_zero', 'power_stuck']
+         and problem.heater is defined
+         and problem.heater != '' %}
+        {% set ns.items = ns.items + [problem.heater] %}
+      {% endif %}
+    {% endfor %}
+    {{ ns.items | unique | list }}
+
+  has_problems: "{{ problems | length > 0 }}"
+
+actions:
+  - choose:
+
+      #####################################################################
+      # ЕСТЬ ПРОБЛЕМЫ
+      #####################################################################
+
+      - conditions:
+          - condition: template
+            value_template: "{{ has_problems }}"
+        sequence:
+          - action: logbook.log
+            data:
+              name: "Отопление"
+              message: >
+                Обнаружены проблемы:
+                {% for item in problems %}
+                — {{ item.message }}
+                {% endfor %}
+
+          - if:
+              - condition: template
+                value_template: "{{ notify_target != [] }}"
+            then:
+              - action: notify.send_message
+                target:
+                  entity_id: !input notify_target
+                data:
+                  title: "Отопление: проблема"
+                  message: >
+                    {% for item in problems %}
+                    — {{ item.message }}
+                    {% endfor %}
+                continue_on_error: true
+
+          - if:
+              - condition: template
+                value_template: "{{ restart_on_problem and heaters_to_restart | length > 0 }}"
+            then:
+              - repeat:
+                  for_each: "{{ heaters_to_restart }}"
+                  sequence:
+                    - action: homeassistant.turn_off
+                      target:
+                        entity_id: "{{ repeat.item }}"
+                    - delay:
+                        seconds: "{{ restart_delay | int(10) }}"
+                    - action: homeassistant.turn_on
+                      target:
+                        entity_id: "{{ repeat.item }}"
+                    - action: logbook.log
+                      data:
+                        name: "Отопление"
+                        message: "Перезапущен обогреватель: {{ repeat.item }}"
+                        entity_id: "{{ repeat.item }}"
+
+                    - if:
+                        - condition: template
+                          value_template: "{{ notify_target != [] }}"
+                      then:
+                        - action: notify.send_message
+                          target:
+                            entity_id: !input notify_target
+                          data:
+                            title: "Отопление: перезапуск"
+                            message: "Перезапущен обогреватель: {{ state_attr(repeat.item, 'friendly_name') | default(repeat.item) }}"
+                          continue_on_error: true
+
+mode: queued
+max: 5
