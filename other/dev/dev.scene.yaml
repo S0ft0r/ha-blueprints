@@ -16,7 +16,7 @@ blueprint:
 
     <small><a href="https://github.com/S0ft0r/ha-blueprints/blob/main/as-is.md">Отказ от ответственности</a></small>
   domain: automation
-  source_url: https://github.com/S0ft0r/ha-blueprints/blob/main/other/dev/dev.scene.yaml
+  source_url: https://raw.githubusercontent.com/S0ft0r/ha-blueprints/main/other/dev/dev.scene.yaml
   author: Softor
   homeassistant:
     min_version: 2024.6.0
@@ -193,7 +193,7 @@ blueprint:
             entity:
               filter:
                 - domain: notify
-              multiple: false
+              multiple: true
 
 trigger_variables:
   devices_to_save: !input devices_to_save
