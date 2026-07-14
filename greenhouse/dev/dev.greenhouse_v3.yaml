@@ -1,0 +1,894 @@
+blueprint:
+  name: Полив теплицы v3 (одно направление)
+  description: |
+    ### Управление одним направлением полива теплицы.
+    <small>Версия 2026.07.01 Сборка 2 (с якорями)</small>
+
+    **Особенности:**
+     + Один blueprint — одно направление
+     + Координация через общие helper'ы (timer + input_boolean)
+     + Независимые настройки утра/вечера
+     + Ежедневно / через день
+     + Множественные датчики влажности с усреднением
+     + Пропуск влажных направлений
+     + Внеплановый полив по низкой влажности
+     + Ночной запрет и защита от частых срабатываний
+     + Учёт прогноза погоды и температурной адаптации
+     + Автоматическое управление главным клапаном и насосом
+
+    **Требования:**
+     + Создать `timer.pump_off_auto` (helper)
+     + Создать `input_boolean.watering_in_progress` (helper)
+     + Home Assistant 2024.6+
+
+    <small><a href="https://github.com/S0ft0r/ha-blueprints/blob/main/as-is.md">Отказ от ответственности</a></small>
+  domain: automation
+  source_url: https://github.com/S0ft0r/ha-blueprints/blob/main/greenhouse/dev/dev.greenhouse_v3.yaml
+  author: Softor
+  homeassistant:
+    min_version: 2024.6.0
+
+  input:
+
+    ####################################################################
+    # Общие helper'ы (обязательные)
+    ####################################################################
+
+    common_section:
+      name: Общие настройки (для всех направлений)
+      description: |
+        Эти параметры должны быть одинаковыми во всех
+        автоматизациях, созданных из этого blueprint.
+      icon: mdi:cog
+      input:
+        watering_switch:
+          name: Главный клапан подачи воды
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - switch
+                    - valve
+
+        waterpump_switch:
+          name: Реле насоса
+          description: Опционально
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - switch
+              multiple: false
+
+        pump_off_auto:
+          name: Таймер защитного отключения
+          description: |
+            Общий timer helper. Используется как защита
+            от перелива и как индикатор активного полива.
+          selector:
+            entity:
+              filter:
+                - domain: timer
+
+        watering_in_progress:
+          name: Флаг активного полива
+          description: |
+            Общий input_boolean helper. Используется для
+            координации между направлениями.
+          selector:
+            entity:
+              filter:
+                - domain: input_boolean
+
+        set_pump_delay:
+          name: Задержка после включения насоса
+          default: 5
+          selector:
+            number:
+              min: 1
+              max: 60
+              step: 1
+              mode: slider
+              unit_of_measurement: "сек"
+
+        set_valve_delay:
+          name: Задержка после открытия главного клапана
+          default: 3
+          selector:
+            number:
+              min: 1
+              max: 60
+              step: 1
+              mode: slider
+              unit_of_measurement: "сек"
+
+        set_shutdown_wait:
+          name: Ожидание перед закрытием главного клапана
+          description: |
+            После окончания полива автоматизация ждёт это время.
+            Если за это время другое направление не подключилось —
+            главный клапан закрывается.
+          default: 30
+          selector:
+            number:
+              min: 5
+              max: 300
+              step: 5
+              mode: slider
+              unit_of_measurement: "сек"
+
+    ####################################################################
+    # Направление
+    ####################################################################
+
+    valve_section:
+      name: Настройки направления
+      icon: mdi:pipe-valve
+      input:
+        valve_switch:
+          name: Клапан направления
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - switch
+                    - valve
+
+        valve_days_mode:
+          name: Режим полива по дням
+          default: daily
+          selector:
+            select:
+              options:
+                - label: Ежедневно
+                  value: daily
+                - label: Через день
+                  value: alternate
+              mode: dropdown
+
+    ####################################################################
+    # Утренний полив
+    ####################################################################
+
+    morning_section:
+      name: Утренний полив
+      icon: mdi:clock-time-four-outline
+      input:
+        morning_enabled:
+          name: Включить утренний полив
+          default: false
+          selector:
+            boolean: {}
+
+        morning_time:
+          name: Время включения
+          default: "08:00:00"
+          selector:
+            time: {}
+
+        morning_duration:
+          name: Длительность полива
+          default: 60
+          selector:
+            number:
+              min: 5
+              max: 3600
+              step: 5
+              mode: box
+              unit_of_measurement: "сек"
+
+    ####################################################################
+    # Вечерний полив
+    ####################################################################
+
+    evening_section:
+      name: Вечерний полив
+      icon: mdi:clock-time-eight-outline
+      input:
+        evening_enabled:
+          name: Включить вечерний полив
+          default: false
+          selector:
+            boolean: {}
+
+        evening_time:
+          name: Время включения
+          default: "20:00:00"
+          selector:
+            time: {}
+
+        evening_duration:
+          name: Длительность полива
+          default: 60
+          selector:
+            number:
+              min: 5
+              max: 3600
+              step: 5
+              mode: box
+              unit_of_measurement: "сек"
+
+    ####################################################################
+    # Датчики влажности
+    ####################################################################
+
+    soil_section:
+      name: Датчики влажности почвы
+      icon: mdi:water-percent
+      collapsed: true
+      input:
+        soil_sensors:
+          name: Датчики влажности
+          description: |
+            Один или несколько датчиков влажности для этого направления.
+            При нескольких датчиках используется среднее значение по валидным.
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain: sensor
+                  device_class: moisture
+              multiple: true
+
+        soil_skip_enabled:
+          name: Пропускать полив при высокой влажности
+          default: true
+          selector:
+            boolean: {}
+
+        soil_skip_threshold:
+          name: Порог пропуска
+          description: |
+            Если средняя влажность выше этого значения — плановый полив пропускается.
+          default: 65
+          selector:
+            number:
+              min: 1
+              max: 100
+              step: 1
+              mode: slider
+              unit_of_measurement: "%"
+
+    ####################################################################
+    # Внеплановый полив
+    ####################################################################
+
+    unplanned_section:
+      name: Внеплановый полив
+      icon: mdi:watering-can-outline
+      collapsed: true
+      input:
+        unplanned_enabled:
+          name: Включить внеплановый полив
+          description: |
+            Полив запускается при падении влажности ниже порога.
+          default: false
+          selector:
+            boolean: {}
+
+        soil_low_threshold:
+          name: Порог низкой влажности
+          default: 30
+          selector:
+            number:
+              min: 1
+              max: 100
+              step: 1
+              mode: slider
+              unit_of_measurement: "%"
+
+        unplanned_duration:
+          name: Длительность внепланового полива
+          default: 30
+          selector:
+            number:
+              min: 5
+              max: 3600
+              step: 5
+              mode: box
+              unit_of_measurement: "сек"
+
+        soil_confirm_time:
+          name: Время подтверждения низкой влажности
+          description: |
+            Влажность должна оставаться ниже порога это время.
+          default: "00:10:00"
+          selector:
+            time: {}
+
+        night_block_enabled:
+          name: Запрет полива ночью
+          default: true
+          selector:
+            boolean: {}
+
+        night_start:
+          name: Начало ночного периода
+          default: "22:00:00"
+          selector:
+            time: {}
+
+        night_end:
+          name: Окончание ночного периода
+          default: "06:00:00"
+          selector:
+            time: {}
+
+        debounce_time:
+          name: Пауза между внеплановыми поливами
+          default: "00:30:00"
+          selector:
+            time: {}
+
+    ####################################################################
+    # Прогноз погоды
+    ####################################################################
+
+    forecast_section:
+      name: Учёт прогноза погоды
+      icon: mdi:weather-partly-rainy
+      collapsed: true
+      input:
+        forecast_enabled:
+          name: Учитывать прогноз погоды
+          default: false
+          selector:
+            boolean: {}
+
+        forecast_sensor:
+          name: Сенсор погоды
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain: weather
+              multiple: false
+
+        rain_conditions:
+          name: Условия отмены полива
+          default:
+            - rainy
+            - pouring
+            - lightning-rainy
+          selector:
+            select:
+              options:
+                - label: Дождь
+                  value: rainy
+                - label: Ливень
+                  value: pouring
+                - label: Гроза
+                  value: lightning-rainy
+                - label: Переменная облачность
+                  value: partlycloudy
+                - label: Облачно
+                  value: cloudy
+                - label: Туман
+                  value: fog
+              multiple: true
+              mode: list
+
+        forecast_hours:
+          name: Глубина прогноза
+          default: 3
+          selector:
+            number:
+              min: 1
+              max: 24
+              step: 1
+              mode: slider
+              unit_of_measurement: "ч"
+
+    ####################################################################
+    # Температурная адаптация
+    ####################################################################
+
+    temp_section:
+      name: Адаптация по температуре
+      icon: mdi:thermometer-water
+      collapsed: true
+      input:
+        temp_adapt_enabled:
+          name: Адаптировать длительность по температуре
+          default: false
+          selector:
+            boolean: {}
+
+        temp_sensor:
+          name: Датчик температуры
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain: sensor
+                  device_class: temperature
+              multiple: false
+
+        temp_cold:
+          name: Холодная граница
+          default: 5
+          selector:
+            number:
+              min: -10
+              max: 30
+              step: 1
+              mode: slider
+              unit_of_measurement: "°C"
+
+        temp_comfort:
+          name: Комфортная граница
+          default: 18
+          selector:
+            number:
+              min: 0
+              max: 35
+              step: 1
+              mode: slider
+              unit_of_measurement: "°C"
+
+        temp_hot:
+          name: Жаркая граница
+          default: 30
+          selector:
+            number:
+              min: 15
+              max: 50
+              step: 1
+              mode: slider
+              unit_of_measurement: "°C"
+
+        cold_multiplier:
+          name: Коэффициент при холоде
+          default: 0.5
+          selector:
+            number:
+              min: 0.1
+              max: 1.0
+              step: 0.1
+              mode: slider
+
+        hot_multiplier:
+          name: Коэффициент при жаре
+          default: 1.5
+          selector:
+            number:
+              min: 1.0
+              max: 3.0
+              step: 0.1
+              mode: slider
+
+    ####################################################################
+    # Логирование
+    ####################################################################
+
+    logging_section:
+      name: Логирование и уведомления
+      icon: mdi:notebook-outline
+      collapsed: true
+      input:
+        logging_enabled:
+          name: Логировать в Logbook
+          default: false
+          selector:
+            boolean: {}
+
+        notify_target:
+          name: Получатель уведомлений
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain: notify
+              multiple: false
+
+trigger_variables:
+  valve_switch: !input valve_switch
+  watering_switch: !input watering_switch
+  waterpump_switch: !input waterpump_switch
+  pump_off_auto: !input pump_off_auto
+  watering_in_progress: !input watering_in_progress
+
+  valve_days_mode: !input valve_days_mode
+
+  morning_enabled: !input morning_enabled
+  morning_time: !input morning_time
+  morning_duration: !input morning_duration
+
+  evening_enabled: !input evening_enabled
+  evening_time: !input evening_time
+  evening_duration: !input evening_duration
+
+  soil_sensors: !input soil_sensors
+  soil_skip_enabled: !input soil_skip_enabled
+  soil_skip_threshold: !input soil_skip_threshold
+
+  unplanned_enabled: !input unplanned_enabled
+  soil_low_threshold: !input soil_low_threshold
+  unplanned_duration: !input unplanned_duration
+  soil_confirm_time: !input soil_confirm_time
+
+  night_block_enabled: !input night_block_enabled
+  night_start: !input night_start
+  night_end: !input night_end
+  debounce_time: !input debounce_time
+
+  forecast_enabled: !input forecast_enabled
+  forecast_sensor: !input forecast_sensor
+  rain_conditions: !input rain_conditions
+  forecast_hours: !input forecast_hours
+
+  temp_adapt_enabled: !input temp_adapt_enabled
+  temp_sensor: !input temp_sensor
+  temp_cold: !input temp_cold
+  temp_comfort: !input temp_comfort
+  temp_hot: !input temp_hot
+  cold_multiplier: !input cold_multiplier
+  hot_multiplier: !input hot_multiplier
+
+  set_pump_delay: !input set_pump_delay
+  set_valve_delay: !input set_valve_delay
+  set_shutdown_wait: !input set_shutdown_wait
+
+  logging_enabled: !input logging_enabled
+  notify_target: !input notify_target
+
+  is_waterpump_defined: "{{ waterpump_switch != [] }}"
+  has_sensors: "{{ soil_sensors != [] }}"
+
+  invalid_states:
+    - ""
+    - "unavailable"
+    - "unknown"
+    - "none"
+
+triggers:
+  - trigger: time
+    at: !input morning_time
+    id: morning_trigger
+
+  - trigger: time
+    at: !input evening_time
+    id: evening_trigger
+
+  - trigger: numeric_state
+    entity_id: !input soil_sensors
+    below: !input soil_low_threshold
+    for: !input soil_confirm_time
+    id: unplanned_trigger
+    enabled: "{{ has_sensors and unplanned_enabled }}"
+
+variables:
+  # Действия для клапанов
+  watering_open_action: >
+    {{ 'valve.open_valve' if watering_switch.split('.')[0] == 'valve' else 'homeassistant.turn_on' }}
+  watering_close_action: >
+    {{ 'valve.close_valve' if watering_switch.split('.')[0] == 'valve' else 'homeassistant.turn_off' }}
+  valve_open_action: >
+    {{ 'valve.open_valve' if valve_switch.split('.')[0] == 'valve' else 'homeassistant.turn_on' }}
+  valve_close_action: >
+    {{ 'valve.close_valve' if valve_switch.split('.')[0] == 'valve' else 'homeassistant.turn_off' }}
+
+  is_alternate_day: "{{ (now().timestamp() / 86400) | int % 2 == 0 }}"
+  day_allowed: >
+    {{ valve_days_mode == 'daily'
+       or (valve_days_mode == 'alternate' and is_alternate_day) }}
+
+  soil_avg: >
+    {% set ns = namespace(values=[]) %}
+    {% for s in soil_sensors %}
+      {% if states(s) not in invalid_states %}
+        {% set ns.values = ns.values + [states(s) | float(-1)] %}
+      {% endif %}
+    {% endfor %}
+    {% if ns.values | length > 0 %}
+      {{ (ns.values | sum / ns.values | length) | round(1) }}
+    {% else %}
+      -1
+    {% endif %}
+
+  invalid_sensors: >
+    {% set ns = namespace(items=[]) %}
+    {% for s in soil_sensors %}
+      {% if states(s) in invalid_states %}
+        {% set ns.items = ns.items + [s] %}
+      {% endif %}
+    {% endfor %}
+    {{ ns.items }}
+
+  no_rain: >
+    {% if not forecast_enabled or forecast_sensor == [] %}
+      {{ true }}
+    {% else %}
+      {% set fc = state_attr(forecast_sensor, 'forecast') | default([]) %}
+      {% if fc | length == 0 %}
+        {{ true }}
+      {% else %}
+        {% set hours = forecast_hours | int %}
+        {% set conditions = fc[:hours] | map(attribute='condition') | list %}
+        {{ conditions | select('in', rain_conditions) | list | length == 0 }}
+      {% endif %}
+    {% endif %}
+
+  temp_multiplier: >
+    {% if not temp_adapt_enabled or temp_sensor == [] %}
+      {{ 1.0 }}
+    {% else %}
+      {% set t = states(temp_sensor) | float(-999) %}
+      {% if t <= -999 %}
+        {{ 1.0 }}
+      {% elif t < temp_cold | float %}
+        {{ 0.0 }}
+      {% elif t < temp_comfort | float %}
+        {% set range = (temp_comfort | float) - (temp_cold | float) %}
+        {% set pos = t - (temp_cold | float) %}
+        {% if range > 0 %}
+          {{ ((cold_multiplier | float) + (1.0 - (cold_multiplier | float)) * (pos / range)) | round(2) }}
+        {% else %}
+          {{ 1.0 }}
+        {% endif %}
+      {% elif t < temp_hot | float %}
+        {{ 1.0 }}
+      {% else %}
+        {{ hot_multiplier | float }}
+      {% endif %}
+    {% endif %}
+
+  actual_duration: >
+    {% set base = 0 %}
+    {% if trigger.id == 'morning_trigger' %}
+      {% set base = morning_duration | int %}
+    {% elif trigger.id == 'evening_trigger' %}
+      {% set base = evening_duration | int %}
+    {% elif trigger.id == 'unplanned_trigger' %}
+      {% set base = unplanned_duration | int %}
+    {% endif %}
+    {{ (base * (temp_multiplier | float)) | int }}
+
+  is_night: >
+    {% if not night_block_enabled %}
+      {{ false }}
+    {% else %}
+      {% set now_t = now().strftime('%H:%M:%S') %}
+      {% if night_start > night_end %}
+        {{ now_t >= night_start or now_t < night_end }}
+      {% else %}
+        {{ now_t >= night_start and now_t < night_end }}
+      {% endif %}
+    {% endif %}
+
+actions:
+
+  # -------------------------------------------------------------------
+  # Уведомление о проблемных датчиках
+  # -------------------------------------------------------------------
+  - if:
+      - condition: template
+        value_template: "{{ has_sensors and invalid_sensors | length > 0 and logging_enabled }}"
+    then:
+      - action: logbook.log
+        data:
+          name: "Полив теплицы"
+          message: >
+            Направление {{ valve_switch }}: недоступны датчики
+            {{ invalid_sensors | join(', ') }}
+
+      - if:
+          - condition: template
+            value_template: "{{ notify_target != [] }}"
+        then:
+          - action: notify.send_message
+            target:
+              entity_id: !input notify_target
+            data:
+              title: "Полив: проблема с датчиками"
+              message: >
+                Недоступны датчики влажности:
+                {{ invalid_sensors | join(', ') }}
+            continue_on_error: true
+
+  # -------------------------------------------------------------------
+  # Определяем якоря для повторно используемых последовательностей
+  # -------------------------------------------------------------------
+  - variables:
+      # Якорь: захватить флаг активного полива
+      lock_watering: &lock_watering
+        - wait_template: "{{ is_state(watering_in_progress, 'off') }}"
+          timeout:
+            minutes: 30
+          continue_on_timeout: false
+        - action: input_boolean.turn_on
+          target:
+            entity_id: "{{ watering_in_progress }}"
+
+      # Якорь: pre-start или продление таймера
+      start_or_extend: &start_or_extend
+        - if:
+            - condition: template
+              value_template: "{{ is_state(pump_off_auto, 'idle') }}"
+          then:
+            - action: timer.start
+              target:
+                entity_id: "{{ pump_off_auto }}"
+              data:
+                duration: >
+                  {{ (set_pump_delay | int)
+                     + (set_valve_delay | int)
+                     + (actual_duration | int)
+                     + 60 }}
+
+            - if:
+                - condition: template
+                  value_template: "{{ is_waterpump_defined }}"
+              then:
+                - action: switch.turn_on
+                  target:
+                    entity_id: "{{ waterpump_switch }}"
+                - delay:
+                    seconds: "{{ set_pump_delay | int }}"
+
+            - action: "{{ watering_open_action }}"
+              target:
+                entity_id: "{{ watering_switch }}"
+            - delay:
+                seconds: "{{ set_valve_delay | int }}"
+
+          else:
+            - action: timer.change
+              target:
+                entity_id: "{{ pump_off_auto }}"
+              data:
+                duration: "{{ actual_duration | int }}"
+
+      # Якорь: открыть свой клапан, полить, закрыть свой клапан
+      do_watering: &do_watering
+        - action: "{{ valve_open_action }}"
+          target:
+            entity_id: "{{ valve_switch }}"
+        - delay:
+            seconds: "{{ actual_duration | int }}"
+        - action: "{{ valve_close_action }}"
+          target:
+            entity_id: "{{ valve_switch }}"
+
+      # Якорь: снять флаг, подождать окно, закрыть главный клапан если нужно
+      release_and_cleanup: &release_and_cleanup
+        - action: input_boolean.turn_off
+          target:
+            entity_id: "{{ watering_in_progress }}"
+
+        - delay:
+            seconds: "{{ set_shutdown_wait | int }}"
+
+        - if:
+            - condition: template
+              value_template: "{{ is_state(watering_in_progress, 'off') }}"
+          then:
+            - action: "{{ watering_close_action }}"
+              target:
+                entity_id: "{{ watering_switch }}"
+
+            - if:
+                - condition: template
+                  value_template: "{{ is_waterpump_defined }}"
+              then:
+                - action: switch.turn_off
+                  target:
+                    entity_id: "{{ waterpump_switch }}"
+
+            - action: timer.finish
+              target:
+                entity_id: "{{ pump_off_auto }}"
+
+  # -------------------------------------------------------------------
+  # Основная логика
+  # -------------------------------------------------------------------
+  - choose:
+
+      # -----------------------------------------------------------------
+      # ПЛАНОВЫЙ ПОЛИВ (утро или вечер)
+      # -----------------------------------------------------------------
+      - conditions:
+          - condition: trigger
+            id:
+              - morning_trigger
+              - evening_trigger
+
+          - condition: template
+            value_template: >
+              {{ (trigger.id == 'morning_trigger' and morning_enabled)
+                 or (trigger.id == 'evening_trigger' and evening_enabled) }}
+
+          - condition: template
+            value_template: "{{ day_allowed }}"
+
+          - condition: template
+            value_template: "{{ no_rain }}"
+
+          - condition: template
+            value_template: "{{ (temp_multiplier | float) > 0 }}"
+
+          - condition: template
+            value_template: >
+              {% if not soil_skip_enabled or not has_sensors or soil_avg | float < 0 %}
+                {{ true }}
+              {% else %}
+                {{ soil_avg | float < soil_skip_threshold | float }}
+              {% endif %}
+
+        sequence:
+          - *lock_watering
+          - *start_or_extend
+          - *do_watering
+          - *release_and_cleanup
+
+          - if:
+              - condition: template
+                value_template: "{{ logging_enabled }}"
+            then:
+              - action: logbook.log
+                data:
+                  name: "Полив теплицы"
+                  message: >
+                    Направление {{ valve_switch }} полито
+                    ({{ actual_duration }} сек, влажность: {{ soil_avg }}%)
+
+      # -----------------------------------------------------------------
+      # ВНЕПЛАНОВЫЙ ПОЛИВ ПО ДАТЧИКУ
+      # -----------------------------------------------------------------
+      - conditions:
+          - condition: trigger
+            id:
+              - unplanned_trigger
+
+          - condition: template
+            value_template: "{{ not is_night }}"
+
+          - condition: template
+            value_template: >
+              {% set last = this.attributes.last_triggered %}
+              {% if last is none %}
+                {{ true }}
+              {% else %}
+                {% set dt = debounce_time.split(':') %}
+                {% set debounce_seconds = (dt[0] | int * 3600) + (dt[1] | int * 60) + (dt[2] | int) %}
+                {{ (now() - last).total_seconds() > debounce_seconds }}
+              {% endif %}
+
+          - condition: template
+            value_template: "{{ no_rain }}"
+
+          - condition: template
+            value_template: "{{ (temp_multiplier | float) > 0 }}"
+
+        sequence:
+          - *lock_watering
+          - *start_or_extend
+          - *do_watering
+          - *release_and_cleanup
+
+          - if:
+              - condition: template
+                value_template: "{{ logging_enabled }}"
+            then:
+              - action: logbook.log
+                data:
+                  name: "Полив теплицы"
+                  message: >
+                    Внеплановый полив направления {{ valve_switch }}
+                    (влажность: {{ soil_avg }}%, порог: {{ soil_low_threshold }}%)
+
+              - if:
+                  - condition: template
+                    value_template: "{{ notify_target != [] }}"
+                then:
+                  - action: notify.send_message
+                    target:
+                      entity_id: !input notify_target
+                    data:
+                      title: "Внеплановый полив"
+                      message: >
+                        Направление {{ valve_switch }}: влажность {{ soil_avg }}%
+                    continue_on_error: true
+
+mode: single
