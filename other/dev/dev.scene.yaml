@@ -1,0 +1,331 @@
+blueprint:
+  name: Сохранение и восстановление состояний
+  description: |
+    ### Сохранение состояний устройств и их восстановление после перезагрузки HA.
+    <small>Версия 2026.07.01 Сборка 3</small>
+
+    **Как работает:**
+     + Периодически создаёт динамическую сцену со снимком выбранных устройств
+     + Сохраняет сцену перед выключением/перезагрузкой HA
+     + Восстанавливает сцену после запуска HA
+     + Можно выбирать устройства целиком или отдельные сущности
+     + Защита от перезаписи сцены при массовой недоступности устройств
+     + Игнорируются переходные состояния (opening/closing)
+     + Поддерживает switch, light, cover, valve, climate, media_player, fan, вспомогательные устройства
+
+    <small><a href="https://github.com/S0ft0r/ha-blueprints/blob/main/as-is.md">Отказ от ответственности</a></small>
+  domain: automation
+  source_url: https://github.com/S0ft0r/ha-blueprints/blob/main/other/dev/dev.scene.yaml
+  author: Softor
+
+  input:
+    entities_section:
+      name: Что сохранять
+      icon: mdi:content-save-cog
+      input:
+        devices_to_save:
+          name: Устройства целиком
+          description: |
+            Выберите устройства — будут сохранены все их
+            подходящие сущности (switch, light, cover, valve и т.д.).
+          default: []
+          selector:
+            device:
+              multiple: true
+
+        entities_to_save:
+          name: Отдельные сущности
+          description: |
+            Дополнительные сущности, не входящие в выбранные устройства.
+            Например, вспомогательные устройства (input_boolean, input_number).
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - switch
+                    - light
+                    - cover
+                    - valve
+                    - climate
+                    - media_player
+                    - fan
+                    - input_boolean
+                    - input_number
+                    - input_select
+                    - select
+              multiple: true
+
+    settings_section:
+      name: Настройки
+      icon: mdi:cog
+      input:
+        scene_id:
+          name: Идентификатор сцены
+          description: |
+            Уникальное имя сцены для хранения состояний.
+            Если у вас несколько экземпляров этой автоматизации,
+            задайте разные имена.
+          default: "last_known_states"
+          selector:
+            text: {}
+
+        save_interval:
+          name: Интервал автосохранения
+          description: |
+            Как часто обновлять сцену с текущими состояниями.
+          default: 5
+          selector:
+            number:
+              min: 1
+              max: 60
+              step: 1
+              mode: slider
+              unit_of_measurement: "мин"
+
+        restore_delay:
+          name: Задержка перед восстановлением
+          description: |
+            Время ожидания после старта HA перед восстановлением.
+            Нужно, чтобы все интеграции успели подключиться.
+          default: 30
+          selector:
+            number:
+              min: 5
+              max: 300
+              step: 5
+              mode: slider
+              unit_of_measurement: "сек"
+
+        unavailable_threshold:
+          name: Порог массовой недоступности
+          description: |
+            Если процент недоступных устройств превысит это значение,
+            сцена не будет обновлена — сохранится последняя валидная.
+            Защищает от перезаписи сцены "мусором" при отключении света.
+          default: 50
+          selector:
+            number:
+              min: 10
+              max: 90
+              step: 5
+              mode: slider
+              unit_of_measurement: "%"
+
+        use_persistent_states:
+          name: Использовать save_persistent_states
+          description: |
+            Дополнительно сохранять состояния через встроенный
+            механизм HA. Требует HA 2023.10 или новее.
+          default: true
+          selector:
+            boolean: {}
+
+    logging_section:
+      name: Логирование
+      icon: mdi:notebook-outline
+      collapsed: true
+      input:
+        logging_enabled:
+          name: Логировать в Logbook
+          description: |
+            Записывать в журнал события сохранения
+            и восстановления состояний.
+          default: false
+          selector:
+            boolean: {}
+
+        notify_target:
+          name: Уведомление о восстановлении
+          description: |
+            Отправить уведомление после восстановления
+            состояний. Не выбирайте, если не нужно.
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain: notify
+              multiple: false
+
+trigger_variables:
+  devices_to_save: !input devices_to_save
+  entities_to_save: !input entities_to_save
+  scene_id: !input scene_id
+  save_interval: !input save_interval
+  restore_delay: !input restore_delay
+  unavailable_threshold: !input unavailable_threshold
+  use_persistent_states: !input use_persistent_states
+  logging_enabled: !input logging_enabled
+  notify_target: !input notify_target
+
+triggers:
+  - trigger: time_pattern
+    minutes: !input save_interval
+    id: periodic_save
+
+  - trigger: homeassistant
+    event: shutdown
+    id: shutdown_save
+
+  - trigger: homeassistant
+    event: start
+    id: startup_restore
+
+variables:
+  restorable_domains:
+    - switch
+    - light
+    - cover
+    - valve
+    - climate
+    - media_player
+    - fan
+    - input_boolean
+    - input_number
+    - input_select
+    - select
+
+  entities_from_devices: >
+    {% set ns = namespace(items=[]) %}
+    {% for dev in devices_to_save %}
+      {% for ent in device_entities(dev) %}
+        {% if ent.split('.')[0] in restorable_domains %}
+          {% set ns.items = ns.items + [ent] %}
+        {% endif %}
+      {% endfor %}
+    {% endfor %}
+    {{ ns.items }}
+
+  all_entities: >
+    {{ (entities_from_devices + entities_to_save) | unique | list }}
+
+actions:
+  - choose:
+
+      #####################################################################
+      # СОХРАНЕНИЕ (периодически или при остановке)
+      #####################################################################
+
+      - conditions:
+          - condition: trigger
+            id:
+              - periodic_save
+              - shutdown_save
+          - condition: template
+            value_template: "{{ all_entities | length > 0 }}"
+
+          # Не сохраняем, если больше порога устройств недоступны
+          - condition: template
+            value_template: >
+              {% set invalid = ['unavailable', 'unknown', 'none', ''] %}
+              {% set ns = namespace(unavail=0) %}
+              {% for ent in all_entities %}
+                {% if states(ent) in invalid %}
+                  {% set ns.unavail = ns.unavail + 1 %}
+                {% endif %}
+              {% endfor %}
+              {{ (ns.unavail / (all_entities | length) * 100) < (unavailable_threshold | int(50)) }}
+
+        sequence:
+          - variables:
+              valid_entities: >
+                {% set invalid = ['unavailable', 'unknown', 'none', ''] %}
+                {% set transient = ['opening', 'closing'] %}
+                {% set ns = namespace(items=[]) %}
+                {% for ent in all_entities %}
+                  {% set st = states(ent) %}
+                  {% if st not in invalid and st not in transient %}
+                    {% set ns.items = ns.items + [ent] %}
+                  {% endif %}
+                {% endfor %}
+                {{ ns.items }}
+
+          - if:
+              - condition: template
+                value_template: "{{ valid_entities | length > 0 }}"
+            then:
+              - action: scene.create
+                data:
+                  scene_id: "{{ scene_id }}"
+                  snapshot_entities: "{{ valid_entities }}"
+
+              - if:
+                  - condition: template
+                    value_template: "{{ use_persistent_states }}"
+                then:
+                  - action: homeassistant.save_persistent_states
+                    data: {}
+                    continue_on_error: true
+
+              - if:
+                  - condition: template
+                    value_template: "{{ logging_enabled and trigger.id == 'shutdown_save' }}"
+                then:
+                  - action: logbook.log
+                    data:
+                      name: "Восстановление состояний"
+                      message: >
+                        Сохранена сцена {{ scene_id }}
+                        ({{ valid_entities | length }} из {{ all_entities | length }} сущностей)
+
+      #####################################################################
+      # ВОССТАНОВЛЕНИЕ (после старта HA)
+      #####################################################################
+
+      - conditions:
+          - condition: trigger
+            id:
+              - startup_restore
+        sequence:
+          - delay:
+              seconds: "{{ restore_delay | int(30) }}"
+
+          - variables:
+              scene_entity: "scene.{{ scene_id }}"
+              scene_exists: >
+                {{ states(scene_entity) not in ['unknown', 'unavailable', ''] }}
+
+          - if:
+              - condition: template
+                value_template: "{{ scene_exists }}"
+            then:
+              - action: scene.turn_on
+                target:
+                  entity_id: "{{ scene_entity }}"
+
+              - if:
+                  - condition: template
+                    value_template: "{{ logging_enabled }}"
+                then:
+                  - action: logbook.log
+                    data:
+                      name: "Восстановление состояний"
+                      message: >
+                        Восстановлена сцена {{ scene_id }} после старта HA
+                        ({{ all_entities | length }} сущностей в конфигурации)
+
+              - if:
+                  - condition: template
+                    value_template: "{{ notify_target != [] }}"
+                then:
+                  - action: notify.send_message
+                    target:
+                      entity_id: !input notify_target
+                    data:
+                      title: "Home Assistant запущен"
+                      message: >
+                        Восстановлены состояния устройств
+                    continue_on_error: true
+
+            else:
+              - if:
+                  - condition: template
+                    value_template: "{{ logging_enabled }}"
+                then:
+                  - action: logbook.log
+                    data:
+                      name: "Восстановление состояний"
+                      message: >
+                        Сцена {{ scene_id }} не найдена — восстановление пропущено
+
+mode: single
