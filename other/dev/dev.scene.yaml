@@ -2,22 +2,25 @@ blueprint:
   name: Сохранение и восстановление состояний
   description: |
     ### Сохранение состояний устройств и их восстановление после перезагрузки HA.
-    <small>Версия 2026.07.01 Сборка 3</small>
+    <small>Версия 2026.07.01 Сборка 4</small>
 
     **Как работает:**
-     + Периодически создаёт динамическую сцену со снимком выбранных устройств
+     + Создаёт динамическую сцену со снимком выбранных устройств
+     + Три режима сохранения: периодически, по изменению, оба
+     + Автоматически отсеивает переходные состояния (opening/closing)
      + Сохраняет сцену перед выключением/перезагрузкой HA
      + Восстанавливает сцену после запуска HA
      + Можно выбирать устройства целиком или отдельные сущности
      + Защита от перезаписи сцены при массовой недоступности устройств
-     + Игнорируются переходные состояния (opening/closing)
      + Поддерживает switch, light, cover, valve, climate, media_player, fan, вспомогательные устройства
 
     <small><a href="https://github.com/S0ft0r/ha-blueprints/blob/main/as-is.md">Отказ от ответственности</a></small>
   domain: automation
   source_url: https://github.com/S0ft0r/ha-blueprints/blob/main/other/dev/dev.scene.yaml
   author: Softor
-
+  homeassistant:
+    min_version: 2024.6.0
+  
   input:
     entities_section:
       name: Что сохранять
@@ -37,7 +40,7 @@ blueprint:
           name: Отдельные сущности
           description: |
             Дополнительные сущности, не входящие в выбранные устройства.
-            Например, вспомогательные устройства (input_boolean, input_number).
+            Например, помощники (input_boolean, input_number).
           default: []
           selector:
             entity:
@@ -56,9 +59,68 @@ blueprint:
                     - select
               multiple: true
 
+    trigger_section:
+      name: Когда сохранять
+      icon: mdi:content-save-check
+      input:
+        save_mode:
+          name: Режим сохранения
+          description: |
+            Как определять момент сохранения сцены.
+          default: on_change_only
+          selector:
+            select:
+              options:
+                - label: Только периодически
+                  value: periodic_only
+                - label: Только по изменению состояний
+                  value: on_change_only
+                - label: Оба режима
+                  value: both
+              mode: dropdown
+
+        trigger_entities:
+          name: Триггерные сущности
+          description: |
+            Изменение состояния этих сущностей будет запускать сохранение.
+            Обычно это ключевые устройства (свет, шторы, клапаны, реле).
+            <small>* Работает только при режимах "по изменению" или "оба"</small>
+          default: []
+          selector:
+            entity:
+              multiple: true
+
+        save_interval:
+          name: Интервал периодического сохранения
+          description: |
+            Как часто обновлять сцену.
+            <small>* Работает только при режимах "периодически" или "оба"</small>
+          default: 5
+          selector:
+            number:
+              min: 1
+              max: 60
+              step: 1
+              mode: slider
+              unit_of_measurement: "мин"
+
+        change_debounce:
+          name: Задержка после изменения
+          description: |
+            Сохранение произойдёт только если состояние не менялось
+            указанное время. Отсеивает переходные состояния (opening/closing).
+          default: 10
+          selector:
+            number:
+              min: 1
+              max: 120
+              step: 1
+              mode: slider
+              unit_of_measurement: "сек"
+
     settings_section:
-      name: Настройки
-      icon: mdi:cog
+      name: Настройки восстановления
+      icon: mdi:restore
       input:
         scene_id:
           name: Идентификатор сцены
@@ -69,19 +131,6 @@ blueprint:
           default: "last_known_states"
           selector:
             text: {}
-
-        save_interval:
-          name: Интервал автосохранения
-          description: |
-            Как часто обновлять сцену с текущими состояниями.
-          default: 5
-          selector:
-            number:
-              min: 1
-              max: 60
-              step: 1
-              mode: slider
-              unit_of_measurement: "мин"
 
         restore_delay:
           name: Задержка перед восстановлением
@@ -102,7 +151,7 @@ blueprint:
           description: |
             Если процент недоступных устройств превысит это значение,
             сцена не будет обновлена — сохранится последняя валидная.
-            Защищает от перезаписи сцены "мусором" при отключении света.
+            Защищает от перезаписи сцены "мусором" при отключении электричества.
           default: 50
           selector:
             number:
@@ -115,8 +164,7 @@ blueprint:
         use_persistent_states:
           name: Использовать save_persistent_states
           description: |
-            Дополнительно сохранять состояния через встроенный
-            механизм HA. Требует HA 2023.10 или новее.
+            Дополнительно сохранять состояния через встроенный механизм HA. 
           default: true
           selector:
             boolean: {}
@@ -151,6 +199,7 @@ trigger_variables:
   devices_to_save: !input devices_to_save
   entities_to_save: !input entities_to_save
   scene_id: !input scene_id
+  save_mode: !input save_mode
   save_interval: !input save_interval
   restore_delay: !input restore_delay
   unavailable_threshold: !input unavailable_threshold
@@ -162,6 +211,17 @@ triggers:
   - trigger: time_pattern
     minutes: !input save_interval
     id: periodic_save
+
+  - trigger: state
+    entity_id: !input trigger_entities
+    not_to:
+      - opening
+      - closing
+      - unknown
+      - unavailable
+    for:
+      seconds: !input change_debounce
+    id: state_changed
 
   - trigger: homeassistant
     event: shutdown
@@ -203,14 +263,23 @@ actions:
   - choose:
 
       #####################################################################
-      # СОХРАНЕНИЕ (периодически или при остановке)
+      # СОХРАНЕНИЕ
       #####################################################################
 
       - conditions:
           - condition: trigger
             id:
               - periodic_save
+              - state_changed
               - shutdown_save
+
+          # Проверка режима работы
+          - condition: template
+            value_template: >
+              {{ (trigger.id == 'periodic_save' and save_mode in ['periodic_only', 'both'])
+                 or (trigger.id == 'state_changed' and save_mode in ['on_change_only', 'both'])
+                 or (trigger.id == 'shutdown_save') }}
+
           - condition: template
             value_template: "{{ all_entities | length > 0 }}"
 
@@ -269,7 +338,7 @@ actions:
                         ({{ valid_entities | length }} из {{ all_entities | length }} сущностей)
 
       #####################################################################
-      # ВОССТАНОВЛЕНИЕ (после старта HA)
+      # ВОССТАНОВЛЕНИЕ
       #####################################################################
 
       - conditions:
@@ -302,7 +371,6 @@ actions:
                       name: "Восстановление состояний"
                       message: >
                         Восстановлена сцена {{ scene_id }} после старта HA
-                        ({{ all_entities | length }} сущностей в конфигурации)
 
               - if:
                   - condition: template
