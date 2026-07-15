@@ -651,7 +651,7 @@ triggers:
   #   enabled: "{{ is_illuminance_enabled }}"
 
   - trigger: template
-    value_template: "{{ state_attr(sun_sensor,'azimuth') | float > (sun_azimuth | int) }}"
+    value_template: "{{ state_attr(sun_sensor,'azimuth') | float < (sun_azimuth | int) }}"
     id: sun_azimut_trigger
     enabled: "{{ is_sun_protect_enabled }}"
 
@@ -875,6 +875,7 @@ actions:
           - condition: trigger
             id:
               - sun_elevation_trigger
+
           - condition: template
             value_template: "{{ now() <= today_at(set_down_time) }}"
 
@@ -994,7 +995,7 @@ actions:
           - condition: template
             value_template: |
               {{ (set_min_illuminance > 0 or set_max_illuminance > 0) }}
-              
+
         sequence:
           - variables:
               blinds_target: "{{ blinds if blinds_for_protect == [] else blinds_for_protect }}"
