@@ -2,7 +2,7 @@ blueprint:
   name: Управление рулонными шторами
   description: |
     ### Управление шторами по положению солнца.
-    <small>Версия 2026.05.01 Сборка 5</small> 
+    <small>Версия 2026.05.01 Сборка 6</small> 
     <small><a href="https://4pda.to/forum/index.php?showtopic=871505&view=findpost&p=143572987">Специально для 4PDA</a></small>
     **Особенности:**
      + Отсрочка открытия штор до определенного времени 
@@ -16,6 +16,7 @@ blueprint:
      + Добавлена установка паузы для защиты от часто срабатывающего датчика освещения (например, Xiaomi BLE)
     **Изменения**
      + Обновлен интерфейс настроек проекта
+     + Введена проверка положения штор с логированием ошибки и уведомлением о ней.
     <small><a href="https://github.com/S0ft0r/ha-blueprints/blob/main/as-is.md">Отказ от ответственности</a></small>
   domain: automation
   source_url: https://github.com/S0ft0r/ha-blueprints/blob/main/loggia/dev/dev.covers.yaml
@@ -425,6 +426,20 @@ blueprint:
               step: 1
               mode: box
 
+        set_movement_time:
+          name: Время полного хода шторы
+          description: |
+            Время в секундах, за которое штора гарантированно доезжает из одного крайнего положения в другое. 
+            + <small>Используется для проверки достижения целевой позиции.</small>
+          default: 30
+          selector:
+            number:
+              min: 5
+              max: 120
+              step: 1
+              unit_of_measurement: "сек"
+              mode: slider
+
     device_section:
       name: Настройки устройства управления шторами
       icon: mdi:dip-switch
@@ -463,6 +478,34 @@ blueprint:
           selector:
             text:
 
+    logging_section:
+      name: Логирование ошибок
+      description: |
+        Запись в Ленту событий (Logbook) и уведомление при ошибках открытия/закрытия штор.
+      icon: mdi:alert-circle-outline
+      collapsed: true
+      input:
+
+        set_logging_enable:
+          name: Логировать ошибки
+          description: Включает запись в Logbook и отправку уведомления при ошибках
+          default: false
+          selector:
+            boolean: {}
+
+        notify_target:
+          name: Получатель уведомлений
+          description: |
+            Сущность notify (например, notify.mobile_app_iphone), на которую будет отправлено уведомление об ошибке.
+            <small>* Если не выбрано — уведомление отправляться не будет, запись в Logbook продолжит работать</small>
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - notify
+              multiple: true
+
     # helpers_section:
     #   name: Настройки вспомогательных сенсоров
     #   icon: mdi:settings-helper
@@ -485,6 +528,8 @@ max_exceeded: silent
 
 trigger_variables:
   automation_extra: !input automation_extra
+  set_logging_enable: !input set_logging_enable
+  notify_target: !input notify_target
 
   up_limit_config: !input up_limit_config
   down_limit_config: !input down_limit_config
@@ -702,9 +747,45 @@ triggers:
     id: zha_slider_stop_trigger
     enabled: "{{ is_slider_enabled }}"
 
+  - trigger: event
+    event_type: verify_blinds_event
+    id: verify_trigger
+
 actions:
 
-#  - variables:
+  - variables:
+      verify_blinds: &verify_blinds 
+        sequence:
+          - event: verify_blinds_event 
+            event_data:
+              blinds: "{{ blinds_target }}"
+              target_position: "{{ target_pos }}"
+              movement_time: !input set_movement_time
+              position_tolerance: !input repeat_for
+              direction: "{{ movement_direction }}"
+
+      log_error: &log_error
+        sequence:
+          - if:
+              - condition: template
+                value_template: "{{ set_logging_enable }}"
+            then:
+              - action: logbook.log
+                data:
+                  name: "Шторы"
+                  message: "{{ log_message }}"
+                  entity_id: "{{ log_entity_id | default('') }}"
+              - if:
+                  - condition: template
+                    value_template: "{{ notify_target != [] }}"
+                then:
+                  - action: notify.send_message
+                    target:
+                      entity_id: !input notify_target
+                    data:
+                      title: "Шторы: {{ notification_title | default('Внимание') }}"
+                      message: "{{ log_message }}"
+                    continue_on_error: true
 
 
   - choose:
@@ -728,6 +809,8 @@ actions:
         sequence:
           - variables:
               blinds_target: !input blinds
+              target_pos: "{{ up_limit | int(100) }}"
+              movement_direction: 'up'
           - &open_blinds
             repeat:
               count: !input repeat_for
@@ -738,11 +821,13 @@ actions:
                     entity_id: "{{ blinds_target | default(blinds) }}"
                   data:
                     position: >-
-                      {% set position = (up_limit | int(100)) - (repeat_for | int(1) - repeat.index) %}
+                      {% set position = (target_pos | int) - (repeat_for | int(1) - repeat.index) %}
                       {{ [0, [position, 100] | min] | max }}
 
                 - delay:
                     seconds: "{{ delay_for_repeat | int(1) }}"
+
+          - *verify_blinds
 
       - conditions: # Остановить по кнопке 
           - condition: trigger
@@ -780,6 +865,8 @@ actions:
         sequence:
           - variables:
               blinds_target: !input blinds
+              target_pos: "{{ down_limit | int(0) }}"
+              movement_direction: 'down'
           - &close_blinds
             repeat:
               count: !input repeat_for
@@ -790,12 +877,13 @@ actions:
                     entity_id: "{{ blinds_target | default(blinds) }}"
                   data:
                     position: >-
-                      {% set position = (down_limit | int(0)) + (repeat_for | int(1) - repeat.index) %}
+                      {% set position = (target_pos  | int) + (repeat_for | int(1) - repeat.index) %}
                       {{ [0, [position, 100] | min] | max }}
 
                 - delay:
                     seconds: "{{ delay_for_repeat | int(1) }}"
 
+          - *verify_blinds
 
 #########################################################################################################
 #
@@ -813,6 +901,8 @@ actions:
         sequence:
           - variables:
               blinds_target: !input blinds
+              target_pos: "{{ up_limit | int(100) }}"
+              movement_direction: 'up'
           - *open_blinds          
 
       - conditions: # Время открытия в выходные
@@ -825,6 +915,8 @@ actions:
         sequence:
           - variables:
               blinds_target: !input blinds
+              target_pos: "{{ up_limit | int(100) }}"
+              movement_direction: 'up'
           - *open_blinds          
 
       - conditions: # Время закрытия
@@ -835,6 +927,8 @@ actions:
         sequence:
           - variables:
               blinds_target: !input blinds
+              target_pos: "{{ down_limit | int(0) }}"
+              movement_direction: 'down'
           - *close_blinds          
 
 #########################################################################################################
@@ -853,6 +947,8 @@ actions:
         sequence:
           - variables:
               blinds_target: !input blinds
+              target_pos: "{{ up_limit | int(100) }}"
+              movement_direction: 'up'
           - *open_blinds          
 
       - conditions: # Солнце село
@@ -863,6 +959,8 @@ actions:
         sequence:
           - variables:
               blinds_target: !input blinds
+              target_pos: "{{ down_limit | int(0) }}"
+              movement_direction: 'down'
           - *close_blinds          
 
 #########################################################################################################
@@ -882,6 +980,8 @@ actions:
         sequence:
           - variables:
               blinds_target: "{{ blinds if blinds_for_protect == [] else blinds_for_protect }}"
+              target_pos: "{{ up_limit | int(100) }}"
+              movement_direction: 'up'
           - *open_blinds
 
       - conditions: # Закрыть шторы при защите от прямых лучей солнца
@@ -898,6 +998,8 @@ actions:
         sequence:
           - variables:
               blinds_target: "{{ blinds if blinds_for_protect == [] else blinds_for_protect }}"
+              target_pos: "{{ down_limit | int(0) }}"
+              movement_direction: 'down'
           - *close_blinds
 
 #########################################################################################################
@@ -935,6 +1037,8 @@ actions:
         sequence:
           - variables:
               blinds_target: "{{ blinds if blinds_for_protect == [] else blinds_for_protect }}"
+              target_pos: "{{ down_limit | int(0) }}"
+              movement_direction: 'down'
           - *close_blinds
 
       - conditions: # Открыть при изменении погоды при включенном режиме защиты от прямых лучей
@@ -965,6 +1069,8 @@ actions:
         sequence:
           - variables:
               blinds_target: "{{ blinds if blinds_for_protect == [] else blinds_for_protect }}"
+              target_pos: "{{ up_limit | int(100) }}"
+              movement_direction: 'up'
           - *open_blinds
 
 #########################################################################################################
@@ -1006,6 +1112,9 @@ actions:
                       {{ states(illuminance_sensor) | int >= set_max_illuminance }}
 
                 sequence:
+                  - variables:
+                      target_pos: "{{ down_limit | int(0) }}"
+                      movement_direction: 'down'
                   - *close_blinds
 
               - conditions: 
@@ -1014,6 +1123,9 @@ actions:
                       {{ states(illuminance_sensor) | int <= set_min_illuminance }}
 
                 sequence:
+                  - variables:
+                      target_pos: "{{ up_limit | int(100) }}"
+                      movement_direction: 'up'
                   - *open_blinds
 
       # - conditions: # Управлять при изменении уровня освещенности при включенном режиме защиты от прямых лучей
@@ -1045,3 +1157,57 @@ actions:
       #     - variables:
       #         blinds_target: "{{ blinds if blinds_for_protect == [] else blinds_for_protect }}"
       #     - *close_blinds
+
+#########################################################################################################
+#
+# ПРОВЕРКА ПОЛОЖЕНИЯ ШТОР 
+#
+#########################################################################################################
+
+      - conditions:
+          - condition: trigger
+            id: 
+              - verify_trigger
+        sequence:
+          - variables:
+              blinds_target: "{{ trigger.event.data.blinds }}"
+              target_position: "{{ trigger.event.data.target_position }}"
+              movement_time: "{{ trigger.event.data.movement_time }}"
+              direction: "{{ trigger.event.data.direction }}"
+              position_tolerance: "{{ trigger.event.data.position_tolerance | int(0) }}"
+
+          - delay:
+              seconds: "{{ movement_time }}"
+          
+          - *stop_blinds
+
+          - delay: 
+              seconds: 2
+
+          - variables:
+              failed_blinds: >-
+                {% set ns = namespace(items=[]) %}
+                {% for blind in blinds_target %}
+                  {% set pos = state_attr(blind, 'current_position') %}
+                  {% if pos is none or ((pos | int) - (target_position | int)) | abs > (position_tolerance | int) %}
+                    {% set ns.items = ns.items + [blind] %}
+                  {% endif %}
+                {% endfor %}
+                {{ ns.items }}
+
+          - if:
+              - condition: template
+                value_template: |
+                  {{ failed_blinds | count > 0 }}
+            then:
+              - variables:
+                  log_message: |
+                    Некоторые шторы не {{ 'открылись' if direction == 'up' else 'закрылись' }}.
+                    Ошибка зафиксирована на: 
+                        {% for blind in failed_blinds %}
+                        — {{ blind }} 
+                        {% endfor %}
+                  log_entity_id: "{{ failed_blinds }}"
+                  notification_title: "Ошибка штор"
+              - *log_error
+  
