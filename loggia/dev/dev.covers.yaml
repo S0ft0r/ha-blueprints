@@ -1205,7 +1205,7 @@ actions:
                     Некоторые шторы не {{ 'открылись' if direction == 'up' else 'закрылись' }}.
                     Ошибка зафиксирована на: 
                         {% for blind in failed_blinds %}
-                        — {{ blind }} 
+                        — {{ state_attr(blind, 'friendly_name') | lower }} 
                         {% endfor %}
                   log_entity_id: "{{ failed_blinds }}"
                   notification_title: "Ошибка штор"
