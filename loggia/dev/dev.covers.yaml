@@ -773,7 +773,7 @@ actions:
               - action: logbook.log
                 data:
                   name: "Шторы"
-                  message: "{{ log_message | defaut('Неизвестная ошибка') }}"
+                  message: "{{ log_message | default('Неизвестная ошибка') }}"
                   entity_id: "{{ log_entity_id | default('') }}"
               - if:
                   - condition: template
@@ -784,7 +784,7 @@ actions:
                       entity_id: !input notify_target
                     data:
                       title: "Шторы: {{ notification_title | default('Внимание') }}"
-                      message: "{{ log_message | defaut('Неизвестная ошибка') }}"
+                      message: "{{ log_message | default('Неизвестная ошибка') }}"
                     continue_on_error: true
 
 
