@@ -696,12 +696,12 @@ triggers:
   #   enabled: "{{ is_illuminance_enabled }}"
 
   - trigger: template
-    value_template: "{{ state_attr(sun_sensor,'azimuth') | float < (sun_azimuth | int) }}"
+    value_template: "{{ state_attr(sun_sensor,'azimuth') | float < (sun_azimuth | float) }}"
     id: sun_azimut_trigger
     enabled: "{{ is_sun_protect_enabled }}"
 
   - trigger: template
-    value_template: "{{ state_attr(sun_sensor,'elevation') | float < (sun_elevation | int) }}"
+    value_template: "{{ state_attr(sun_sensor,'elevation') | float < (sun_elevation | float) }}"
     id: sun_elevation_trigger
     enabled: "{{ is_sun_protect_enabled }}"
 
@@ -827,7 +827,6 @@ actions:
                 - delay:
                     seconds: "{{ delay_for_repeat | int(1) }}"
 
-          - *verify_blinds
 
       - conditions: # Остановить по кнопке 
           - condition: trigger
@@ -883,7 +882,6 @@ actions:
                 - delay:
                     seconds: "{{ delay_for_repeat | int(1) }}"
 
-          - *verify_blinds
 
 #########################################################################################################
 #
@@ -904,6 +902,7 @@ actions:
               target_pos: "{{ up_limit | int(100) }}"
               movement_direction: 'up'
           - *open_blinds          
+          - *verify_blinds
 
       - conditions: # Время открытия в выходные
           - condition: trigger
@@ -918,6 +917,7 @@ actions:
               target_pos: "{{ up_limit | int(100) }}"
               movement_direction: 'up'
           - *open_blinds          
+          - *verify_blinds
 
       - conditions: # Время закрытия
           - condition: trigger
@@ -930,6 +930,7 @@ actions:
               target_pos: "{{ down_limit | int(0) }}"
               movement_direction: 'down'
           - *close_blinds          
+          - *verify_blinds
 
 #########################################################################################################
 #
@@ -950,6 +951,7 @@ actions:
               target_pos: "{{ up_limit | int(100) }}"
               movement_direction: 'up'
           - *open_blinds          
+          - *verify_blinds
 
       - conditions: # Солнце село
           - condition: trigger
@@ -962,6 +964,7 @@ actions:
               target_pos: "{{ down_limit | int(0) }}"
               movement_direction: 'down'
           - *close_blinds          
+          - *verify_blinds
 
 #########################################################################################################
 #
@@ -983,6 +986,7 @@ actions:
               target_pos: "{{ up_limit | int(100) }}"
               movement_direction: 'up'
           - *open_blinds
+          - *verify_blinds
 
       - conditions: # Закрыть шторы при защите от прямых лучей солнца
           - condition: trigger
@@ -1001,6 +1005,7 @@ actions:
               target_pos: "{{ down_limit | int(0) }}"
               movement_direction: 'down'
           - *close_blinds
+          - *verify_blinds
 
 #########################################################################################################
 #
@@ -1040,6 +1045,7 @@ actions:
               target_pos: "{{ down_limit | int(0) }}"
               movement_direction: 'down'
           - *close_blinds
+          - *verify_blinds
 
       - conditions: # Открыть при изменении погоды при включенном режиме защиты от прямых лучей
           - condition: trigger
@@ -1072,6 +1078,7 @@ actions:
               target_pos: "{{ up_limit | int(100) }}"
               movement_direction: 'up'
           - *open_blinds
+          - *verify_blinds
 
 #########################################################################################################
 #
@@ -1116,6 +1123,7 @@ actions:
                       target_pos: "{{ down_limit | int(0) }}"
                       movement_direction: 'down'
                   - *close_blinds
+                  - *verify_blinds
 
               - conditions: 
                   - condition: template
@@ -1127,6 +1135,7 @@ actions:
                       target_pos: "{{ up_limit | int(100) }}"
                       movement_direction: 'up'
                   - *open_blinds
+                  - *verify_blinds
 
       # - conditions: # Управлять при изменении уровня освещенности при включенном режиме защиты от прямых лучей
       #     - condition: trigger
