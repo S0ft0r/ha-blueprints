@@ -758,11 +758,11 @@ actions:
         sequence:
           - event: verify_blinds_event 
             event_data:
-              blinds: "{{ blinds_target }}"
-              target_position: "{{ target_pos }}"
+              blinds: "{{ blinds_target | default([]) }}"
+              target_position: "{{ target_pos | default(down_limit) }}"
               movement_time: !input set_movement_time
               position_tolerance: !input repeat_for
-              direction: "{{ movement_direction }}"
+              direction: "{{ movement_direction | default('down') }}"
 
       log_error: &log_error
         sequence:
@@ -773,7 +773,7 @@ actions:
               - action: logbook.log
                 data:
                   name: "Шторы"
-                  message: "{{ log_message }}"
+                  message: "{{ log_message | defaut('Неизвестная ошибка') }}"
                   entity_id: "{{ log_entity_id | default('') }}"
               - if:
                   - condition: template
@@ -784,7 +784,7 @@ actions:
                       entity_id: !input notify_target
                     data:
                       title: "Шторы: {{ notification_title | default('Внимание') }}"
-                      message: "{{ log_message }}"
+                      message: "{{ log_message | defaut('Неизвестная ошибка') }}"
                     continue_on_error: true
 
 
@@ -807,10 +807,6 @@ actions:
             value_template: "{{ true if is_zha_device else device_attr(slider_device, 'name') == trigger.topic.split('/')[1] }}"
 
         sequence:
-          - variables:
-              blinds_target: !input blinds
-              target_pos: "{{ up_limit | int(100) }}"
-              movement_direction: 'up'
           - &open_blinds
             repeat:
               count: !input repeat_for
