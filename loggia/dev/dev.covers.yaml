@@ -426,6 +426,18 @@ blueprint:
               step: 1
               mode: box
 
+        delay_for_repeat:
+          name: Задержка между повторами
+          default: 1
+          selector:
+            number:
+              min: 1
+              max: 10
+              step: 1
+              mode: box
+              unit_of_measurement: "сек"
+
+
         set_movement_time:
           name: Время полного хода шторы
           description: |
@@ -559,6 +571,8 @@ trigger_variables:
 #  set_down_limit: !input set_down_limit
 #  set_down_limit_sensor: !input set_down_limit_sensor
   repeat_for: !input repeat_for
+  delay_for_repeat: !input delay_for_repeat
+
   set_min_illuminance: !input set_min_illuminance
   set_max_illuminance: !input set_max_illuminance
   set_illuminance_delay: !input set_illuminance_delay
@@ -575,8 +589,6 @@ variables:
   weekend: "{{ not workday }}"
   nextday: "{{ (now().weekday() + 1) % 7 }}"
   
-  delay_for_repeat: 1
-
   is_mqtt_device: "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device) | first | default('')), 'domain') == 'mqtt' }}"
   is_zha_device: "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device) | first | default('')), 'domain') == 'zha' }}"
 
