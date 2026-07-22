@@ -1045,7 +1045,6 @@ actions:
           - condition: template
             value_template: |
               {{ true if not is_illuminance_enabled else states(illuminance_sensor) | int >= set_max_illuminance }}
-          
 
         sequence:
           - variables:
