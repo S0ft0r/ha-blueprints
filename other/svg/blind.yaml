@@ -1,0 +1,41 @@
+- sensor:
+    - name: "Blind Balcony Fasad Center Left Live Icon"
+      state: "{{ state_attr('cover.blinds', 'current_position') | default(0) }}%"
+      picture: >
+        {% set pos = state_attr('cover.blinds', 'current_position') | int(0) %}
+        {% set posb = states('sensor.blinds_battery') | int(0) %}
+        {# Коэффициент хода шторы для рамки #}
+        {% set h = (1 - (pos / 100)) * 13.7 %}
+        
+        {# Мой основной цвет #009ac7 #}
+        {% set hb = ((posb / 100) * 18) | round(2) %}
+        {% set yb = (21 - hb) | round(2) %}
+        {% set color = "#44739e" %}
+        {% if posb > 50 %}{% set b_col = "#4caf50" %}
+        {% elif posb > 25 %}{% set b_col = "#fdd835" %}
+        {% elif posb > 10 %}{% set b_col = "#ff9800" %}
+        {% else %}{% set b_col = "#f44336" %}{% endif %}
+        
+        {# Формируем SVG #}
+        {% set svg = "
+        <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'>
+          <g transform='translate(2.4, 2.4) scale(0.8)'>
+            <!-- Рама окна -->
+            <path d='M 20,19 V 3 H 4 V 19 H 2 v 2 H 22 V 19 H 20 M 6,19 5.91,5.32 17.94,5.26 18,19 Z' fill='" ~ color ~ "'/>
+            
+            <!-- Полотно шторы (полупрозрачное) -->
+            <rect x='6' y='5.3' width='12' height='" ~ h ~ "' fill='" ~ color ~ "' opacity='0.5'/>
+            <!-- Аккумулятор -->
+            <rect x='22' y='3' width='2' height='15' fill='gray' opacity='0.2'/>
+            <rect x='22' y='" ~ yb ~ "' width='2' height='" ~ hb ~ "' fill='" ~ b_col ~ "'/>
+            
+            <!-- Нижняя планка и кольцо -->
+            <g transform='translate(0, " ~ h ~ ")'>
+              <rect x='6' y='5.3' width='12' height='1.5' fill='" ~ color ~ "'/>
+            <!--  <path d='M12 6.8c0.8 0 1.5 0.7 1.5 1.5s-0.7 1.5-1.5 1.5-1.5-0.7-1.5-1.5 0.7-1.5 1.5-1.5zm0 2.2c0.4 0 0.7-0.3 0.7-0.7s-0.3-0.7-0.7-0.7-0.7 0.3-0.7 0.7 0.3 0.7 0.7 0.7z' fill='" ~ color ~ "'/> -->
+            </g>
+          </g>
+        </svg>
+        " %}
+        
+        data:image/svg+xml,{{ svg | urlencode }}

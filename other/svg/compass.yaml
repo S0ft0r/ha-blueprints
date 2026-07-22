@@ -1,1 +1,88 @@
+- sensor:
+    - name: "Sun Compass Icon"
+      state: "{{ state_attr('sun.sun', 'azimuth') }}°"
+      picture: >
+        {% set azimuth = state_attr('sun.sun', 'azimuth') | float(0) %}
+        {% set elevation = state_attr('sun.sun', 'elevation') | float(0) %}
 
+        {# 1. ПАРАМЕТРЫ ЛОДЖИИ #}
+        {% set height_ls = 12 %}
+        {% set height_ss = 5 %}
+        {% set width_wall = 2 %}
+        {% set width_window = 0.6 %}
+        {% set canvas_w = 24 %}
+        {% set canvas_h = 24 %}
+        {% set rotate = 65 %}
+
+        {# Центрирование лоджии #}
+        {% set initial_x = canvas_w / 2 - height_ls / 2 %}
+        {% set initial_y = canvas_h / 2 - height_ss / 2 %}
+
+        {% set wall_props = {'w': width_wall, 'o': 1} %}
+        {% set window_props = {'w': width_window, 'o': 0.4} %}
+
+        {% set sides = [
+          {'t': 'wall',   'h': height_ls },
+          {'t': 'window', 'h': height_ss },
+          {'t': 'window', 'h': height_ls },
+          {'t': 'wall',   'h': height_ss }
+        ] %}
+
+        {% set library = {
+          'wall': wall_props,
+          'window': window_props
+        } %}
+
+        {# 2. ГЕНЕРАЦИЯ ПРЯМОУГОЛЬНИКА #}
+        {% set draw = namespace(x=initial_x, y=initial_y, svg='') %}
+
+        {% for item in sides %}
+          {% set prop = library[item.t] %}
+          {% set r = loop.index0 * 90 %}
+          {% set h = item.h %}
+          {% set w = prop.w %}
+          
+          {% if r == 0 %} {# Вправо #}
+            {% set rect = {'x': draw.x, 'y': draw.y - w, 'w': h, 'h': w} %}
+            {% set draw.x = draw.x + h %}
+          {% elif r == 90 %} {# Вниз #}
+            {% set rect = {'x': draw.x - w, 'y': draw.y, 'w': w, 'h': h} %}
+            {% set draw.y = draw.y + h %}
+          {% elif r == 180 %} {# Влево #}
+            {% set rect = {'x': draw.x - h, 'y': draw.y - w, 'w': h, 'h': w} %}
+            {% set draw.x = draw.x - h %}
+          {% elif r == 270 %} {# Вверх #}
+            {% set rect = {'x': draw.x, 'y': draw.y - h, 'w': w, 'h': h} %}
+            {% set draw.y = draw.y - h %}
+          {% endif %}
+
+          {% set draw.svg = draw.svg ~ 
+            "<rect x='" ~ rect.x ~ "' y='" ~ rect.y ~ "' width='" ~ rect.w ~ "' height='" ~ rect.h ~ "' fill='#44739e' opacity='" ~ prop.o ~ "' />" 
+          %}
+        {% endfor %}
+
+        {# 3. НАСТРОЙКИ СОЛНЦА #}
+        {% set sun_color = "#fdd835" if elevation > 0 else "#555555" %}
+        {% set sun_opacity = 1 if elevation > 0 else 0.4 %}
+
+        {# 4. СБОРКА ИТОГОВОГО SVG #}
+        {% set svg = "
+        <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'>
+          <!-- Орбита солнца -->
+          <circle cx='12' cy='12' r='10.5' fill='none' stroke='#44739e' stroke-width='0.5' opacity='0.2' />
+
+          <!-- ЛОДЖИЯ (сгенерированная динамически) -->
+          <g transform='rotate(" ~ rotate ~ " " ~ (canvas_w/2 - width_wall/2) ~ " " ~ (canvas_h/2 - width_window/2) ~ ")'> " ~ draw.svg ~ "</g>
+
+          <!-- СОЛНЦЕ -->
+          <circle
+            cx='12'
+            cy='1.5'
+            r='1.6'
+            fill='" ~ sun_color ~ "'
+            opacity='" ~ sun_opacity ~ "'
+            transform='rotate(" ~ azimuth ~ ", 12, 12)'
+            style='transition: all 1s ease-in-out;' />
+        </svg>
+        " %}
+        data:image/svg+xml,{{ svg | urlencode }}
