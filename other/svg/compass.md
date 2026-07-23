@@ -23,7 +23,7 @@ template:
         picture: >
 
 ```
- 👨‍💻 <a="./compass.yaml">Полный код здесь]</a>
+ 👨‍💻 <a href="./compass.yaml">Полный код здесь]</a>
 </details>
 
 ## 🛠️ Настройка под себя
