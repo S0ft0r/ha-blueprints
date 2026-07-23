@@ -8,13 +8,13 @@
               <rect x='5.9' y='5.3' width='12.1' height='13.7' fill='#a0c4ff' opacity='0.2' />
               <g clip-path='url(#glass-area)'>
                 
-            <g transform='translate(18, 5.3)' opacity='0.5'>
+            <g transform='translate(18, 5.3)' opacity='15'>
               <!-- Сектор солнца -->
-              <path d='M 0,0 L -7,0 A 7,7 0 0 0 0,7 Z' fill='#d84315' />
+              <path d='M 0,0 L -7,0 A 7,7 0 0 0 0,7 Z' fill='#fbc02d' />
               
               <!-- Лучи солнца (5, 7 или 9 сегментов) -->
-              <path d='M 0,8 L 0,14 M -1.6,7.8 L -2.7,13.7 M -3.1,7.4 L -5.4,12.9 M -4.4,6.7 L -7.8,11.6 M -5.7,5.7 L -9.9,9.9 M -6.7,4.4 L -11.6,7.8 M -7.4,3.1 L -12.9,5.4 M -7.8,1.6 L -13.7,2.7 M -8,0 L -14,0' 
-                    stroke='#d84315' 
+              <path d='M 0,8 L 0,14 M -2.1,7.7 L -3.6,13.5 M -4,6.9 L -7,12.1 M -5.7,5.7 L -9.9,9.9 M -6.9,4 L -12.1,7 M -7.7,2.1 L -13.5,3.6 M -8,0 L -14,0' 
+                    stroke='#fbc02d' 
                     stroke-width='0.6' 
                     stroke-linecap='round' 
                     stroke-dasharray='3, 5'>
