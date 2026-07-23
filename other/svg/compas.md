@@ -12,7 +12,8 @@
 
 ## 🚀 Установка
 
-Добавьте этот код в ваш `configuration.yaml` (раздел `template:`). 
+<details>
+  <summary><b>Добавьте этот код в ваш `configuration.yaml` (раздел `template:`). </b></summary>
 
 ```yaml
 template:
@@ -31,6 +32,8 @@ template:
 
           {# (Ниже идет код генерации SVG из вашего шаблона) #}
 ```
+  ![Полный код здесь](./compas.yaml)
+</details>
 
 ## 🛠️ Настройка под себя
 
