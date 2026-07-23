@@ -2,130 +2,129 @@
     - name: "Forecast Live Icon"
       state: "{{ states('weather.forecast') }}"
       picture: >
-        {% set weather = states('weather.forecast') %}
-        
-        {# 1. ЛОГИКА УСЛОВИЙ #}
-        {% set is_rain = weather in ['rainy', 'pouring', 'lightning-rainy'] %}
-        {% set show_sun = weather in ['sunny', 'partlycloudy'] %}
-        {% set show_clouds = weather in ['cloudy', 'partlycloudy', 'rainy', 'pouring', 'fog'] %}
-        
-        {% set sky_color = '#a0c4ff' if weather in ['sunny', 'partlycloudy'] else '#7d8da1' %}
-        {% set sky_opacity = 0.3 if weather in ['fog'] else 0 %}
-        {% set sun_opacity = 0.5 if weather == 'partlycloudy' else 1.0 %}
-        {# 2. СБОРКА СЛОЯ СОЛНЦА (Сектор + Лучи одним путем) #}
-        {% set sun_layer = "" %}
-        {% if show_sun %}
-          {% set sun_layer = "
-          <g transform='translate(18, 5.3)' opacity='" ~ sun_opacity ~ "'>
-            <!-- Сектор солнца -->
-            <path d='M 0,0 L -7,0 A 7,7 0 0 0 0,7 Z' fill='#ffce54' />
-            <!-- Лучи солнца (единым путем) -->
-            <path d='M 0,8.5 L 0,11 
-                    M -3.2,7.8 L -4.2,10.2 
-                    M -6,6 L -8,8 
-                    M -7.8,3.2 L -10.2,4.2 
-                    M -8.5,0 L -11,0' 
-                  stroke='#ffce54' stroke-width='0.8' stroke-linecap='round' />
-          </g>" %}
-        {% endif %}
-
-        {# 3. ГЕНЕРАЦИЯ ОБЛАКОВ #}
-        {% set cloud_color = '#e7e7e7ff' if weather == 'partlycloudy' else '#cac8c8ff' if weather == 'cloudy' else '#a9a9a9' %}
-        {% set cloud_list = namespace(content='') %}
-        {% if show_clouds %}
-          {# Получаем данные из атрибутов #}
-          {% set coverage = state_attr('weather.forecast', 'cloud_coverage') | int(50) %}
-          {% set wind = state_attr('weather.forecast', 'wind_speed') | float(5) %}
-
-          {# Количество облаков: от 1 до 12 #}
-          {% set c_count = ([ (coverage / 4) | int, 1 ] | max) %}
+          {% set weather = states('weather.forecast') %}
+          {% set uv = state_attr(weather, 'uv_index') | float(0) %}
+          {% set elevation = state_attr('sun.sun', 'elevation') | float(0) %}
           
-          {# Базовый множитель масштаба: от 0.7 до 1.2 #}
-          {% set c_scale_base = 0.8 + (coverage / 100) * 1.5 %}
-              
-          {% for c in range(c_count) %}
-            {# Индивидуальный масштаб s: ограничен в пределах 0.3 - 1.6 #}
-            {% set s = (0.4 + (c * 0.12) % 1.6) * c_scale_base %}
-            
-            {# Скорость ветра влияет на длительность анимации (dur) #}
-            {% set base_dur = ([ (60 - (wind * 1.5)), 5 ] | max) %}
-            {% set d = base_dur + (c * 4) % 15 %}
-            
-            {# Высота (y): расчет так, чтобы визуальный Y был в пределах 6-15 #}
-            {# Формула: (желаемая_высота) / s #}
-            {% set y = (6.5 + (c * 1.3) % 7) / s %}
-            
-            {% set o = 0.3 + (c * 0.2) % 0.5 %}
-            {% set b = -(c * 4.5) %}
-            
-            {% set cloud_list.content = cloud_list.content ~ "
-              <g opacity='" ~ o ~ "' transform='scale(" ~ s ~ ")'>
-                <use href='#cloud' fill='" ~ cloud_color ~ "'>
-                  <animateTransform attributeName='transform' type='translate' from='25, " ~ y ~ "' to='-15, " ~ y ~ "' dur='" ~ d ~ "s' begin='" ~ b ~ "s' repeatCount='indefinite' />
-                </use>
-              </g>" %}
-          {% endfor %}
-        {% endif %}
-              
-        {% set rain_layer = "" %}
-        {% if is_rain %}
-          {# 1. Настройки количества капель для разных состояний #}
-          {% set rain_setting = [
-            {'f': 'rainy', 'c': 7, 'd': 2}, 
-            {'f': 'pouring', 'c': 15, 'd': 1.5}, 
-            {'f': 'lightning-rainy', 'c': 10, 'd': 1}
-          ] %}
+          {# 1. ЛОГИКА УСЛОВИЙ И ВЕТРА #}
+          {% set is_rain = weather in ['rainy', 'pouring', 'lightning-rainy'] %}
+          {% set show_sun = weather in ['sunny', 'partlycloudy'] %}
+          {% set show_clouds = weather in ['cloudy', 'partlycloudy', 'rainy', 'pouring', 'fog'] %}
           
-          {% set rain_config = namespace(count=5) %} {# По умолчанию 5 капель #}
-          {% for item in rain_setting %}
-            {% if item.f == weather %}
-              {% set rain_config.count = item.c %}
-              {% set rain_config.duration = item.d %}
-            {% endif %}
-          {% endfor %}
+          {% set sky_color = '#a0c4ff' if weather in ['sunny', 'partlycloudy'] else '#7d8da1' %}
+          {% set sky_opacity = 0.5 if weather in ['fog'] else 0.2 %}
+          {% set sun_opacity = 0.5 if weather == 'partlycloudy' else 1.0 %}
 
-          {% set rain_content = namespace(drops='') %}
-          {% for r in range(rain_config.count) %}
-            {# Генерируем положение и скорость капель на основе индекса r #}
-            {% set x = range(4, 8) | random + (r * 1.5) % range(10, 14) | random %}
-            {% set y_start = -(range(3, 7) | random) - (r * range(1, 6) | random) % range(8, 12) | random %}
-            {% set dur = (range((rain_config.duration * 10 - 5)|int, (rain_config.duration * 10 + 5)|int) | random / 10) | float(1) %}
-            {% set del = -(r * 0.2) %}
-            {% set op = 0.3 + (r * 0.1) % 0.6 %}
-            
-            {% set rain_content.drops = rain_content.drops ~ "
-              <use href='#drop' opacity='" ~ op ~ "'>
-                <animateTransform attributeName='transform' type='translate' 
-                  from='" ~ x ~ ", " ~ y_start ~ "' to='" ~ (x - 4) ~ ", 25' 
-                  dur='" ~ dur ~ "s' begin='" ~ del ~ "s' repeatCount='indefinite' />
-              </use>" %}
-          {% endfor %}
+          {# Направление ветра: 0-180 (восток) -> влево, 181-360 (запад) -> вправо #}
+          {% set bearing = state_attr('weather.forecast', 'wind_bearing') | float(0) %}
+          {% set wind_dir = 1 if (bearing > 180 and bearing <= 360) else -1 %}
+          {% set cloud_from = 25 if wind_dir == -1 else -15 %}
+          {% set cloud_to = -15 if wind_dir == -1 else 25 %}
+          {% set rain_slant = 4 * wind_dir %}
 
-          {% set rain_layer = "
-          <g clip-path='url(#glass-area)'>
-            <g fill='#44739e'>
-              " ~ rain_content.drops ~ "
-            </g>
-          </g>" %}
-        {% endif %}
+          {% if elevation < 0 %} {% set sun_fill_color = "#555555" %}
+          {% elif uv >= 11 %} {% set sun_fill_color = "#b71c1c" %}
+          {% elif uv >= 8 %} {% set sun_fill_color = "#d84315" %}
+          {% elif uv >= 6 %} {% set sun_fill_color = "#fb8c00" %}
+          {% elif uv >= 3 %} {% set sun_fill_color = "#fbc02d" %}
+          {% else %} {% set sun_fill_color = "#fdd835" %} {% endif %}
+
+          {# 2. СЛОЙ СОЛНЦА #}
+          {% set sun_layer = "" %}
+          {% if show_sun %}
+            {% set sun_layer = "
+            <g transform='translate(18, 5.3)' opacity='" ~ sun_opacity ~ "'>
+              <path d='M 0,0 L -7,0 A 7,7 0 0 0 0,7 Z' fill='" ~ sun_fill_color ~ "' />
+              <path d='M 0,8.5 L 0,11 M -3.2,7.8 L -4.2,10.2 M -6,6 L -8,8 M -7.8,3.2 L -10.2,4.2 M -8.5,0 L -11,0' 
+                    stroke='" ~ sun_fill_color ~ "' stroke-width='0.8' stroke-linecap='round' />
+            </g>" %}
+          {% endif %}
+
+          {# 3. ГЕНЕРАЦИЯ ОБЛАКОВ #}
+          {% set cloud_color = '#e7e7e7ff' if weather == 'partlycloudy' else '#cac8c8ff' if weather == 'cloudy' else '#a9a9a9' %}
+          {% set cloud_list = namespace(content='') %}
+          {% if show_clouds %}
+            {% set coverage = state_attr('weather.forecast', 'cloud_coverage') | int(50) %}
+            {% set wind = state_attr('weather.forecast', 'wind_speed') | float(5) %}
+            {% set c_count = ([ (coverage / 4) | int, 1 ] | max) %}
+            {% set c_scale_base = 0.8 + (coverage / 100) * 1.5 %}
+                
+            {% for c in range(c_count) %}
+              {% set s = (0.4 + (c * 0.12) % 1.6) * c_scale_base %}
+              {% set base_dur = ([ (60 - (wind * 1.5)), 5 ] | max) %}
+              {% set d = base_dur + (c * 4) % 15 %}
+              {% set y = (6.5 + (c * 1.3) % 7) / s %}
+              {% set o = 0.3 + (c * 0.2) % 0.5 %}
+              {% set b = -(c * 4.5) %}
               
-        {# 4. ФИНАЛЬНЫЙ SVG #}
-        {% set svg = "
-        <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'>
-          <defs>
-            <clipPath id='glass-area'><rect x='5.9' y='5.3' width='12.1' height='13.7' /></clipPath>
-            <path id='drop' d='M3,5 A1.5,1.5 0 0,1 1.5,3.5 C1.5,2.5 3,0.8 3,0.8 C3,0.8 4.5,2.5 4.5,3.5 A1.5,1.5 0 0,1 3,5 Z' />
-            <path id='cloud' d='M-1.5,0.5 Q-1.5,-0.5 -0.5,-0.5 Q0,-0.5 0.5,0 Q1,-0.5 2,-0.5 Q3.5,0.5 3,2 L-1,2 Q-2,2 -2,1 Q-2,0.5 -1.5,0.5 Z' />
-          </defs>
-          <g transform='translate(2.4, 2.4) scale(0.8)'>
-            <rect x='5.9' y='5.3' width='12.1' height='13.7' fill='" ~ sky_color ~ "' opacity='" ~ sky_opacity ~ "' />
+              {% set cloud_list.content = cloud_list.content ~ "
+                <g opacity='" ~ o ~ "' transform='scale(" ~ s ~ ")'>
+                  <use href='#cloud' fill='" ~ cloud_color ~ "'>
+                    <animateTransform attributeName='transform' type='translate' 
+                      from='" ~ cloud_from ~ ", " ~ y ~ "' to='" ~ cloud_to ~ ", " ~ y ~ "' 
+                      dur='" ~ d ~ "s' begin='" ~ b ~ "s' repeatCount='indefinite' />
+                  </use>
+                </g>" %}
+            {% endfor %}
+          {% endif %}
+                
+          {# 4. ГЕНЕРАЦИЯ ДОЖДЯ #}
+          {% set rain_layer = "" %}
+          {% if is_rain %}
+            {% set rain_setting = [
+              {'f': 'rainy', 'c': 7, 'd': 2}, 
+              {'f': 'pouring', 'c': 15, 'd': 1.5}, 
+              {'f': 'lightning-rainy', 'c': 10, 'd': 1}
+            ] %}
+            {% set rain_config = namespace(count=5, duration=1.5) %}
+            {% for item in rain_setting %}
+              {% if item.f == weather %}
+                {% set rain_config.count = item.c %}
+                {% set rain_config.duration = item.d %}
+              {% endif %}
+            {% endfor %}
+
+            {% set rain_content = namespace(drops='') %}
+            {% for r in range(rain_config.count) %}
+              {% set x = range(4, 8) | random + (r * 1.5) % range(10, 14) | random %}
+              {% set y_start = -(range(3, 7) | random) - (r * range(1, 6) | random) % range(8, 12) | random %}
+              {% set dur = (range((rain_config.duration * 10 - 5)|int, (rain_config.duration * 10 + 5)|int) | random / 10) | float(1) %}
+              {% set del = -(r * 0.2) %}
+              {% set op = 0.3 + (r * 0.1) % 0.6 %}
+              
+              {% set rain_content.drops = rain_content.drops ~ "
+                <use href='#drop' opacity='" ~ op ~ "'>
+                  <animateTransform attributeName='transform' type='translate' 
+                    from='" ~ x ~ ", " ~ y_start ~ "' to='" ~ (x + rain_slant) ~ ", 25' 
+                    dur='" ~ dur ~ "s' begin='" ~ del ~ "s' repeatCount='indefinite' />
+                </use>" %}
+            {% endfor %}
+
+            {% set rain_layer = "
             <g clip-path='url(#glass-area)'>
-              " ~ sun_layer ~ "
-              " ~ cloud_list.content ~ "
+              <g fill='#44739e'>
+                " ~ rain_content.drops ~ "
+              </g>
+            </g>" %}
+          {% endif %}
+                
+          {# 5. ФИНАЛЬНЫЙ SVG #}
+          {% set svg = "
+          <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'>
+            <defs>
+              <clipPath id='glass-area'><rect x='5.9' y='5.3' width='12.1' height='13.7' /></clipPath>
+              <path id='drop' d='M3,5 A1.5,1.5 0 0,1 1.5,3.5 C1.5,2.5 3,0.8 3,0.8 C3,0.8 4.5,2.5 4.5,3.5 A1.5,1.5 0 0,1 3,5 Z' />
+              <path id='cloud' d='M-1.5,0.5 Q-1.5,-0.5 -0.5,-0.5 Q0,-0.5 0.5,0 Q1,-0.5 2,-0.5 Q3.5,0.5 3,2 L-1,2 Q-2,2 -2,1 Q-2,0.5 -1.5,0.5 Z' />
+            </defs>
+            <g transform='translate(2.4, 2.4) scale(0.8)'>
+              <rect x='5.9' y='5.3' width='12.1' height='13.7' fill='" ~ sky_color ~ "' opacity='" ~ sky_opacity ~ "' />
+              <g clip-path='url(#glass-area)'>
+                " ~ sun_layer ~ "
+                " ~ cloud_list.content ~ "
+              </g>
+              " ~ rain_layer ~ "
+              <path d='M 20,19 V 3 H 4 V 19 H 2 v 2 H 22 V 19 H 20 M 6,19 5.91,5.32 17.94,5.26 18,19 Z' fill='#44739e'/>
             </g>
-            " ~ rain_layer ~ "
-            <path d='M 20,19 V 3 H 4 V 19 H 2 v 2 H 22 V 19 H 20 M 6,19 5.91,5.32 17.94,5.26 18,19 Z' fill='#44739e'/>
-          </g>
-        </svg>" %}
-        
-        data:image/svg+xml,{{ svg | urlencode }}
+          </svg>" %}
+          
+          data:image/svg+xml,{{ svg | urlencode }}
