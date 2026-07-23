@@ -21,18 +21,9 @@ template:
       - name: "Room Sun Compass"
         state: "{{ state_attr('sun.sun', 'azimuth') }}°"
         picture: >
-          {# --- НАСТРОЙКИ ГЕОМЕТРИИ --- #}
-          {% set height_long_wall = 12 %}
-          {% set height_short_wall = 5 %}
-          {% set rotate_room = 65 %}  {# Поворот дома относительно севера #}
-          
-          {# --- ДАННЫЕ СОЛНЦА --- #}
-          {% set azimuth = state_attr('sun.sun', 'azimuth') | float(0) %}
-          {% set elevation = state_attr('sun.sun', 'elevation') | float(0) %}
 
-          {# (Ниже идет код генерации SVG из вашего шаблона) #}
 ```
-  ![Полный код здесь](./compass.yaml)
+  👨‍💻 ![Полный код здесь](./compass.yaml)
 </details>
 
 ## 🛠️ Настройка под себя
