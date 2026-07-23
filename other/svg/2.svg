@@ -1,0 +1,170 @@
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'>
+            <defs>
+              <clipPath id='glass-area'><rect x='5.9' y='5.3' width='12.1' height='13.7' /></clipPath>
+              <path id='drop' d='M3,5 A1.5,1.5 0 0,1 1.5,3.5 C1.5,2.5 3,0.8 3,0.8 C3,0.8 4.5,2.5 4.5,3.5 A1.5,1.5 0 0,1 3,5 Z' />
+              <path id='cloud' d='M-1.5,0.5 Q-1.5,-0.5 -0.5,-0.5 Q0,-0.5 0.5,0 Q1,-0.5 2,-0.5 Q3.5,0.5 3,2 L-1,2 Q-2,2 -2,1 Q-2,0.5 -1.5,0.5 Z' />
+            </defs>
+            <g transform='translate(2.4, 2.4) scale(0.8)'>
+              <rect x='5.9' y='5.3' width='12.1' height='13.7' fill='#7d8da1' opacity='0.2' />
+              <g clip-path='url(#glass-area)'>
+                
+                
+                <g opacity='0.3' transform='scale(0.854)'>
+                  <use href='#cloud' fill='#cac8c8ff'>
+                    <animateTransform attributeName='transform' type='translate' 
+                      from='-15, 7.611241217798595' to='25, 7.611241217798595' 
+                      dur='45.45s' begin='-0.0s' repeatCount='indefinite' />
+                  </use>
+                </g>
+                <g opacity='0.5' transform='scale(1.1101999999999999)'>
+                  <use href='#cloud' fill='#cac8c8ff'>
+                    <animateTransform attributeName='transform' type='translate' 
+                      from='-15, 7.0257611241217806' to='25, 7.0257611241217806' 
+                      dur='49.45s' begin='-4.5s' repeatCount='indefinite' />
+                  </use>
+                </g>
+                <g opacity='0.7' transform='scale(1.3663999999999998)'>
+                  <use href='#cloud' fill='#cac8c8ff'>
+                    <animateTransform attributeName='transform' type='translate' 
+                      from='-15, 6.659836065573771' to='25, 6.659836065573771' 
+                      dur='53.45s' begin='-9.0s' repeatCount='indefinite' />
+                  </use>
+                </g>
+                <g opacity='0.4000000000000001' transform='scale(1.6225999999999998)'>
+                  <use href='#cloud' fill='#cac8c8ff'>
+                    <animateTransform attributeName='transform' type='translate' 
+                      from='-15, 6.409466288672502' to='25, 6.409466288672502' 
+                      dur='57.45s' begin='-13.5s' repeatCount='indefinite' />
+                  </use>
+                </g>
+                <g opacity='0.6000000000000001' transform='scale(1.8787999999999998)'>
+                  <use href='#cloud' fill='#cac8c8ff'>
+                    <animateTransform attributeName='transform' type='translate' 
+                      from='-15, 6.22737917819885' to='25, 6.22737917819885' 
+                      dur='46.45s' begin='-18.0s' repeatCount='indefinite' />
+                  </use>
+                </g>
+                <g opacity='0.3' transform='scale(2.135)'>
+                  <use href='#cloud' fill='#cac8c8ff'>
+                    <animateTransform attributeName='transform' type='translate' 
+                      from='-15, 6.088992974238876' to='25, 6.088992974238876' 
+                      dur='50.45s' begin='-22.5s' repeatCount='indefinite' />
+                  </use>
+                </g>
+                <g opacity='0.5000000000000002' transform='scale(2.3912)'>
+                  <use href='#cloud' fill='#cac8c8ff'>
+                    <animateTransform attributeName='transform' type='translate' 
+                      from='-15, 3.0528604884576787' to='25, 3.0528604884576787' 
+                      dur='54.45s' begin='-27.0s' repeatCount='indefinite' />
+                  </use>
+                </g>
+                <g opacity='0.7000000000000002' transform='scale(2.6473999999999998)'>
+                  <use href='#cloud' fill='#cac8c8ff'>
+                    <animateTransform attributeName='transform' type='translate' 
+                      from='-15, 3.2484701971745866' to='25, 3.2484701971745866' 
+                      dur='58.45s' begin='-31.5s' repeatCount='indefinite' />
+                  </use>
+                </g>
+                <g opacity='0.4000000000000001' transform='scale(2.9035999999999995)'>
+                  <use href='#cloud' fill='#cac8c8ff'>
+                    <animateTransform attributeName='transform' type='translate' 
+                      from='-15, 3.409560545529688' to='25, 3.409560545529688' 
+                      dur='47.45s' begin='-36.0s' repeatCount='indefinite' />
+                  </use>
+                </g>
+                <g opacity='0.6000000000000001' transform='scale(3.1597999999999997)'>
+                  <use href='#cloud' fill='#cac8c8ff'>
+                    <animateTransform attributeName='transform' type='translate' 
+                      from='-15, 3.5445281346920696' to='25, 3.5445281346920696' 
+                      dur='51.45s' begin='-40.5s' repeatCount='indefinite' />
+                  </use>
+                </g>
+                <g opacity='0.3' transform='scale(3.416)'>
+                  <use href='#cloud' fill='#cac8c8ff'>
+                    <animateTransform attributeName='transform' type='translate' 
+                      from='-15, 3.659250585480094' to='25, 3.659250585480094' 
+                      dur='55.45s' begin='-45.0s' repeatCount='indefinite' />
+                  </use>
+                </g>
+                <g opacity='0.5000000000000002' transform='scale(3.6721999999999992)'>
+                  <use href='#cloud' fill='#cac8c8ff'>
+                    <animateTransform attributeName='transform' type='translate' 
+                      from='-15, 1.8517509939545782' to='25, 1.8517509939545782' 
+                      dur='59.45s' begin='-49.5s' repeatCount='indefinite' />
+                  </use>
+                </g>
+                <g opacity='0.7000000000000004' transform='scale(3.9283999999999994)'>
+                  <use href='#cloud' fill='#cac8c8ff'>
+                    <animateTransform attributeName='transform' type='translate' 
+                      from='-15, 2.061908155992262' to='25, 2.061908155992262' 
+                      dur='48.45s' begin='-54.0s' repeatCount='indefinite' />
+                  </use>
+                </g>
+                <g opacity='0.4000000000000001' transform='scale(4.1846)'>
+                  <use href='#cloud' fill='#cac8c8ff'>
+                    <animateTransform attributeName='transform' type='translate' 
+                      from='-15, 2.2463317879845155' to='25, 2.2463317879845155' 
+                      dur='52.45s' begin='-58.5s' repeatCount='indefinite' />
+                  </use>
+                </g>
+                <g opacity='0.6000000000000003' transform='scale(1.0247999999999997)'>
+                  <use href='#cloud' fill='#cac8c8ff'>
+                    <animateTransform attributeName='transform' type='translate' 
+                      from='-15, 10.44106167056987' to='25, 10.44106167056987' 
+                      dur='56.45s' begin='-63.0s' repeatCount='indefinite' />
+                  </use>
+                </g>
+                <g opacity='0.3' transform='scale(1.2809999999999993)'>
+                  <use href='#cloud' fill='#cac8c8ff'>
+                    <animateTransform attributeName='transform' type='translate' 
+                      from='-15, 9.367681498829045' to='25, 9.367681498829045' 
+                      dur='45.45s' begin='-67.5s' repeatCount='indefinite' />
+                  </use>
+                </g>
+                <g opacity='0.5000000000000002' transform='scale(1.5371999999999995)'>
+                  <use href='#cloud' fill='#cac8c8ff'>
+                    <animateTransform attributeName='transform' type='translate' 
+                      from='-15, 8.652094717668492' to='25, 8.652094717668492' 
+                      dur='49.45s' begin='-72.0s' repeatCount='indefinite' />
+                  </use>
+                </g>
+                <g opacity='0.7000000000000004' transform='scale(1.7933999999999997)'>
+                  <use href='#cloud' fill='#cac8c8ff'>
+                    <animateTransform attributeName='transform' type='translate' 
+                      from='-15, 4.23776067804171' to='25, 4.23776067804171' 
+                      dur='53.45s' begin='-76.5s' repeatCount='indefinite' />
+                  </use>
+                </g>
+                <g opacity='0.4000000000000001' transform='scale(2.0496)'>
+                  <use href='#cloud' fill='#cac8c8ff'>
+                    <animateTransform attributeName='transform' type='translate' 
+                      from='-15, 4.342310694769712' to='25, 4.342310694769712' 
+                      dur='57.45s' begin='-81.0s' repeatCount='indefinite' />
+                  </use>
+                </g>
+                <g opacity='0.6000000000000003' transform='scale(2.305799999999999)'>
+                  <use href='#cloud' fill='#cac8c8ff'>
+                    <animateTransform attributeName='transform' type='translate' 
+                      from='-15, 4.423627374447048' to='25, 4.423627374447048' 
+                      dur='46.45s' begin='-85.5s' repeatCount='indefinite' />
+                  </use>
+                </g>
+                <g opacity='0.3' transform='scale(2.5619999999999994)'>
+                  <use href='#cloud' fill='#cac8c8ff'>
+                    <animateTransform attributeName='transform' type='translate' 
+                      from='-15, 4.488680718188916' to='25, 4.488680718188916' 
+                      dur='50.45s' begin='-90.0s' repeatCount='indefinite' />
+                  </use>
+                </g>
+                <g opacity='0.5000000000000002' transform='scale(2.8181999999999996)'>
+                  <use href='#cloud' fill='#cac8c8ff'>
+                    <animateTransform attributeName='transform' type='translate' 
+                      from='-15, 4.541906181250445' to='25, 4.541906181250445' 
+                      dur='54.45s' begin='-94.5s' repeatCount='indefinite' />
+                  </use>
+                </g>
+              </g>
+              
+              <path d='M 20,19 V 3 H 4 V 19 H 2 v 2 H 22 V 19 H 20 M 6,19 5.91,5.32 17.94,5.26 18,19 Z' fill='#44739e'/>
+            </g>
+          </svg>
