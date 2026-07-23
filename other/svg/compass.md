@@ -21,9 +21,9 @@ template:
       - name: "Room Sun Compass"
         state: "{{ state_attr('sun.sun', 'azimuth') }}°"
         picture: >
-👨‍💻 ![Полный код здесь](./compass.yaml)
+
 ```
-  
+ 👨‍💻 <a="./compass.yaml">Полный код здесь]</a>
 </details>
 
 ## 🛠️ Настройка под себя
