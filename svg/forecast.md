@@ -26,7 +26,7 @@ template:
         picture: >
 
 ```
- 📝 <a href="https://raw.githubusercontent.com/S0ft0r/ha-blueprints/refs/heads/main/other/svg/forecast.yaml">Полный код здесь</a>
+ 📝 <a href="https://raw.githubusercontent.com/S0ft0r/ha-blueprints/refs/heads/main/svg/forecast.yaml">Полный код здесь</a>
 </details>
 
 ## 🛠️ Техническое описание логики
