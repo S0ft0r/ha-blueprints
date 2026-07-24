@@ -67,7 +67,11 @@ template:
 ## 📝 Примеры использования
 <details>
   <summary>**multiple-entity-row:**</summary>
+  
 ```yaml
+type: entities
+state_color: true
+entities:
   - entity: sensor.forecast_live_icon
     name: Жалюзи
     icon: mdi:blinds 
