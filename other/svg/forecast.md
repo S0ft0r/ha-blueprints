@@ -63,5 +63,97 @@ template:
 | :---: | :---: | :---: | :---: | :---: | :---: | 
 | <img src="./1.svg" width="50"> | <img src="./2.svg" width="50"> | <img src="./3.svg" width="50"> | <img src="./4.svg" width="50"> | <img src="./5.svg" width="50"> | <img src="./6.svg" width="50"> | 
 ---
+
+## 📝 Примеры использования
+<details>
+  <summary>**multiple-entity-row:**</summary>
+```yaml
+  - entity: sensor.forecast_live_icon
+    name: Жалюзи
+    icon: mdi:blinds 
+    type: custom:multiple-entity-row
+    show_state: false
+    state_color: true
+    name: false
+    entities:
+      - entity: sensor.sun_compass_icon
+        name: false
+        unit: false
+        state_color: true
+        icon:  mdi:sun-compass
+    entities:
+      - entity: sensor.blinds_live_icon
+        name: false
+        unit: false
+        state_color: true
+        icon:  mdi:blinds
+    card_mod:
+      style: 
+        hui-generic-entity-row $: |
+          state-badge {
+            color: transparent !important;
+            --mdc-icon-size: 32px; /* Возвращаем размер, чтобы слот не исчезал */
+            
+            background-color: transparent !important;
+            background-image: url("{{ state_attr('sensor.forecast_live_icon', 'entity_picture') }}") !important;
+            background-size: 32px 32px !important;
+            background-repeat: no-repeat !important;
+            background-position: center !important;
+            
+            width: 32px !important;
+            height: 32px !important;
+            display: inline-block !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+          }
+          .entities-row .entity:nth-child(1) state-badge {
+            /* Вместо скрытия делаем иконку прозрачной */
+            color: transparent !important;
+            --mdc-icon-size: 32px; /* Возвращаем размер, чтобы слот не исчезал */
+            
+            background-color: transparent !important;
+            background-image: url("{{ state_attr('sensor.sun_compass_icon', 'entity_picture') }}") !important;
+            background-size: 32px 32px !important;
+            background-repeat: no-repeat !important;
+            background-position: center !important;
+            
+            width: 32px !important;
+            height: 32px !important;
+            display: inline-block !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+          }
+          /* Прячем саму иконку, но не трогаем контейнер */
+          .entities-row .entity:nth-child(1) state-badge ha-state-icon {
+            opacity: 0 !important;
+          }
+          /* Нацеливаемся на сущность по индексу */
+          .entities-row .entity:nth-child(2) state-badge {
+            /* Вместо скрытия делаем иконку прозрачной */
+            color: transparent !important;
+            --mdc-icon-size: 32px; /* Возвращаем размер, чтобы слот не исчезал */
+            
+            background-color: transparent !important;
+            background-image: url("{{ img }}") !important;
+            background-size: 32px 32px !important;
+            background-repeat: no-repeat !important;
+            background-position: center !important;
+            
+            width: 32px !important;
+            height: 32px !important;
+            display: inline-block !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+          }
+
+          /* Прячем саму иконку, но не трогаем контейнер */
+          .entities-row .entity:nth-child({{ i }}) state-badge ha-state-icon {
+            opacity: 0 !important;
+          }
+
+```
+</details>
+
+
 **Автор:** [Softor]
 **Лицензия:** MIT
