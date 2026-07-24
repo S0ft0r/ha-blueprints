@@ -23,7 +23,7 @@ template:
         picture: >
 
 ```
- 👨‍💻 <a href="https://raw.githubusercontent.com/S0ft0r/ha-blueprints/refs/heads/main/other/svg/compass.yaml">Полный код здесь</a>
+ 📝 <a href="https://raw.githubusercontent.com/S0ft0r/ha-blueprints/refs/heads/main/other/svg/compass.yaml">Полный код здесь</a>
 </details>
 
 ## 🛠️ Настройка под себя

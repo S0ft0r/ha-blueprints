@@ -15,7 +15,8 @@
   
 ## 🚀 Установка
 
-Добавьте код сенсора в ваш файл `configuration.yaml` в раздел `template:`:
+<details>
+  <summary><b>Добавьте этот код в ваш `configuration.yaml` (раздел `template:`). </b></summary>
 
 ```yaml
 template:
@@ -23,8 +24,10 @@ template:
       - name: "Forecast Live Icon"
         state: "{{ states('weather.forecast') }}"
         picture: >
-          {# Вставьте здесь полный код шаблона из файла forecast.yaml #}
+
 ```
+ 📝 <a href="https://raw.githubusercontent.com/S0ft0r/ha-blueprints/refs/heads/main/other/svg/forecast.yaml">Полный код здесь</a>
+</details>
 
 ## 🛠️ Техническое описание логики
 
@@ -56,7 +59,7 @@ template:
 *   Включенный стандартный компонент `sun`.
 
 ## 📝 Примеры анимаций
-| Переменная облачность | Облачно | Дождь | Солнечно - высокий УФИ | Солнечно - УФИ в норме | Снег с дождем |
+| Переменная <br> облачность | Облачно | Дождь | Солнечно <br> высокий УФИ | Солнечно <br> УФИ в норме | Снег с дождем |
 | :---: | :---: | :---: | :---: | :---: | :---: | 
 | <img src="./1.svg" width="50"> | <img src="./2.svg" width="50"> | <img src="./3.svg" width="50"> | <img src="./4.svg" width="50"> | <img src="./5.svg" width="50"> | <img src="./6.svg" width="50"> | 
 ---
