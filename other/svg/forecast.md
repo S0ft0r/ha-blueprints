@@ -67,7 +67,7 @@ template:
 ## 📝 Примеры использования
 <details>
   <summary>**multiple-entity-row:**</summary>
-  
+
 ```yaml
 type: entities
 state_color: true
@@ -96,8 +96,8 @@ entities:
         hui-generic-entity-row $: |
           state-badge {
             color: transparent !important;
-            --mdc-icon-size: 32px; /* Возвращаем размер, чтобы слот не исчезал */
-            
+            --mdc-icon-size: 32px; 
+
             background-color: transparent !important;
             background-image: url("{{ state_attr('sensor.forecast_live_icon', 'entity_picture') }}") !important;
             background-size: 32px 32px !important;
@@ -111,9 +111,8 @@ entities:
             box-shadow: none !important;
           }
           .entities-row .entity:nth-child(1) state-badge {
-            /* Вместо скрытия делаем иконку прозрачной */
             color: transparent !important;
-            --mdc-icon-size: 32px; /* Возвращаем размер, чтобы слот не исчезал */
+            --mdc-icon-size: 32px; 
             
             background-color: transparent !important;
             background-image: url("{{ state_attr('sensor.sun_compass_icon', 'entity_picture') }}") !important;
@@ -127,18 +126,16 @@ entities:
             border-radius: 0 !important;
             box-shadow: none !important;
           }
-          /* Прячем саму иконку, но не трогаем контейнер */
           .entities-row .entity:nth-child(1) state-badge ha-state-icon {
             opacity: 0 !important;
           }
-          /* Нацеливаемся на сущность по индексу */
+
           .entities-row .entity:nth-child(2) state-badge {
-            /* Вместо скрытия делаем иконку прозрачной */
             color: transparent !important;
-            --mdc-icon-size: 32px; /* Возвращаем размер, чтобы слот не исчезал */
+            --mdc-icon-size: 32px; 
             
             background-color: transparent !important;
-            background-image: url("{{ img }}") !important;
+            background-image: url("{{ state_attr('sensor.blinds_live_icon', 'entity_picture') }}") !important;
             background-size: 32px 32px !important;
             background-repeat: no-repeat !important;
             background-position: center !important;
@@ -149,9 +146,7 @@ entities:
             border-radius: 0 !important;
             box-shadow: none !important;
           }
-
-          /* Прячем саму иконку, но не трогаем контейнер */
-          .entities-row .entity:nth-child({{ i }}) state-badge ha-state-icon {
+          .entities-row .entity:nth-child(2) state-badge ha-state-icon {
             opacity: 0 !important;
           }
 
