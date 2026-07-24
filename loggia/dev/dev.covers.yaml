@@ -1205,7 +1205,7 @@ actions:
                     position: >-
                       {{ [0, [target_position + (-position_tolerance if direction == 'up' else position_tolerance), 100] | min] | max }}
                 - delay:
-                    miliseconds: 500
+                    milliseconds: 500
                 - action: cover.stop_cover
                   target:
                     entity_id: "{{ repeat.item }}"
