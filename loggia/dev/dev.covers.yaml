@@ -849,8 +849,8 @@ actions:
         sequence:
           - variables:
               blinds_target: !input blinds
-          - &stop_blinds
-            repeat:
+          # - &stop_blinds
+          - repeat:
               count: !input repeat_for
 
               sequence:
@@ -1195,9 +1195,22 @@ actions:
           - delay:
               seconds: "{{ movement_time }}"
           
-          - *stop_blinds
+          - repeat:
+              for_each: "{{ blinds_target | default(blinds) }}" 
+              sequence:
+                - action: cover.set_cover_position
+                  target:
+                    entity_id: "{{ repeat.item }}"
+                  data:
+                    position: >-
+                      {{ [0, [target_position + (-position_tolerance if direction == 'up' else position_tolerance), 100] | min] | max }}
+                - delay:
+                    miliseconds: 500
+                - action: cover.stop_cover
+                  target:
+                    entity_id: "{{ repeat.item }}"
 
-          - delay: 
+          - delay:
               seconds: 2
 
           - variables:
@@ -1219,11 +1232,12 @@ actions:
               - variables:
                   log_message: |
                     Некоторые шторы не {{ 'открылись' if direction == 'up' else 'закрылись' }}.
-                    Ошибка зафиксирована на: 
-                        {% for blind in failed_blinds %}
-                        — {{ state_attr(blind, 'friendly_name') | lower }} 
-                        {% endfor %}
-                  log_entity_id: "{{ failed_blinds }}"
+                    Целевая позиция: {{ target_position }}%
+                    Текущие позиции:
+                    {% for blind in failed_blinds %}
+                    — {{ state_attr(blind, 'friendly_name') }}: {{ state_attr(blind, 'current_position') }}%
+                    {% endfor %}
+                  log_entity_id: "{{ failed_blinds | join(', ') }}"
                   notification_title: "Ошибка штор"
               - *log_error
   
