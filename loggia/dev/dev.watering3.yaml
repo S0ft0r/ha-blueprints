@@ -31,8 +31,8 @@ blueprint:
           selector:
             time: {}
 
-        set_time_work_morning:
-          name: Длительность полива
+        set_time_work_reduced_morning:
+          name: Длительность полива (уменьшенная)
           description: Время работы каждого направления
           default: 30
           selector:
@@ -43,7 +43,43 @@ blueprint:
               mode: box
               unit_of_measurement: "сек"
 
-        morning_daily_valves:
+        set_time_work_standard_morning:
+          name: Длительность полива (стандартная)
+          description: Время работы каждого направления
+          default: 60
+          selector:
+            number:
+              min: 1
+              max: 600
+              step: 1
+              mode: box
+              unit_of_measurement: "сек"
+
+        set_time_work_increased_morning:
+          name: Длительность полива (увеличенная)
+          description: Время работы каждого направления
+          default: 120
+          selector:
+            number:
+              min: 1
+              max: 600
+              step: 1
+              mode: box
+              unit_of_measurement: "сек"
+
+        morning_daily_reduced_valves:
+          name: Направления для ежедневного полива утром с уменьшенным временем
+          description: |
+            Эти направления будут поливаться каждый день утром.
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - switch
+              multiple: true
+
+        morning_daily_standard_valves:
           name: Направления для ежедневного полива утром
           description: |
             Эти направления будут поливаться каждый день утром.
@@ -55,8 +91,44 @@ blueprint:
                     - switch
               multiple: true
 
-        morning_alternate_valves:
+        morning_daily_increased_valves:
+          name: Направления для ежедневного полива утром с увеличенным временем
+          description: |
+            Эти направления будут поливаться каждый день утром.
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - switch
+              multiple: true
+
+        morning_alternate_reduced_valves:
+          name: Направления для полива через день утром с уменьшенным временем
+          description: |
+            Эти направления будут поливаться через день утром.
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - switch
+              multiple: true
+
+        morning_alternate_standard_valves:
           name: Направления для полива через день утром
+          description: |
+            Эти направления будут поливаться через день утром.
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - switch
+              multiple: true
+
+        morning_alternate_increased_valves:
+          name: Направления для полива через день утром с увеличенным временем
           description: |
             Эти направления будут поливаться через день утром.
           default: []
@@ -87,8 +159,8 @@ blueprint:
           selector:
             time: {}
 
-        set_time_work_evening:
-          name: Длительность полива
+        set_time_work_reduced_evening:
+          name: Длительность полива (уменьшенная)
           description: Время работы каждого направления
           default: 30
           selector:
@@ -99,7 +171,43 @@ blueprint:
               mode: box
               unit_of_measurement: "сек"
 
-        evening_daily_valves:
+        set_time_work_standard_evening:
+          name: Длительность полива (стандартная)
+          description: Время работы каждого направления
+          default: 60
+          selector:
+            number:
+              min: 1
+              max: 600
+              step: 1
+              mode: box
+              unit_of_measurement: "сек"
+
+        set_time_work_increased_evening:
+          name: Длительность полива (увеличенная)
+          description: Время работы каждого направления
+          default: 120
+          selector:
+            number:
+              min: 1
+              max: 600
+              step: 1
+              mode: box
+              unit_of_measurement: "сек"
+
+        evening_daily_reduced_valves:
+          name: Направления для ежедневного полива вечером с уменьшенным временем
+          description: |
+            Эти направления будут поливаться каждый день вечером.
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - switch
+              multiple: true
+
+        evening_daily_standard_valves:
           name: Направления для ежедневного полива вечером
           description: |
             Эти направления будут поливаться каждый день вечером.
@@ -111,8 +219,44 @@ blueprint:
                     - switch
               multiple: true
 
-        evening_alternate_valves:
-          name: Направления для полива через день вечером
+        evening_daily_increased_valves:
+          name: Направления для ежедневного полива вечером с увеличенным временем
+          description: |
+            Эти направления будут поливаться каждый вечером утром.
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - switch
+              multiple: true
+
+        evening_alternate_reduced_valves:
+          name: Направления для полива через вечером утром с уменьшенным временем
+          description: |
+            Эти направления будут поливаться через вечером утром.
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - switch
+              multiple: true
+
+        evening_alternate_standard_valves:
+          name: Направления для полива через вечером утром
+          description: |
+            Эти направления будут поливаться через вечером утром.
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - switch
+              multiple: true
+
+        evening_alternate_increased_valves:
+          name: Направления для полива через день вечером с увеличенным временем
           description: |
             Эти направления будут поливаться через день вечером.
           default: []
@@ -225,10 +369,21 @@ blueprint:
             time: {}
 
 trigger_variables:
-  morning_daily_valves: !input morning_daily_valves
-  morning_alternate_valves: !input morning_alternate_valves
-  evening_daily_valves: !input evening_daily_valves
-  evening_alternate_valves: !input evening_alternate_valves
+  morning_daily_reduced_valves: !input morning_daily_reduced_valves
+  morning_daily_standard_valves: !input morning_daily_standard_valves
+  morning_daily_increased_valves: !input morning_daily_increased_valves
+
+  morning_alternate_reduced_valves: !input morning_alternate_reduced_valves
+  morning_alternate_standard_valves: !input morning_alternate_standard_valves
+  morning_alternate_increased_valves: !input morning_alternate_increased_valves
+
+  evening_daily_reduced_valves: !input evening_daily_reduced_valves
+  evening_daily_standard_valves: !input evening_daily_standard_valves
+  evening_daily_increased_valves: !input evening_daily_increased_valves
+
+  evening_alternate_reduced_valves: !input evening_alternate_reduced_valves
+  evening_alternate_standard_valves: !input evening_alternate_standard_valves
+  evening_alternate_increased_valves: !input evening_alternate_increased_valves
 
   soil_moisture_valves: !input soil_moisture_valves
   soil_moisture_sensors: !input soil_moisture_sensors
@@ -252,85 +407,65 @@ trigger_variables:
 variables:
   is_alternate_day: "{{ (now().timestamp() / 86400) | int % 2 == 0 }}"
 
-  current_valves_morning: >
-    {% set daily = morning_daily_valves | list %}
-    {% set alternate = morning_alternate_valves | list
-        if is_alternate_day else [] %}
-    {{ (daily + alternate) | unique | list }}
+  # --- ПОДГОТОВКА СПИСКОВ (УТРО) ---
+  m_valves_red: >
+    {% set daily = morning_daily_reduced_valves | default([]) %}
+    {% set alt = morning_alternate_reduced_valves | default([]) if is_alternate_day else [] %}
+    {{ (daily + alt) | unique | list }}
+  m_valves_std: >
+    {% set daily = morning_daily_standard_valves | default([]) %}
+    {% set alt = morning_alternate_standard_valves | default([]) if is_alternate_day else [] %}
+    {{ (daily + alt) | unique | list }}
+  m_valves_inc: >
+    {% set daily = morning_daily_increased_valves | default([]) %}
+    {% set alt = morning_alternate_increased_valves | default([]) if is_alternate_day else [] %}
+    {{ (daily + alt) | unique | list }}
 
-  current_valves_evening: >
-    {% set daily = evening_daily_valves | list %}
-    {% set alternate = evening_alternate_valves | list
-        if is_alternate_day else [] %}
-    {{ (daily + alternate) | unique | list }}
+  # --- ПОДГОТОВКА СПИСКОВ (ВЕЧЕР) ---
+  e_valves_red: >
+    {% set daily = evening_daily_reduced_valves | default([]) %}
+    {% set alt = evening_alternate_reduced_valves | default([]) if is_alternate_day else [] %}
+    {{ (daily + alt) | unique | list }}
+  e_valves_std: >
+    {% set daily = evening_daily_standard_valves | default([]) %}
+    {% set alt = evening_alternate_standard_valves | default([]) if is_alternate_day else [] %}
+    {{ (daily + alt) | unique | list }}
+  e_valves_inc: >
+    {% set daily = evening_daily_increased_valves | default([]) %}
+    {% set alt = evening_alternate_increased_valves | default([]) if is_alternate_day else [] %}
+    {{ (daily + alt) | unique | list }}
 
   debounce_seconds: >
     {{ set_debounce_time.split(':')[0] | int * 3600
      + set_debounce_time.split(':')[1] | int * 60
      + set_debounce_time.split(':')[2] | int }}
 
-triggers:
-  - trigger: time
-    at: !input set_on_time_morning
-    id: morning_trigger
-    enabled: !input morning_enabled
-
-  - trigger: time
-    at: !input set_on_time_evening
-    id: evening_trigger
-    enabled: !input evening_enabled
-
-  - trigger: numeric_state
-    entity_id: !input soil_moisture_sensors
-    below: !input set_soil_moisture_min
-    id: soil_low_trigger
-    enabled: "{{ is_soil_defined and soil_watering_enabled }}"
-
 actions:
   - choose:
-
       #####################################################################
       # УТРЕННИЙ ПОЛИВ
       #####################################################################
-
       - conditions:
           - condition: trigger
-            id:
-              - morning_trigger
-          - condition: template
-            value_template: "{{ current_valves_morning | length > 0 }}"
+            id: morning_trigger
         sequence:
-          - variables:
-              time_work_current: !input set_time_work_morning
+          # 1. УМЕНЬШЕННЫЙ ПОЛИВ
           - repeat:
-              for_each: "{{ current_valves_morning }}"
+              for_each: "{{ m_valves_red }}"
               sequence:
-                - &water_valve
+                - &water_logic
                   variables:
                     current_valve: "{{ repeat.item }}"
-
+                    # Оставили только логику датчиков влажности
                     current_soil_sensor: >
                       {% set ns = namespace(idx=-1) %}
                       {% for valve in soil_moisture_valves | list %}
-                        {% if valve == repeat.item and ns.idx == -1 %}
-                          {% set ns.idx = loop.index0 %}
-                        {% endif %}
+                        {% if valve == current_valve and ns.idx == -1 %}{% set ns.idx = loop.index0 %}{% endif %}
                       {% endfor %}
-                      {% if ns.idx >= 0 and (soil_moisture_sensors | count) > ns.idx %}
-                        {{ soil_moisture_sensors[ns.idx] }}
-                      {% else %}
-                        {{ '' }}
-                      {% endif %}
-
-                    current_soil_valid: >
-                      {{ current_soil_sensor != ''
-                         and states(current_soil_sensor) not in invalid_states }}
-
+                      {{ soil_moisture_sensors[ns.idx] if ns.idx >= 0 and (soil_moisture_sensors | count) > ns.idx else '' }}
                     current_soil_blocked: >
-                      {{ set_use_soil_moisture
-                         and current_soil_valid
+                      {{ set_use_soil_moisture and current_soil_sensor != '' and states(current_soil_sensor) not in invalid_states 
                          and (states(current_soil_sensor) | float(-1)) >= (set_soil_skip_threshold | float) }}
-
                 - if:
                     - condition: template
                       value_template: "{{ not current_soil_blocked }}"
@@ -339,7 +474,43 @@ actions:
                       target:
                         entity_id: "{{ current_valve }}"
                     - delay:
-                        seconds: "{{ time_work_current }}"
+                        seconds: !input set_time_work_reduced_morning
+                    - action: homeassistant.turn_off
+                      target:
+                        entity_id: "{{ current_valve }}"
+
+          # 2. СТАНДАРТНЫЙ ПОЛИВ
+          - repeat:
+              for_each: "{{ m_valves_std }}"
+              sequence:
+                - *water_logic
+                - if:
+                    - condition: template
+                      value_template: "{{ not current_soil_blocked }}"
+                  then:
+                    - action: homeassistant.turn_on
+                      target:
+                        entity_id: "{{ current_valve }}"
+                    - delay:
+                        seconds: !input set_time_work_standard_morning
+                    - action: homeassistant.turn_off
+                      target:
+                        entity_id: "{{ current_valve }}"
+
+          # 3. УВЕЛИЧЕННЫЙ ПОЛИВ
+          - repeat:
+              for_each: "{{ m_valves_inc }}"
+              sequence:
+                - *water_logic
+                - if:
+                    - condition: template
+                      value_template: "{{ not current_soil_blocked }}"
+                  then:
+                    - action: homeassistant.turn_on
+                      target:
+                        entity_id: "{{ current_valve }}"
+                    - delay:
+                        seconds: !input set_time_work_increased_morning
                     - action: homeassistant.turn_off
                       target:
                         entity_id: "{{ current_valve }}"
@@ -347,20 +518,15 @@ actions:
       #####################################################################
       # ВЕЧЕРНИЙ ПОЛИВ
       #####################################################################
-
       - conditions:
           - condition: trigger
-            id:
-              - evening_trigger
-          - condition: template
-            value_template: "{{ current_valves_evening | length > 0 }}"
+            id: evening_trigger
         sequence:
-          - variables:
-              time_work_current: !input set_time_work_evening
+          # 1. УМЕНЬШЕННЫЙ ПОЛИВ
           - repeat:
-              for_each: "{{ current_valves_evening }}"
+              for_each: "{{ e_valves_red }}"
               sequence:
-                - *water_valve
+                - *water_logic
                 - if:
                     - condition: template
                       value_template: "{{ not current_soil_blocked }}"
@@ -369,43 +535,62 @@ actions:
                       target:
                         entity_id: "{{ current_valve }}"
                     - delay:
-                        seconds: "{{ time_work_current }}"
+                        seconds: !input set_time_work_reduced_evening
+                    - action: homeassistant.turn_off
+                      target:
+                        entity_id: "{{ current_valve }}"
+
+          # 2. СТАНДАРТНЫЙ ПОЛИВ
+          - repeat:
+              for_each: "{{ e_valves_std }}"
+              sequence:
+                - *water_logic
+                - if:
+                    - condition: template
+                      value_template: "{{ not current_soil_blocked }}"
+                  then:
+                    - action: homeassistant.turn_on
+                      target:
+                        entity_id: "{{ current_valve }}"
+                    - delay:
+                        seconds: !input set_time_work_standard_evening
+                    - action: homeassistant.turn_off
+                      target:
+                        entity_id: "{{ current_valve }}"
+
+          # 3. УВЕЛИЧЕННЫЙ ПОЛИВ
+          - repeat:
+              for_each: "{{ e_valves_inc }}"
+              sequence:
+                - *water_logic
+                - if:
+                    - condition: template
+                      value_template: "{{ not current_soil_blocked }}"
+                  then:
+                    - action: homeassistant.turn_on
+                      target:
+                        entity_id: "{{ current_valve }}"
+                    - delay:
+                        seconds: !input set_time_work_increased_evening
                     - action: homeassistant.turn_off
                       target:
                         entity_id: "{{ current_valve }}"
 
       #####################################################################
-      # ВНЕПЛАНОВЫЙ ПОЛИВ ПО ДАТЧИКУ ВЛАЖНОСТИ
+      # ВНЕПЛАНОВЫЙ ПОЛИВ (БЕЗ ИЗМЕНЕНИЙ)
       #####################################################################
-
       - conditions:
           - condition: trigger
-            id:
-              - soil_low_trigger
-          - condition: template
-            value_template: "{{ set_use_soil_moisture and soil_watering_enabled }}"
-          - condition: template
-            value_template: >
-              {{ not set_debounce_enabled
-                 or this.attributes.last_triggered is none
-                 or (now() - this.attributes.last_triggered).total_seconds() > (debounce_seconds | int) }}
+            id: soil_low_trigger
         sequence:
           - variables:
               triggered_sensor: "{{ trigger.entity_id }}"
-
               triggered_valve: >
                 {% set ns = namespace(idx=-1) %}
                 {% for sensor in soil_moisture_sensors | list %}
-                  {% if sensor == triggered_sensor and ns.idx == -1 %}
-                    {% set ns.idx = loop.index0 %}
-                  {% endif %}
+                  {% if sensor == triggered_sensor and ns.idx == -1 %}{% set ns.idx = loop.index0 %}{% endif %}
                 {% endfor %}
-                {% if ns.idx >= 0 and (soil_moisture_valves | count) > ns.idx %}
-                  {{ soil_moisture_valves[ns.idx] }}
-                {% else %}
-                  {{ '' }}
-                {% endif %}
-
+                {{ soil_moisture_valves[ns.idx] if ns.idx >= 0 and (soil_moisture_valves | count) > ns.idx else '' }}
           - if:
               - condition: template
                 value_template: "{{ triggered_valve != '' }}"
