@@ -440,6 +440,23 @@ variables:
      + set_debounce_time.split(':')[1] | int * 60
      + set_debounce_time.split(':')[2] | int }}
 
+triggers:
+  - platform: time
+    at: !input set_on_time_morning
+    id: on_time_morning_trigger
+    enabled: !input morning_enabled
+
+  - platform: time
+    at: !input set_on_time_evening
+    id: on_time_evening_trigger
+    enabled: !input evening_enabled
+
+  - trigger: numeric_state
+    entity_id: !input soil_moisture_sensors
+    below: !input set_soil_moisture_min
+    id: soil_low_trigger
+    enabled: "{{ is_soil_defined and soil_watering_enabled }}"
+
 actions:
   - choose:
       #####################################################################
