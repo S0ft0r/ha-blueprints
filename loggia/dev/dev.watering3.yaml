@@ -464,7 +464,7 @@ actions:
       #####################################################################
       - conditions:
           - condition: trigger
-            id: morning_trigger
+            id: on_time_morning_trigger
         sequence:
           # 1. УМЕНЬШЕННЫЙ ПОЛИВ
           - repeat:
@@ -537,7 +537,7 @@ actions:
       #####################################################################
       - conditions:
           - condition: trigger
-            id: evening_trigger
+            id: on_time_evening_trigger
         sequence:
           # 1. УМЕНЬШЕННЫЙ ПОЛИВ
           - repeat:
