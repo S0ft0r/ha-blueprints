@@ -84,7 +84,7 @@ actions:
             moisture_val: "{{ states(zone.moisture_sensor) | float(100) if zone.moisture_sensor != 'none' else 0 }}"
             soil_is_dry: >
               {% if mode == 'По датчику' or (zone.moisture_sensor != 'none' and is_watering_day) %}
-                {{ moisture_val < soil_threshold | default(50) | float) }}
+                {{ moisture_val < soil_threshold | default(50) | float }}
               {% else %}
                 true
               {% endif %}
