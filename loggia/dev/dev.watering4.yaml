@@ -60,8 +60,6 @@ variables:
   soil_threshold: !input soil_threshold
 
 actions:
-  - variables:
-  
   # Проверяем, включен ли общий выключатель (состояние сенсора)
   - condition: template
     value_template: "{{ is_state(config_sensor, 'on') }}"
