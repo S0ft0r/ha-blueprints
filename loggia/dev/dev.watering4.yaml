@@ -49,19 +49,19 @@ triggers:
 variables:
   config_sensor: !input config_sensor
   # Загружаем массив объектов
+  zones: "{{ state_attr(config_sensor, 'config') }}"
+  skip_next: "{{ state_attr(config_sensor, 'skip_sensor') }}"
+  # Текущий период
+  period: "{{ trigger.id }}"
+  # Логика дней
+  day_num: "{{ (now().timestamp() / 86400) | int }}"
+  is_alt_day: "{{ day_num % 2 == 0 }}"
+  is_third_day: "{{ day_num % 3 == 0 }}"
+  soil_threshold: !input soil_threshold
 
 actions:
   - variables:
-      zones: "{{ state_attr(config_sensor, 'config') }}"
-      skip_next: "{{ state_attr(config_sensor, 'skip_sensor')) }}"
-      # Текущий период
-      period: "{{ trigger.id }}"
-      # Логика дней
-      day_num: "{{ (now().timestamp() / 86400) | int }}"
-      is_alt_day: "{{ day_num % 2 == 0 }}"
-      is_third_day: "{{ day_num % 3 == 0 }}"
-      soil_threshold: !input soil_threshold
-
+  
   # Проверяем, включен ли общий выключатель (состояние сенсора)
   - condition: template
     value_template: "{{ is_state(config_sensor, 'on') }}"
