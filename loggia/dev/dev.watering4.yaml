@@ -50,7 +50,7 @@ variables:
   config_sensor: !input config_sensor
   # Загружаем массив объектов
   zones: "{{ state_attr(config_sensor, 'config') }}"
-  skip_next: "{{ state_attr(config_sensor, 'skip_next') }}"
+  skip_next: "{{ state_attr(config_sensor, 'skip_sensor')) }}"
   # Текущий период
   period: "{{ trigger.id }}"
   # Логика дней
@@ -63,9 +63,9 @@ actions:
   # Проверяем, включен ли общий выключатель (состояние сенсора)
   - condition: template
     value_template: "{{ is_state(config_sensor, 'on') }}"
-    
+
   - condition: template
-    value_template: "{{ is_state(skip_next, 'off') }}"
+    value_template: "{{ is_state(skip_next, 'on') }}"
 
   - repeat:
       for_each: "{{ zones }}"
