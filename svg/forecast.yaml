@@ -9,8 +9,9 @@
           {# 1. ЛОГИКА УСЛОВИЙ И ВЕТРА #}
           {% set is_rain = weather in ['rainy', 'pouring', 'lightning-rainy', 'snowy-rainy'] %}
           {% set is_snow = weather in ['snowy', 'snowy-rainy'] %}
+          {% set is_lightning = weather == 'lightning-rainy' %}
           {% set show_sun = weather in ['sunny', 'partlycloudy'] %}
-          {% set show_clouds = weather in ['cloudy', 'partlycloudy', 'rainy', 'pouring', 'snowy', 'snowy-rainy'] %}
+          {% set show_clouds = weather in ['cloudy', 'partlycloudy', 'rainy', 'pouring', 'snowy', 'snowy-rainy', 'lightning-rainy'] %}
         
           {% set sky_color = '#a0c4ff' if weather in ['sunny', 'partlycloudy'] else '#7d8da1' %}
           {% set sky_opacity = 0.5 if weather in ['fog'] else 0 %}
@@ -97,6 +98,28 @@
             {% set snow_layer = "<g clip-path='url(#glass-area)' fill='white'>" ~ snow_content.flakes ~ "</g>" %}
           {% endif %}
 
+          {# 4.1 ГЕНЕРАЦИЯ МОЛНИИ #}
+          {% set lightning_layer = "" %}
+          {% if is_lightning %}
+            {% set lightning_layer = "
+            <g clip-path='url(#glass-area)'>
+              <path fill='#FFF' d='M7,2H17L13.5,9H17L10,22V14H7V2M9,4V12H12V14.66L14,11H10.24L13.76,4H9Z' 
+                    transform='translate(9, 6) scale(0.4)'>
+                <animate attributeName='opacity' 
+                        values='0;0;1;0;1;0;0;0' 
+                        dur='4s' 
+                        repeatCount='indefinite' />
+              </path>
+              {# Эффект общей вспышки неба #}
+              <rect x='5.9' y='5.3' width='12.1' height='13.7' fill='white'>
+                <animate attributeName='opacity' 
+                        values='0;0;0.3;0;0.3;0;0;0' 
+                        dur='4s' 
+                        repeatCount='indefinite' />
+              </rect>
+            </g>" %}
+          {% endif %}
+
           {# 5. ФИНАЛЬНЫЙ SVG #}
           {% set svg = "
           <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'>
@@ -114,6 +137,7 @@
               </g>
               " ~ rain_layer ~ "
               " ~ snow_layer ~ "
+              " ~ lightning_layer ~ "
               <path d='M 20,19 V 3 H 4 V 19 H 2 v 2 H 22 V 19 H 20 M 6,19 5.91,5.32 17.94,5.26 18,19 Z' fill='#44739e'/>
             </g>
           </svg>" %}
