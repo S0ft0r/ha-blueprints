@@ -60,49 +60,55 @@ variables:
   soil_threshold: !input soil_threshold
 
 actions:
+
   # Проверяем, включен ли общий выключатель (состояние сенсора)
   - condition: template
     value_template: "{{ is_state(config_sensor, 'on') }}"
 
-  - condition: template
-    value_template: "{{ is_state(skip_next, 'on') }}"
+  - if:
+      - condition: template
+        value_template: "{{ is_state(skip_next, 'on') }}"
+    then:
+      - repeat:
+          for_each: "{{ zones }}"
+          sequence:
+            - variables:
+                zone: "{{ repeat.item }}"
+                settings: "{{ zone[period] }}"
+                mode: "{{ settings.mode }}"
+                
+                # 1. Проверка дня полива
+                is_watering_day: >
+                  {% if mode == 'Ежедневно' %} true
+                  {% elif mode == 'Через день' %} {{ is_alt_day }}
+                  {% elif mode == 'Через два дня' %} {{ is_third_day }}
+                  {% elif mode == 'По датчику' %} true
+                  {% else %} false
+                  {% endif %}
 
-  - repeat:
-      for_each: "{{ zones }}"
-      sequence:
-        - variables:
-            zone: "{{ repeat.item }}"
-            settings: "{{ zone[period] }}"
-            mode: "{{ settings.mode }}"
-            
-            # 1. Проверка дня полива
-            is_watering_day: >
-              {% if mode == 'Ежедневно' %} true
-              {% elif mode == 'Через день' %} {{ is_alt_day }}
-              {% elif mode == 'Через два дня' %} {{ is_third_day }}
-              {% elif mode == 'По датчику' %} true
-              {% else %} false
-              {% endif %}
+                # 2. Проверка влажности
+                moisture_val: "{{ states(zone.moisture_sensor) | float(100) if zone.moisture_sensor != 'none' else 0 }}"
+                soil_is_dry: >
+                  {% if mode == 'По датчику' or (zone.moisture_sensor != 'none' and is_watering_day) %}
+                    {{ moisture_val < soil_threshold | default(50) | float }}
+                  {% else %}
+                    true
+                  {% endif %}
 
-            # 2. Проверка влажности
-            moisture_val: "{{ states(zone.moisture_sensor) | float(100) if zone.moisture_sensor != 'none' else 0 }}"
-            soil_is_dry: >
-              {% if mode == 'По датчику' or (zone.moisture_sensor != 'none' and is_watering_day) %}
-                {{ moisture_val < soil_threshold | default(50) | float }}
-              {% else %}
-                true
-              {% endif %}
+            # Выполняем, если день подходит, почва сухая и время полива > 0
+            - if:
+                - condition: template
+                  value_template: "{{ is_watering_day and soil_is_dry and settings.timework | int > 0 }}"
+              then:
+                - action: switch.turn_on
+                  target:
+                    entity_id: "{{ zone.valve }}"
+                - delay:
+                    seconds: "{{ settings.timework | int }}"
+                - action: switch.turn_off
+                  target:
+                    entity_id: "{{ zone.valve }}"
 
-        # Выполняем, если день подходит, почва сухая и время полива > 0
-        - if:
-            - condition: template
-              value_template: "{{ is_watering_day and soil_is_dry and settings.timework | int > 0 }}"
-          then:
-            - action: switch.turn_on
-              target:
-                entity_id: "{{ zone.valve }}"
-            - delay:
-                seconds: "{{ settings.timework | int }}"
-            - action: switch.turn_off
-              target:
-                entity_id: "{{ zone.valve }}"
+  - action: homeassistant.turn_off
+    target:
+      entity_id: "{{ skip_next }}"
