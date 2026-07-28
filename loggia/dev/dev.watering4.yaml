@@ -67,7 +67,7 @@ actions:
 
   - if:
       - condition: template
-        value_template: "{{ is_state(skip_next, 'on') }}"
+        value_template: "{{ is_state(skip_next, 'off') }}"
     then:
       - repeat:
           for_each: "{{ zones }}"
