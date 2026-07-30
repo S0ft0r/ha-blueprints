@@ -2,199 +2,264 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>HA Watering Admin Panel</title>
+    <title>HA Watering Pro Deployment Console</title>
     <style>
         :root {
-            --primary-color: #44739e;
-            --danger-color: #ff5252;
-            --success-color: #4caf50;
-            --bg-color: #eceff1;
-            --card-bg: #ffffff;
-            --text-color: #333;
+            --primary: #44739e; --danger: #ef5350; --success: #66bb6a; --warning: #ffa726;
+            --bg: #eceff1; --card: #ffffff; --border: #cfd8dc;
         }
-
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg-color); padding: 20px; color: var(--text-color); line-height: 1.5; }
-        .container { max-width: 1000px; margin: 0 auto; background: var(--card-bg); padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); padding: 15px; font-size: 13px; color: #333; }
+        .container { max-width: 1250px; margin: 0 auto; background: var(--card); padding: 25px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
         
-        .config-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--primary-color); margin-bottom: 20px; padding-bottom: 15px; }
-        h2 { color: var(--primary-color); margin: 0; font-size: 1.5em; }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--primary); margin-bottom: 15px; padding-bottom: 10px; }
+        .header-btns { display: flex; gap: 10px; }
 
-        .settings-bar { display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 25px; border: 1px solid #dee2e6; }
-        .setting-box label { display: block; font-weight: bold; font-size: 0.85em; margin-bottom: 8px; color: #555; }
-        .settings-bar input { width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 6px; box-sizing: border-box; }
+        .filter-bar { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 15px; background: #f8f9fa; padding: 15px; border-radius: 10px 10px 0 0; border: 1px solid #ddd; border-bottom: none; }
+        .global-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; background: #fffde7; padding: 15px; border-radius: 0 0 10px 10px; border: 1px solid #ddd; margin-bottom: 20px; }
+        
+        .setting-box label { display: block; font-weight: bold; font-size: 10px; color: #666; margin-bottom: 5px; text-transform: uppercase; }
+        input, select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-size: 12px; background: white; }
+        
+        .zone { border: 1px solid var(--border); padding: 15px; margin-bottom: 15px; border-radius: 12px; background: #fff; }
+        .zone-title { font-size: 1.1em; font-weight: bold; margin-bottom: 12px; color: var(--primary); display: flex; align-items: center; gap: 10px; }
+        
+        .grid-main { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 12px; }
+        .grid-helpers { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; background: #f1f8e9; padding: 12px; border-radius: 8px; border: 1px solid #c5e1a5; }
+        .period-box { background: white; padding: 10px; border-radius: 6px; border: 1px solid #e0e0e0; }
+        
+        .helper-ui { display: flex; gap: 6px; align-items: flex-end; }
+        .btn { border: none; border-radius: 4px; padding: 8px 12px; cursor: pointer; color: white; font-weight: bold; transition: 0.2s; }
+        .btn-save { background: var(--success); font-size: 14px; padding: 4px 10px; }
+        .btn-clear { background: var(--danger); }
 
-        .zone { border: 1px solid #e0e0e0; padding: 20px; margin-bottom: 15px; border-radius: 10px; position: relative; background: #fdfdfd; transition: border-color 0.2s; }
-        .zone:hover { border-color: var(--primary-color); }
-        .remove-btn { position: absolute; right: 10px; top: 10px; background: none; color: #adb5bd; border: none; font-size: 1.2em; cursor: pointer; padding: 5px; }
-        .remove-btn:hover { color: var(--danger-color); }
-
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .field-group { display: flex; flex-direction: column; }
-        .field-group label { font-size: 0.85em; font-weight: bold; margin-bottom: 8px; color: #666; display: flex; align-items: center; }
-
-        select { padding: 10px; border: 1px solid #ced4da; border-radius: 6px; background-color: #fff; font-size: 0.95em; cursor: pointer; }
-        .id-badge { background: var(--primary-color); color: white; padding: 2px 8px; border-radius: 4px; font-family: monospace; margin-left: 10px; font-size: 0.9em; }
-
-        .btn { border: none; border-radius: 6px; padding: 12px 20px; font-weight: bold; cursor: pointer; transition: opacity 0.2s; font-size: 1em; }
-        .add-btn { background: var(--success-color); color: white; width: 100%; margin-top: 10px; }
-        .refresh-btn { background: white; border: 1px solid #ced4da; padding: 8px 15px; font-size: 0.9em; }
-        .copy-btn { background: var(--primary-color); color: white; border: none; padding: 10px; cursor: pointer; border-radius: 6px; margin-top: 8px; width: 100%; font-size: 0.9em; }
-
-        /* Вывод кода */
-        .outputs-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px; }
-        .output-box label { font-weight: bold; font-size: 0.9em; display: block; margin-bottom: 10px; color: var(--primary-color); }
-        textarea { width: 100%; height: 350px; font-family: 'Cascadia Code', 'Consolas', monospace; padding: 15px; border-radius: 8px; background: #282c34; color: #abb2bf; border: none; box-sizing: border-box; resize: vertical; line-height: 1.4; font-size: 11px; }
+        .outputs { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 25px; }
+        textarea { width: 100%; height: 450px; font-family: 'Consolas', monospace; font-size: 11px; padding: 12px; background: #263238; color: #80cbc4; border-radius: 8px; line-height: 1.4; }
+        .copy-label { font-weight: bold; color: var(--primary); margin-bottom: 8px; display: block; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="config-header">
-        <h2>🌱 Конструктор матрицы полива</h2>
-        <button class="btn refresh-btn" onclick="fetchEntities()">🔄 Обновить данные HA</button>
+    <div class="header">
+        <h2>🛠 Watering Pro Deployment Console</h2>
+        <div class="header-btns">
+            <button class="btn btn-clear" onclick="clearAllData()">🗑️ Очистить всё</button>
+            <button class="btn" style="background: var(--primary)" onclick="fetchEntities()">🔄 Обновить данные HA</button>
+        </div>
     </div>
 
-    <div class="settings-bar">
+    <!-- Фильтры -->
+    <div class="filter-bar">
         <div class="setting-box">
-            <label>Долгосрочный токен доступа (Token):</label>
+            <label>1. Access Token:</label>
             <input type="password" id="ha-token" onchange="saveSettings()">
         </div>
         <div class="setting-box">
-            <label>Фильтр названий насосов:</label>
-            <input type="text" id="entity-filter" value="watering_pump_" oninput="saveSettings()">
+            <label>2. Фильтр насосов:</label>
+            <input type="text" id="pump-filter" placeholder="Keyword..." oninput="saveSettings()">
+        </div>
+        <div class="setting-box">
+            <label>3. Фильтр Гл. Выкл:</label>
+            <input type="text" id="main-filter" placeholder="Keyword..." oninput="saveSettings()">
+        </div>
+        <div class="setting-box">
+            <label>4. Фильтр Пропуска:</label>
+            <input type="text" id="skip-filter" placeholder="Keyword..." oninput="saveSettings()">
+        </div>
+    </div>
+
+    <!-- Глобальный выбор -->
+    <div class="global-bar">
+        <div class="setting-box">
+            <label>Выбор: Главный выключатель (state):</label>
+            <select id="main-switch" onchange="saveSettings()"><option value="">-- сначала обновите данные --</option></select>
+        </div>
+        <div class="setting-box">
+            <label>Выбор: Сенсор пропуска (skip_sensor):</label>
+            <select id="skip-sensor" onchange="saveSettings()"><option value="">-- сначала обновите данные --</option></select>
         </div>
     </div>
 
     <div id="zones-list"></div>
-    <button class="btn add-btn" onclick="addZone()">+ ДОБАВИТЬ КАНАЛ ПОЛИВА</button>
+    <button class="btn" style="background: var(--success); width: 100%; padding: 12px; margin-bottom: 20px;" onclick="addZone()">+ ДОБАВИТЬ НОВОЕ НАПРАВЛЕНИЕ ПОЛИВА</button>
 
-    <div class="outputs-container">
-        <div class="output-box">
-            <label>1. Матрица (watering.yaml):</label>
-            <textarea id="output-config" readonly></textarea>
-            <button class="btn copy-btn" onclick="copyCode('output-config')">📋 КОПИРОВАТЬ МАТРИЦУ</button>
+    <div class="outputs">
+        <div>
+            <label class="copy-label">watering.yaml (Полный код сенсора):</label>
+            <textarea id="out-config" readonly></textarea>
         </div>
-        <div class="output-box">
-            <label>2. Статус-сенсоры (status.yaml):</label>
-            <textarea id="output-sensors" readonly></textarea>
-            <button class="btn copy-btn" onclick="copyCode('output-sensors')">📋 КОПИРОВАТЬ СЕНСОРЫ</button>
+        <div>
+            <label class="copy-label">status.yaml (Статус-сенсоры):</label>
+            <textarea id="out-sensors" readonly></textarea>
         </div>
     </div>
 </div>
 
 <script>
-    let allEntities = [];
+    let entities = [];
     let zones = [{ valve: '', sensor: 'none' }];
 
     document.getElementById('ha-token').value = localStorage.getItem('ha_token') || '';
-    document.getElementById('entity-filter').value = localStorage.getItem('ha_filter') || 'watering_pump_';
+    document.getElementById('pump-filter').value = localStorage.getItem('ha_pump_filter') || 'watering_pump_';
+    document.getElementById('main-filter').value = localStorage.getItem('ha_main_filter') || 'watering_auto';
+    document.getElementById('skip-filter').value = localStorage.getItem('ha_skip_filter') || 'skip_next';
 
     function saveSettings() {
         localStorage.setItem('ha_token', document.getElementById('ha-token').value);
-        localStorage.setItem('ha_filter', document.getElementById('entity-filter').value);
+        localStorage.setItem('ha_pump_filter', document.getElementById('pump-filter').value);
+        localStorage.setItem('ha_main_filter', document.getElementById('main-filter').value);
+        localStorage.setItem('ha_skip_filter', document.getElementById('skip-filter').value);
+        
+        const currentMain = document.getElementById('main-switch').value;
+        const currentSkip = document.getElementById('skip-sensor').value;
+        if(currentMain) localStorage.setItem('ha_main_switch', currentMain);
+        if(currentSkip) localStorage.setItem('ha_skip_sensor', currentSkip);
+        
+        populateGlobalSelectors();
         render();
     }
 
-    function calculateId(entityId) {
-        if (!entityId) return null;
-        const match = entityId.match(/_(\d+)_switch_(\d+)/);
-        if (match) {
-            const pumpNum = match[1];
-            const channelChar = String.fromCharCode(96 + parseInt(match[2]));
-            return pumpNum + channelChar;
-        }
-        return null;
+    function clearAllData() {
+        if(!confirm("Вы уверены? Это удалит все зоны и фильтры (кроме токена).")) return;
+        zones = [{ valve: '', sensor: 'none' }];
+        document.getElementById('pump-filter').value = '';
+        document.getElementById('main-filter').value = '';
+        document.getElementById('skip-filter').value = '';
+        localStorage.removeItem('ha_pump_filter');
+        localStorage.removeItem('ha_main_filter');
+        localStorage.removeItem('ha_skip_filter');
+        localStorage.removeItem('ha_main_switch');
+        localStorage.removeItem('ha_skip_sensor');
+        populateGlobalSelectors();
+        render();
     }
 
     async function fetchEntities() {
-        const token = document.getElementById('ha-token').value;
-        if (!token) return;
+        const t = document.getElementById('ha-token').value;
+        if(!t) return;
         try {
-            const response = await fetch('/api/states', {
-                headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" }
-            });
-            allEntities = await response.json();
+            const r = await fetch('/api/states', { headers: {"Authorization": `Bearer ${t}`} });
+            entities = await r.json();
+            populateGlobalSelectors();
             render();
-        } catch (e) { alert("Ошибка HA"); }
+        } catch (e) { alert("Ошибка связи!"); }
+    }
+
+    function populateGlobalSelectors() {
+        if (entities.length === 0) return;
+        const mainF = document.getElementById('main-filter').value.toLowerCase();
+        const skipF = document.getElementById('skip-filter').value.toLowerCase();
+        const savedMain = localStorage.getItem('ha_main_switch');
+        const savedSkip = localStorage.getItem('ha_skip_sensor');
+
+        const mainBools = entities.filter(e => e.entity_id.startsWith('input_boolean.') && e.entity_id.includes(mainF));
+        const skipBools = entities.filter(e => e.entity_id.startsWith('input_boolean.') && e.entity_id.includes(skipF));
+        
+        const mainSel = document.getElementById('main-switch');
+        const skipSel = document.getElementById('skip-sensor');
+        
+        mainSel.innerHTML = '<option value="">-- Всегда ВКЛ --</option>' + mainBools.map(b => `<option value="${b.entity_id}">${b.entity_id}</option>`).join('');
+        skipSel.innerHTML = '<option value="">-- Без пропуска --</option>' + skipBools.map(b => `<option value="${b.entity_id}">${b.entity_id}</option>`).join('');
+        
+        if (savedMain) mainSel.value = savedMain;
+        if (savedSkip) skipSel.value = savedSkip;
+    }
+
+    function calculateId(entityId) {
+        const match = entityId.match(/_(\d+)_switch_(\d+)/);
+        return match ? match[1] + String.fromCharCode(96 + parseInt(match[2])) : null;
     }
 
     function render() {
         const list = document.getElementById('zones-list');
         list.innerHTML = '';
-        const filter = document.getElementById('entity-filter').value.toLowerCase();
-        const valves = allEntities.filter(e => e.entity_id.startsWith('switch.') && e.entity_id.includes(filter));
-        const sensors = allEntities.filter(e => e.entity_id.includes('moisture'));
+        const pFilter = document.getElementById('pump-filter').value.toLowerCase();
+        const valves = entities.filter(e => e.entity_id.startsWith('switch.') && e.entity_id.includes(pFilter));
+        const moisture = entities.filter(e => e.entity_id.includes('moisture'));
 
-        zones.forEach((zone, index) => {
-            const calcId = calculateId(zone.valve);
+        zones.forEach((z, i) => {
+            const id = calculateId(z.valve);
             const div = document.createElement('div');
             div.className = 'zone';
+            
+            let hHtml = '';
+            if (id) {
+                ['morning', 'evening'].forEach(p => {
+                    const nId = `input_number.watering_pump_${id}_timework_${p}`;
+                    const sId = `input_select.watering_pump_${id}_mode_${p}`;
+                    const nE = entities.find(e => e.entity_id === nId);
+                    const sE = entities.find(e => e.entity_id === sId);
+                    if (nE && sE) {
+                        hHtml += `
+                            <div class="period-box">
+                                <label>${p=='morning'?'☀️ Утро':'🌙 Вечер'}</label>
+                                <div class="helper-ui">
+                                    <div style="flex:1"><select id="sel-${i}-${p}">${sE.attributes.options.map(o=>`<option value="${o}" ${sE.state==o?'selected':''}>${o}</option>`).join('')}</select></div>
+                                    <div style="width:70px"><input type="number" id="num-${i}-${p}" value="${nE.state}"></div>
+                                    <button class="btn btn-save" onclick="saveHelpers('${id}','${p}',${i})">💾</button>
+                                </div>
+                            </div>`;
+                    } else {
+                        hHtml += `<div class="yaml-missing"><label>⚠️ Нет хелперов для ${p}</label><div class="yaml-code"># ID: ${id}</div></div>`;
+                    }
+                });
+            }
+
             div.innerHTML = `
-                <button class="remove-btn" onclick="removeZone(${index})">✕</button>
-                <div class="grid">
-                    <div class="field-group">
-                        <label>Насос/Канал ${calcId ? `<span class="id-badge">ID: ${calcId}</span>` : ''}</label>
-                        <select onchange="updateZone(${index}, 'valve', this.value)">
-                            <option value="">-- выберите --</option>
-                            ${valves.map(v => `<option value="${v.entity_id}" ${zone.valve === v.entity_id ? 'selected' : ''}>${v.attributes.friendly_name || v.entity_id}</option>`).join('')}
-                        </select>
-                    </div>
-                    <div class="field-group">
-                        <label>Сенсор влажности</label>
-                        <select onchange="updateZone(${index}, 'sensor', this.value)">
-                            <option value="none">none</option>
-                            ${sensors.map(s => `<option value="${s.entity_id}" ${zone.sensor === s.entity_id ? 'selected' : ''}>${s.attributes.friendly_name || s.entity_id}</option>`).join('')}
-                        </select>
-                    </div>
+                <div class="zone-title">Зона ${i+1} ${id ? `<span style="background:var(--primary); color:#fff; padding:2px 8px; border-radius:4px; font-size:11px">ID: ${id}</span>` : ''} <button class="btn" style="margin-left:auto; background:none; color:#ccc;" onclick="zones.splice(${i},1);render()">✕</button></div>
+                <div class="grid-main">
+                    <div><label>Клапан</label><select onchange="zones[${i}].valve=this.value;render()"><option value="">-- выберите --</option>${valves.map(v=>`<option value="${v.entity_id}" ${z.valve==v.entity_id?'selected':''}>${v.attributes.friendly_name||v.entity_id}</option>`).join('')}</select></div>
+                    <div><label>Влажность</label><select onchange="zones[${i}].sensor=this.value;render()"><option value="none">none</option>${moisture.map(s=>`<option value="${s.entity_id}" ${z.sensor==s.entity_id?'selected':''}>${s.attributes.friendly_name||s.entity_id}</option>`).join('')}</select></div>
                 </div>
+                ${id ? `<div class="grid-helpers">${hHtml}</div>` : ''}
             `;
             list.appendChild(div);
         });
         generateYAML();
     }
 
-    function addZone() { zones.push({ valve: '', sensor: 'none' }); render(); }
-    function removeZone(index) { zones.splice(index, 1); render(); }
-    function updateZone(index, field, value) { zones[index][field] = value; render(); }
+    async function saveHelpers(id, p, idx) {
+        const m = document.getElementById(`sel-${idx}-${p}`).value;
+        const v = document.getElementById(`num-${idx}-${p}`).value;
+        const t = document.getElementById('ha-token').value;
+        await fetch(`/api/services/input_select/select_option`, { method: 'POST', headers: {"Authorization": `Bearer ${t}`, "Content-Type": "application/json"}, body: JSON.stringify({entity_id: `input_select.watering_pump_${id}_mode_${p}`, option: m}) });
+        await fetch(`/api/services/input_number/set_value`, { method: 'POST', headers: {"Authorization": `Bearer ${t}`, "Content-Type": "application/json"}, body: JSON.stringify({entity_id: `input_number.watering_pump_${id}_timework_${p}`, value: parseFloat(v)}) });
+        alert("Сохранено!"); fetchEntities();
+    }
 
     function generateYAML() {
-        const validZones = zones.filter(z => z.valve && calculateId(z.valve));
-        
-        // 1. ГЕНЕРАЦИЯ КОНФИГА
-        let configYaml = "config: >\n  {% set zones = [\n";
-        validZones.forEach((z, i) => {
-            const id = calculateId(z.valve);
-            configYaml += `    {\n      "name": "Канал ${id.toUpperCase()}",\n      "valve": "${z.valve}",\n      "moisture_sensor": "${z.sensor}",\n      "morning": {\n        "timework": states('input_number.watering_pump_${id}_timework_morning') | int(0),\n        "mode": states('input_select.watering_pump_${id}_mode_morning')\n      },\n      "evening": {\n        "timework": states('input_number.watering_pump_${id}_timework_evening') | int(0),\n        "mode": states('input_select.watering_pump_${id}_mode_evening')\n      }\n    }${i === validZones.length - 1 ? '' : ','}\n`;
-        });
-        configYaml += "  ] %}\n  {{ zones }}";
-        document.getElementById('output-config').value = configYaml;
+        const valid = zones.filter(z => z.valve && calculateId(z.valve));
+        const mainSw = document.getElementById('main-switch').value;
+        const skipSw = document.getElementById('skip-sensor').value;
 
-        // 2. ГЕНЕРАЦИЯ СТАТУС-СЕНСОРОВ
-        let sensorYaml = "- sensor:\n";
-        validZones.forEach(z => {
+        // Логика 1: Главный выключатель
+        const stateVal = mainSw ? `"{{ states('${mainSw}') }}"` : '"on"';
+
+        let c = `- sensor:\n  - name: watering_configuration\n    unique_id: watering_configuration_matrix\n    state: ${stateVal}\n    attributes:\n`;
+        
+        // Логика 2: Пропуск (убираем атрибут если не выбран)
+        if (skipSw) {
+            c += `      skip_sensor: "${skipSw}"\n`;
+        }
+        
+        c += `      config: >\n        {% set zones = [\n`;
+        valid.forEach((z, i) => {
             const id = calculateId(z.valve);
-            ['morning', 'evening'].forEach(period => {
-                const helper = `input_select.watering_pump_${id}_mode_${period}`;
-                sensorYaml += `  - name: watering_${id}_${period}\n`;
-                sensorYaml += `    state: "{{ 'off' if states('${helper}') == 'Отключено' else 'on' }}"\n`;
-                sensorYaml += `    icon: |\n`;
-                sensorYaml += `      {% set s = states('${helper}') %}\n`;
-                sensorYaml += `      {% set d = (now().timestamp() / 86400) | int %}\n`;
-                sensorYaml += `      {% if s == 'Отключено' %} local:button-unpressed\n`;
-                sensorYaml += `      {% elif (s == 'Через день' and d % 2 == 0) or (s == 'Через два дня' and d % 3 == 0) or (s == 'Ежедневно' or s == 'По датчику') %} local:button-pressed\n`;
-                sensorYaml += `      {% else %} local:button-unavailable\n`;
-                sensorYaml += `      {% endif %}\n\n`;
+            c += `          {\n            "name": "Канал ${id.toUpperCase()}", "valve": "${z.valve}", "moisture_sensor": "${z.sensor}",\n            "morning": {"timework": states('input_number.watering_pump_${id}_timework_morning')|int(0), "mode": states('input_select.watering_pump_${id}_mode_morning')},\n            "evening": {"timework": states('input_number.watering_pump_${id}_timework_evening')|int(0), "mode": states('input_select.watering_pump_${id}_mode_evening')}\n          }${i===valid.length-1?'':','}\n`;
+        });
+        document.getElementById('out-config').value = c + `        ] %}\n        {{ zones }}`;
+
+        let s = "- sensor:\n";
+        valid.forEach(z => {
+            const id = calculateId(z.valve);
+            ['morning','evening'].forEach(p => {
+                s += `  - name: watering_${id}_${p}\n    state: "{{ 'off' if states('input_select.watering_pump_${id}_mode_${p}') == 'Отключено' else 'on' }}"\n    icon: |\n      {% set s = states('input_select.watering_pump_${id}_mode_${p}') %}\n      {% set d = (now().timestamp()/86400)|int %}\n      {% if s == 'Отключено' %} local:button-unpressed\n      {% elif (s == 'Через день' and d%2==0) or (s == 'Через два дня' and d%3==0) or (s == 'Ежедневно' or s == 'По датчику') %} local:button-pressed\n      {% else %} local:button-unavailable\n      {% endif %}\n`;
             });
         });
-        document.getElementById('output-sensors').value = sensorYaml;
+        document.getElementById('out-sensors').value = s;
     }
 
-    function copyCode(id) {
-        document.getElementById(id).select();
-        document.execCommand("copy");
-        alert("Код скопирован!");
-    }
-
+    function addZone() { zones.push({valve:'', sensor:'none'}); render(); }
     if (localStorage.getItem('ha_token')) fetchEntities();
 </script>
 </body>
