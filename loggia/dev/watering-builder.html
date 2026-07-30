@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>HA Watering Pro Deployment Console</title>
+    <title>Панель управления поливом</title>
     <style>
         :root {
             --primary: #44739e; --danger: #ef5350; --success: #66bb6a; --warning: #ffa726;
@@ -41,7 +41,7 @@
 
 <div class="container">
     <div class="header">
-        <h2>🛠 Watering Pro Deployment Console</h2>
+        <h2>🛠 Консоль развертывания системы полива</h2>
         <div class="header-btns">
             <button class="btn btn-clear" onclick="clearAllData()">🗑️ Очистить всё</button>
             <button class="btn" style="background: var(--primary)" onclick="fetchEntities()">🔄 Обновить данные HA</button>
@@ -51,27 +51,27 @@
     <!-- Фильтры -->
     <div class="filter-bar">
         <div class="setting-box">
-            <label>1. Access Token:</label>
+            <label>1. Токен доступа (Access Token):</label>
             <input type="password" id="ha-token" onchange="saveSettings()">
         </div>
         <div class="setting-box">
             <label>2. Фильтр насосов:</label>
-            <input type="text" id="pump-filter" placeholder="Keyword..." oninput="saveSettings()">
+            <input type="text" id="pump-filter" placeholder="Ключевое слово..." oninput="saveSettings()">
         </div>
         <div class="setting-box">
             <label>3. Фильтр Гл. Выкл:</label>
-            <input type="text" id="main-filter" placeholder="Keyword..." oninput="saveSettings()">
+            <input type="text" id="main-filter" placeholder="Ключевое слово..." oninput="saveSettings()">
         </div>
         <div class="setting-box">
             <label>4. Фильтр Пропуска:</label>
-            <input type="text" id="skip-filter" placeholder="Keyword..." oninput="saveSettings()">
+            <input type="text" id="skip-filter" placeholder="Ключевое слово..." oninput="saveSettings()">
         </div>
     </div>
 
     <!-- Глобальный выбор -->
     <div class="global-bar">
         <div class="setting-box">
-            <label>Выбор: Главный выключатель (state):</label>
+            <label>Выбор: Главный выключатель (состояние):</label>
             <select id="main-switch" onchange="saveSettings()"><option value="">-- сначала обновите данные --</option></select>
         </div>
         <div class="setting-box">
@@ -99,6 +99,7 @@
     let entities = [];
     let zones = [{ valve: '', sensor: 'none' }];
 
+    // Инициализация
     document.getElementById('ha-token').value = localStorage.getItem('ha_token') || '';
     document.getElementById('pump-filter').value = localStorage.getItem('ha_pump_filter') || 'watering_pump_';
     document.getElementById('main-filter').value = localStorage.getItem('ha_main_filter') || 'watering_auto';
@@ -120,7 +121,7 @@
     }
 
     function clearAllData() {
-        if(!confirm("Вы уверены? Это удалит все зоны (кроме фильтров и токена).")) return;
+        if(!confirm("Вы уверены? Это удалит все зоны и фильтры (кроме токена).")) return;
         zones = [{ valve: '', sensor: 'none' }];
 //        document.getElementById('pump-filter').value = '';
 //        document.getElementById('main-filter').value = '';
@@ -142,7 +143,7 @@
             entities = await r.json();
             populateGlobalSelectors();
             render();
-        } catch (e) { alert("Ошибка связи!"); }
+        } catch (e) { alert("Ошибка связи с Home Assistant!"); }
     }
 
     function populateGlobalSelectors() {
@@ -158,8 +159,8 @@
         const mainSel = document.getElementById('main-switch');
         const skipSel = document.getElementById('skip-sensor');
         
-        mainSel.innerHTML = '<option value="">-- Всегда ВКЛ --</option>' + mainBools.map(b => `<option value="${b.entity_id}">${b.entity_id}</option>`).join('');
-        skipSel.innerHTML = '<option value="">-- Без пропуска --</option>' + skipBools.map(b => `<option value="${b.entity_id}">${b.entity_id}</option>`).join('');
+        mainSel.innerHTML = '<option value="">-- Всегда ВКЛ (on) --</option>' + mainBools.map(b => `<option value="${b.entity_id}">${b.entity_id}</option>`).join('');
+        skipSel.innerHTML = '<option value="">-- Без сенсора пропуска --</option>' + skipBools.map(b => `<option value="${b.entity_id}">${b.entity_id}</option>`).join('');
         
         if (savedMain) mainSel.value = savedMain;
         if (savedSkip) skipSel.value = savedSkip;
@@ -192,7 +193,7 @@
                     if (nE && sE) {
                         hHtml += `
                             <div class="period-box">
-                                <label>${p=='morning'?'☀️ Утро':'🌙 Вечер'}</label>
+                                <label>${p=='morning'?'☀️ Утренний полив':'🌙 Вечерний полив'}</label>
                                 <div class="helper-ui">
                                     <div style="flex:1"><select id="sel-${i}-${p}">${sE.attributes.options.map(o=>`<option value="${o}" ${sE.state==o?'selected':''}>${o}</option>`).join('')}</select></div>
                                     <div style="width:70px"><input type="number" id="num-${i}-${p}" value="${nE.state}"></div>
@@ -200,7 +201,7 @@
                                 </div>
                             </div>`;
                     } else {
-                        hHtml += `<div class="yaml-missing"><label>⚠️ Нет хелперов для ${p}</label><div class="yaml-code"># ID: ${id}</div></div>`;
+                        hHtml += `<div class="yaml-missing"><label>⚠️ Хелперы не найдены</label><div class="yaml-code"># Требуются сущности для ID: ${id}</div></div>`;
                     }
                 });
             }
@@ -208,8 +209,8 @@
             div.innerHTML = `
                 <div class="zone-title">Зона ${i+1} ${id ? `<span style="background:var(--primary); color:#fff; padding:2px 8px; border-radius:4px; font-size:11px">ID: ${id}</span>` : ''} <button class="btn" style="margin-left:auto; background:none; color:#ccc;" onclick="zones.splice(${i},1);render()">✕</button></div>
                 <div class="grid-main">
-                    <div><label>Клапан</label><select onchange="zones[${i}].valve=this.value;render()"><option value="">-- выберите --</option>${valves.map(v=>`<option value="${v.entity_id}" ${z.valve==v.entity_id?'selected':''}>${v.attributes.friendly_name||v.entity_id}</option>`).join('')}</select></div>
-                    <div><label>Влажность</label><select onchange="zones[${i}].sensor=this.value;render()"><option value="none">none</option>${moisture.map(s=>`<option value="${s.entity_id}" ${z.sensor==s.entity_id?'selected':''}>${s.attributes.friendly_name||s.entity_id}</option>`).join('')}</select></div>
+                    <div><label>Клапан</label><select onchange="zones[${i}].valve=this.value;render()"><option value="">-- выберите насос --</option>${valves.map(v=>`<option value="${v.entity_id}" ${z.valve==v.entity_id?'selected':''}>${v.attributes.friendly_name||v.entity_id}</option>`).join('')}</select></div>
+                    <div><label>Датчик влажности</label><select onchange="zones[${i}].sensor=this.value;render()"><option value="none">Отсутствует</option>${moisture.map(s=>`<option value="${s.entity_id}" ${z.sensor==s.entity_id?'selected':''}>${s.attributes.friendly_name||s.entity_id}</option>`).join('')}</select></div>
                 </div>
                 ${id ? `<div class="grid-helpers">${hHtml}</div>` : ''}
             `;
@@ -222,9 +223,12 @@
         const m = document.getElementById(`sel-${idx}-${p}`).value;
         const v = document.getElementById(`num-${idx}-${p}`).value;
         const t = document.getElementById('ha-token').value;
-        await fetch(`/api/services/input_select/select_option`, { method: 'POST', headers: {"Authorization": `Bearer ${t}`, "Content-Type": "application/json"}, body: JSON.stringify({entity_id: `input_select.watering_pump_${id}_mode_${p}`, option: m}) });
-        await fetch(`/api/services/input_number/set_value`, { method: 'POST', headers: {"Authorization": `Bearer ${t}`, "Content-Type": "application/json"}, body: JSON.stringify({entity_id: `input_number.watering_pump_${id}_timework_${p}`, value: parseFloat(v)}) });
-        alert("Сохранено!"); fetchEntities();
+        try {
+            await fetch(`/api/services/input_select/select_option`, { method: 'POST', headers: {"Authorization": `Bearer ${t}`, "Content-Type": "application/json"}, body: JSON.stringify({entity_id: `input_select.watering_pump_${id}_mode_${p}`, option: m}) });
+            await fetch(`/api/services/input_number/set_value`, { method: 'POST', headers: {"Authorization": `Bearer ${t}`, "Content-Type": "application/json"}, body: JSON.stringify({entity_id: `input_number.watering_pump_${id}_timework_${p}`, value: parseFloat(v)}) });
+            alert("Данные успешно сохранены в HA!"); 
+            fetchEntities();
+        } catch (e) { alert("Ошибка при сохранении!"); }
     }
 
     function generateYAML() {
@@ -232,12 +236,10 @@
         const mainSw = document.getElementById('main-switch').value;
         const skipSw = document.getElementById('skip-sensor').value;
 
-        // Логика 1: Главный выключатель
         const stateVal = mainSw ? `"{{ states('${mainSw}') }}"` : '"on"';
 
         let c = `- sensor:\n  - name: watering_configuration\n    unique_id: watering_configuration_matrix\n    state: ${stateVal}\n    attributes:\n`;
         
-        // Логика 2: Пропуск (убираем атрибут если не выбран)
         if (skipSw) {
             c += `      skip_sensor: "${skipSw}"\n`;
         }
