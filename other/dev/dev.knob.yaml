@@ -218,31 +218,40 @@ actions:
           - condition: template
             value_template: "{{ device_attr(knob_device, 'name') == trigger.topic.split('/')[1] }}"
         sequence:
-          - action: mqtt.publish
+          # - action: mqtt.publish
+          #   metadata: {}
+          #   data:
+          #     topic: "{{ basic_topic | replace('+', device_attr(knob_device, 'name')) }}"
+          #     evaluate_payload: false
+          #     qos: 0
+          #     retain: false
+          #     payload: ""          
+          # - repeat:
+          #     count: 10
+          #     sequence:
+          #       - action: light.turn_on
+          #         metadata: {}
+          #         data:
+          #           brightness_pct: |
+          #             {{ repeat.index * 10 }}
+          #           xy_color: |
+          #             {{ rgb_colors[0] if not is_color_enabled else xy_color }}
+          #           transition: 1
+          #         target:
+          #           entity_id: !input light_device
+          #       # - delay:
+          #       #     milliseconds: 100
+          # - delay:
+          #     milliseconds: 500
+          - action: light.turn_on
             metadata: {}
             data:
-              topic: "{{ basic_topic | replace('+', device_attr(knob_device, 'name')) }}"
-              evaluate_payload: false
-              qos: 0
-              retain: false
-              payload: ""          
-          - repeat:
-              count: 10
-              sequence:
-                - action: light.turn_on
-                  metadata: {}
-                  data:
-                    brightness_pct: |
-                      {{ repeat.index * 10 }}
-                    xy_color: |
-                      {{ rgb_colors[0] if not is_color_enabled else xy_color }}
-                    transition: 1
-                  target:
-                    entity_id: !input light_device
-                # - delay:
-                #     milliseconds: 100
-          - delay:
-              milliseconds: 500
+              brightness_pct: 100
+              xy_color: |
+                {{ rgb_colors[0] if not is_color_enabled else xy_color }}
+              transition: 1
+            target:
+              entity_id: !input light_device
 
       - conditions:
           - condition: trigger
@@ -254,20 +263,20 @@ actions:
           - condition: template
             value_template: "{{ device_attr(knob_device, 'name') == trigger.topic.split('/')[1] }}"
         sequence:
-          - action: mqtt.publish
-            metadata: {}
-            data:
-              topic: "{{ basic_topic | replace('+', device_attr(knob_device, 'name')) }}"
-              evaluate_payload: false
-              qos: 0
-              retain: false
-              payload: ""          
+          # - action: mqtt.publish
+          #   metadata: {}
+          #   data:
+          #     topic: "{{ basic_topic | replace('+', device_attr(knob_device, 'name')) }}"
+          #     evaluate_payload: false
+          #     qos: 0
+          #     retain: false
+          #     payload: ""          
           - action: light.turn_off
             metadata: {}
             target:
               entity_id: !input light_device
-          - delay:
-              milliseconds: 500
+          # - delay:
+          #     milliseconds: 500
 
       - conditions:
           - condition: trigger
@@ -300,8 +309,8 @@ actions:
               transition: 1
             target:
               entity_id: !input light_device
-          - delay:
-              milliseconds: 500
+          # - delay:
+          #     milliseconds: 500
 
       - conditions:
           - condition: trigger
@@ -334,8 +343,8 @@ actions:
               transition: 1
             target:
               entity_id: !input light_device
-          - delay:
-              milliseconds: 500
+          # - delay:
+          #     milliseconds: 500
 
       - conditions:
           - condition: trigger
@@ -366,8 +375,8 @@ actions:
               transition: 1
             target:
               entity_id: !input light_device
-          - delay:
-              milliseconds: 500
+          # - delay:
+          #     milliseconds: 500
 
       - conditions:
           - condition: trigger
@@ -398,7 +407,7 @@ actions:
               transition: 1
             target:
               entity_id: !input light_device
-          - delay:
-              milliseconds: 500
+          # - delay:
+          #     milliseconds: 500
 
 mode: single
