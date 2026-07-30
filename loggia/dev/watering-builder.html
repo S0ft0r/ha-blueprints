@@ -120,11 +120,11 @@
     }
 
     function clearAllData() {
-        if(!confirm("Вы уверены? Это удалит все зоны и фильтры (кроме токена).")) return;
+        if(!confirm("Вы уверены? Это удалит все зоны (кроме фильтров и токена).")) return;
         zones = [{ valve: '', sensor: 'none' }];
-        document.getElementById('pump-filter').value = '';
-        document.getElementById('main-filter').value = '';
-        document.getElementById('skip-filter').value = '';
+//        document.getElementById('pump-filter').value = '';
+//        document.getElementById('main-filter').value = '';
+//        document.getElementById('skip-filter').value = '';
         localStorage.removeItem('ha_pump_filter');
         localStorage.removeItem('ha_main_filter');
         localStorage.removeItem('ha_skip_filter');
