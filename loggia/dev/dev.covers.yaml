@@ -600,14 +600,14 @@ variables:
   chosen_type_sun_azimuth: "{{ sun_azimuth_config.active_choice }}"
   chosen_type_sun_elevation: "{{ sun_elevation_config.active_choice }}"
 
-  sun_azimuth: |
-    {{ sun_azimuth_config.угол | int(0)
-      if chosen_type_sun_azimuth == 'угол' 
-      else (0 if sun_azimuth_config.сенсор == [] else states(sun_azimuth_config.сенсор)) }}
-  sun_elevation: |
-    {{ sun_elevation_config.угол | int(0)
-      if chosen_type_sun_elevation == 'угол' 
-      else (0 if sun_elevation_config.сенсор == [] else states(sun_elevation_config.сенсор)) }}
+  # sun_azimuth: |
+  #   {{ sun_azimuth_config.угол | int(0)
+  #     if chosen_type_sun_azimuth == 'угол' 
+  #     else (0 if sun_azimuth_config.сенсор == [] else states(sun_azimuth_config.сенсор)) }}
+  # sun_elevation: |
+  #   {{ sun_elevation_config.угол | int(0)
+  #     if chosen_type_sun_elevation == 'угол' 
+  #     else (0 if sun_elevation_config.сенсор == [] else states(sun_elevation_config.сенсор)) }}
 
   # maxp: |
   #   {% set ns = namespace(items=[]) %}
@@ -708,12 +708,20 @@ triggers:
   #   enabled: "{{ is_illuminance_enabled }}"
 
   - trigger: template
-    value_template: "{{ state_attr(sun_sensor,'azimuth') | float > (sun_azimuth | float) }}"
+    value_template: |
+      {% set sun_azimuth = sun_azimuth_config.угол | int(0)
+        if chosen_type_sun_azimuth == 'угол' 
+        else (0 if sun_azimuth_config.сенсор == [] else states(sun_azimuth_config.сенсор)) %}
+      {{ state_attr(sun_sensor,'azimuth') | float > (sun_azimuth | float) }}
     id: sun_azimut_trigger
     enabled: "{{ is_sun_protect_enabled }}"
 
   - trigger: template
-    value_template: "{{ state_attr(sun_sensor,'elevation') | float < (sun_elevation | float) }}"
+    value_template: |
+      {% set sun_elevation = sun_elevation_config.угол | int(0)
+        if chosen_type_sun_elevation == 'угол' 
+        else (0 if sun_elevation_config.сенсор == [] else states(sun_elevation_config.сенсор)) %}
+      {{ state_attr(sun_sensor,'elevation') | float < (sun_elevation | float) }}
     id: sun_elevation_trigger
     enabled: "{{ is_sun_protect_enabled }}"
 
@@ -819,6 +827,10 @@ actions:
             value_template: "{{ true if is_zha_device else device_attr(slider_device, 'name') == trigger.topic.split('/')[1] }}"
 
         sequence:
+          - variables:
+              blinds_target: !input blinds
+              target_pos: "{{ up_limit | int(100) }}"
+              movement_direction: 'up'
           - &open_blinds
             repeat:
               count: !input repeat_for
