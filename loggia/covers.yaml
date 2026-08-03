@@ -504,7 +504,7 @@ variables:
   chosen_type_down_limit: "{{ down_limit_config.active_choice }}"
 
   up_limit: |
-    {{ up_limit_config.процент | int(100)
+    {{ up_limit_config.процент | int(100) 
       if chosen_type_up_limit == 'процент' 
       else (0 if up_limit_config.сенсор == [] else states(up_limit_config.сенсор)) }}
   down_limit: |
