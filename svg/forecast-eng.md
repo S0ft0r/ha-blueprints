@@ -37,7 +37,7 @@ The sun color is calculated using the following scale:
 - **High (6-7):** Orange `#fb8c00`
 - **Very High (8-10):** Red-Orange `#d84315`
 - **Extreme (11+):** Red `#b71c1c`
-- 
+  
 ### Sun and Rays
 A UV index trigger is used:
 - **Low (<3):** 5 rays.
