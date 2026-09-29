@@ -469,6 +469,7 @@ trigger_variables:
 
 variables:
   set_light_before_alarm: !input set_light_before_alarm
+  set_music_before_alarm: !input set_music_before_alarm
   set_command_base: !input set_command_base
   set_command_music: !input set_command_music
   set_random_command: !input set_random_command
@@ -477,6 +478,11 @@ variables:
     {{ set_light_before_alarm.split(':')[0] | int * 3600 + set_light_before_alarm.split(':')[1] | int * 60 + set_light_before_alarm.split(':')[2] | int }}
   light_delay_seconds: "{{ ((light_before_alarm_in_seconds | int / 254) | round(3) | string).split('.')[0] | int }}"
   light_delay_milliseconds: "{{ ((light_before_alarm_in_seconds | int / 254) | round(3) | string).split('.')[1] | int }}"
+
+  music_before_alarm_in_seconds: |
+    {{ set_music_before_alarm.split(':')[0] | int * 3600 + set_music_before_alarm.split(':')[1] | int * 60 + set_music_before_alarm.split(':')[2] | int }}
+  music_delay_seconds: "{{ ((music_before_alarm_in_seconds | int / 20) | round(3) | string).split('.')[0] | int }}"
+  music_delay_milliseconds: "{{ ((music_before_alarm_in_seconds | int / 20) | round(3) | string).split('.')[1] | int }}"
 
   commands_music: |
     {{ (set_command_music | regex_replace('\\s+', ' ', true) | replace('; ', ';')).split(';') | list }}
@@ -652,15 +658,39 @@ actions:
               {% endfor %}
               {{ true if not set_person_check else i.cnt > 0 }}
         sequence:
-          - delay:
-              seconds: 1
+          - action: media_player.volume_set
+            target:
+              entity_id: media_player.yandex_station_m0pckh100e815k
+            data:
+              volume_level: 0
           - action: media_player.play_media
             entity_id: !input media_player
             data:
               media_content_id: "{{ command_music }}"
               media_content_type: command
-              extra:
-                volume_level: 0.3
+          - delay:
+              seconds: 1
+          - action: media_player.volume_set
+            target:
+              entity_id: !input media_player
+            data:
+              volume_level: "{{ 0.1 if music_before_alarm_in_seconds | int > 0 else 0.5 }}"
+          - if:
+              - condition: template
+                value_template: "{{ music_before_alarm_in_seconds | int > 0 }}"
+            then:
+              - repeat:
+                  count: 20
+                  sequence:
+                    - delay:
+                        seconds: "{{ music_delay_seconds }}"
+                        milliseconds: "{{ music_delay_milliseconds }}"
+                    - action: media_player.volume_set
+                      target:
+                        entity_id: !input media_player
+                      data:
+                        # Шаг нарастания 0.02 (0.1 + 0.02 * repeat.index)
+                        volume_level: "{{ (0.1 + (0.4 / 20) * repeat.index) | round(2) }}"
 
       #####################################################################
       # ФРАЗА
@@ -680,15 +710,20 @@ actions:
               {% endfor %}
               {{ true if not set_person_check else i.cnt > 0 }}
         sequence:
-          - delay:
-              seconds: 1
+          - action: media_player.volume_set
+            metadata: {}
+            target:
+              entity_id: media_player.yandex_station_m0pckh100e815k
+            data:
+              volume_level: 0
           - action: media_player.play_media
             entity_id: !input media_player
             data:
               media_content_id: !input set_phrase
               media_content_type: text
               extra:
-                volume_level: 0.8
+                volume_level: 0.5
+
 
 mode: parallel
 max: 5
