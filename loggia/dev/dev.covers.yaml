@@ -470,7 +470,7 @@ blueprint:
         4. Станция перехватит эту фразу и отправит событие `yandex_intent` в Home Assistant.
         
         *Вы можете указать несколько фраз-синонимов через точку с запятой (например: Открой шторы; Подними шторы; Открыть).*
-      icon: mdi:voice
+      icon: mdi:microphone
       collapsed: true
       input:
         yandex_intent_open:
