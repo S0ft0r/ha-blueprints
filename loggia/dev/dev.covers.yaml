@@ -2,7 +2,7 @@ blueprint:
   name: Управление рулонными шторами
   description: |
     ### Управление шторами по положению солнца.
-    <small>Версия 2026.05.01 Сборка 7</small> 
+    <small>Версия 2026.05.01 Сборка 8</small> 
     <small><a href="https://4pda.to/forum/index.php?showtopic=871505&view=findpost&p=143572987">Специально для 4PDA</a></small>
     **Особенности:**
      + Отсрочка открытия штор до определенного времени 
@@ -14,9 +14,11 @@ blueprint:
      + Управление работы штор с устройств со встроенным слайдером
      + Использование внешних сенсоров для некоторых параметров
      + Добавлена установка паузы для защиты от часто срабатывающего датчика освещения (например, Xiaomi BLE)
-    **Изменения**
      + Обновлен интерфейс настроек проекта
      + Введена проверка положения штор с логированием ошибки и уведомлением о ней.
+    **Изменения**
+     + Добавлена поддержка голосового управления Яндекс (интенты Открыть/Закрыть/Положение)
+     + Ошибки открытия/закрытия штор теперь также озвучиваются на Яндекс.Станции
     <small><a href="https://github.com/S0ft0r/ha-blueprints/blob/main/as-is.md">Отказ от ответственности</a></small>
   domain: automation
   source_url: https://github.com/S0ft0r/ha-blueprints/blob/main/loggia/dev/dev.covers.yaml
@@ -65,6 +67,8 @@ blueprint:
                   value: extra_forecast
                 - label: Управление по слайдеру
                   value: extra_slider
+                - label: Голосовое управление Яндекс
+                  value: extra_yandex
                 - label: Ограничение по времени открытия
                   value: extra_opening_until
                 - label: Ограничение по времени закрытия
@@ -265,6 +269,46 @@ blueprint:
         #         - domain: 
         #             - input_number
         #       multiple: false
+
+
+    yandex_section:
+      name: Голосовое управление (Яндекс.Станция)
+      icon: mdi:voice
+      collapsed: true
+      input:
+        yandex_intent_open:
+          name: Фраза на открытие штор
+          description: Текст интента, настроенный в Яндекс Станции для открытия штор.
+          default: "Открой шторы"
+          selector:
+            text: {}
+
+        yandex_intent_close:
+          name: Фраза на закрытие штор
+          description: Текст интента, настроенный в Яндекс Станции для закрытия штор.
+          default: "Закрой шторы"
+          selector:
+            text: {}
+
+        yandex_intent_status:
+          name: Фраза запроса положения штор
+          description: Текст интента для озвучивания текущего положения всех штор.
+          default: "Положение штор"
+          selector:
+            text: {}
+
+        yandex_media_player:
+          name: Медиаплеер для озвучивания
+          description: |
+            Яндекс.Станция, через который будет озвучиваться ответ о положении штор и уведомления об ошибках.
+            <small>* Если не выбран — озвучивание работать не будет.</small>
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - media_player
+              multiple: false
 
     options_section:
       name: "Дополнительные настройки"
@@ -555,6 +599,12 @@ trigger_variables:
   sun_sensor: !input sun_sensor
   slider_device: !input slider_device
   illuminance_sensor: !input illuminance_sensor
+
+  yandex_intent_open: !input yandex_intent_open
+  yandex_intent_close: !input yandex_intent_close
+  yandex_intent_status: !input yandex_intent_status
+  yandex_media_player: !input yandex_media_player
+
 #  text_rising_setting_sensor: !input text_rising_setting_sensor
 
   forecasts: !input forecasts
@@ -771,6 +821,28 @@ triggers:
     event_type: verify_blinds_event
     id: verify_trigger
 
+  - trigger: event
+    event_type: yandex_intent
+    event_data:
+      name: !input yandex_intent_open
+    id: yandex_open_trigger
+    enabled: "{{ is_yandex_enabled }}"
+
+  - trigger: event
+    event_type: yandex_intent
+    event_data:
+      name: !input yandex_intent_close
+    id: yandex_close_trigger
+    enabled: "{{ is_yandex_enabled }}"    
+
+  - trigger: event
+    event_type: yandex_intent
+    event_data:
+      name: !input yandex_intent_status
+    id: yandex_status_trigger
+    enabled: "{{ is_yandex_enabled }}"
+
+
 actions:
 
   - variables:
@@ -806,7 +878,17 @@ actions:
                       title: "Шторы: {{ notification_title | default('Внимание') }}"
                       message: "{{ log_message | default('Неизвестная ошибка') }}"
                     continue_on_error: true
-
+              - if:
+                  - condition: template
+                    value_template: "{{ yandex_media_player != [] }}"
+                then:
+                  - action: media_player.play_media
+                    target:
+                      entity_id: "{{ yandex_media_player }}"
+                    data:
+                      media_content_id: "{{ tts_message | default(log_message | default('Произошла ошибка со шторами')) }}"
+                      media_content_type: "text"
+                    continue_on_error: true
 
   - choose:
 
@@ -901,6 +983,79 @@ actions:
 
                 - delay:
                     seconds: "{{ delay_for_repeat | int(1) }}"
+
+
+#########################################################################################################
+#
+# УПРАВЛЕНИЕ ПО ГОЛОСОВЫМ КОМАНДАМ ЯНДЕКС
+#
+#########################################################################################################
+
+      - conditions: # Голосовая команда: Открыть шторы
+          - condition: trigger
+            id:
+              - yandex_open_trigger
+          - condition: template
+            value_template: "{{ is_yandex_enabled }}"
+
+        sequence:
+          - variables:
+              blinds_target: !input blinds
+              target_pos: "{{ up_limit | int(100) }}"
+              movement_direction: 'up'
+          - *open_blinds          
+          - *verify_blinds
+
+      - conditions: # Голосовая команда: Закрыть шторы
+          - condition: trigger
+            id:
+              - yandex_close_trigger
+          - condition: template
+            value_template: "{{ is_yandex_enabled }}"
+
+        sequence:
+          - variables:
+              blinds_target: !input blinds
+              target_pos: "{{ down_limit | int(0) }}"
+              movement_direction: 'down'
+          - *close_blinds          
+          - *verify_blinds
+
+      - conditions: # Голосовая команда: Положение штор
+          - condition: trigger
+            id:
+              - yandex_status_trigger
+          - condition: template
+            value_template: "{{ is_yandex_enabled }}"
+          - condition: template
+            value_template: "{{ yandex_media_player != [] }}"
+
+        sequence:
+          - variables:
+              status_message: >-
+                {% set ns = namespace(items=[]) %}
+                {% for blind in blinds %}
+                  {% set pos = state_attr(blind, 'current_position') %}
+                  {% set name = state_attr(blind, 'friendly_name') or blind %}
+                  {% if pos is none %}
+                    {% set ns.items = ns.items + [name ~ ' — положение неизвестно'] %}
+                  {% elif pos | int == 0 %}
+                    {% set ns.items = ns.items + [name ~ ' закрыты'] %}
+                  {% elif pos | int == 100 %}
+                    {% set ns.items = ns.items + [name ~ ' открыты полностью'] %}
+                  {% else %}
+                    {% set ns.items = ns.items + [name ~ ' открыты на ' ~ pos ~ ' процентов'] %}
+                  {% endif %}
+                {% endfor %}
+                {{ ns.items | join('. ') }}
+
+          - action: media_player.play_media
+            target:
+              entity_id: "{{ yandex_media_player }}"
+            data:
+              media_content_id: "{{ status_message }}"
+              media_content_type: "text"
+            continue_on_error: true
 
 
 #########################################################################################################
@@ -1266,6 +1421,14 @@ actions:
                     Текущие позиции:
                     {% for blind in failed_blinds %}
                     — {{ state_attr(blind, 'friendly_name') }}: {{ state_attr(blind, 'current_position') }}%
+                    {% endfor %}
+                  tts_message: >-
+                    Внимание! {{ failed_blinds | count }} 
+                    {{ 'штора не ' ~ ('открылась' if direction == 'up' else 'закрылась') if failed_blinds | count == 1 
+                       else 'шторы не ' ~ ('открылись' if direction == 'up' else 'закрылись') }}.
+                    Проверьте: 
+                    {% for blind in failed_blinds %}
+                    {{ state_attr(blind, 'friendly_name') }}{{ ', ' if not loop.last }}
                     {% endfor %}
                   log_entity_id: "{{ failed_blinds | join(', ') }}"
                   notification_title: "Ошибка штор"
