@@ -824,21 +824,21 @@ triggers:
   - trigger: event
     event_type: yandex_intent
     event_data:
-      name: !input yandex_intent_open
+      text: !input yandex_intent_open
     id: yandex_open_trigger
     enabled: "{{ is_yandex_enabled }}"
 
   - trigger: event
     event_type: yandex_intent
     event_data:
-      name: !input yandex_intent_close
+      text: !input yandex_intent_close
     id: yandex_close_trigger
     enabled: "{{ is_yandex_enabled }}"    
 
   - trigger: event
     event_type: yandex_intent
     event_data:
-      name: !input yandex_intent_status
+      text: !input yandex_intent_status
     id: yandex_status_trigger
     enabled: "{{ is_yandex_enabled }}"
 
