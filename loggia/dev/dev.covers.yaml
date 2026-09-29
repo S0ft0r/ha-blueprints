@@ -271,46 +271,6 @@ blueprint:
         #       multiple: false
 
 
-    yandex_section:
-      name: Голосовое управление (Яндекс.Станция)
-      icon: mdi:voice
-      collapsed: true
-      input:
-        yandex_intent_open:
-          name: Фраза на открытие штор
-          description: Текст интента, настроенный в Яндекс Станции для открытия штор.
-          default: "Открой шторы"
-          selector:
-            text: {}
-
-        yandex_intent_close:
-          name: Фраза на закрытие штор
-          description: Текст интента, настроенный в Яндекс Станции для закрытия штор.
-          default: "Закрой шторы"
-          selector:
-            text: {}
-
-        yandex_intent_status:
-          name: Фраза запроса положения штор
-          description: Текст интента для озвучивания текущего положения всех штор.
-          default: "Положение штор"
-          selector:
-            text: {}
-
-        yandex_media_player:
-          name: Станции Яндекс 
-          description: |
-            Выберите одну или несколько Яндекс Станций.
-            + <small>Голосовые команды будут выполняться только если их услышит одна из этих колонок.</small>
-            + <small>На них же будет озвучиваться статус штор и ошибки.</small>
-            + <small>Если ничего не выбрано — команды принимаются от любой колонки в доме, но голосовое озвучивание работать не будет.</small>
-          default: []
-          selector:
-            entity:
-              filter:
-                - domain:
-                    - media_player
-              multiple: true
 
     options_section:
       name: "Дополнительные настройки"
@@ -497,6 +457,57 @@ blueprint:
               step: 1
               unit_of_measurement: "сек"
               mode: slider
+
+    yandex_section:
+      name: Голосовое управление (Яндекс.Станция)
+      description: |
+        Для работы этой функции требуется установленная и настроенная интеграция **Yandex Station** (кастомный компонент от *AlexxIT*) с активированной поддержкой интентов.
+        
+        **Как это настроить:**
+        1. В приложении **"Дом с Алисой"** создайте сценарий.
+        2. В качестве активатора добавьте голосовую фразу (например, *"Положение штор"*).
+        3. В качестве действия выберите свою колонку и укажите действие: **"Выполнить команду"** (или отправить текст) с точным совпадением фразы.
+        4. Станция перехватит эту фразу и отправит событие `yandex_intent` в Home Assistant.
+        
+        *Вы можете указать несколько фраз-синонимов через точку с запятой (например: Открой шторы; Подними шторы; Открыть).*
+      icon: mdi:voice
+      collapsed: true
+      input:
+        yandex_intent_open:
+          name: Фразы на открытие штор
+          description: Голосовые команды для открытия штор. Можно указать несколько фраз через точку с запятой (;).
+          default: "Открой шторы; Подними шторы; Открыть шторы"
+          selector:
+            text: {}
+
+        yandex_intent_close:
+          name: Фразы на закрытие штор
+          description: Голосовые команды для закрытия штор. Можно указать несколько фраз через точку с запятой (;).
+          default: "Закрой шторы; Опусти шторы; Закрыть шторы"
+          selector:
+            text: {}
+
+        yandex_intent_status:
+          name: Фразы запроса положения штор
+          description: Голосовые команды для озвучивания текущего положения штор. Можно указать несколько фраз через точку с запятой (;).
+          default: "Положение штор; Статус штор; Что со шторами"
+          selector:
+            text: {}
+
+        yandex_media_player:
+          name: Станции Яндекс 
+          description: |
+            Выберите одну или несколько Яндекс Станций.
+            + <small>Голосовые команды будут выполняться только если их услышит одна из этих колонок.</small>
+            + <small>На них же будет озвучиваться статус штор и ошибки.</small>
+            + <small>Если ничего не выбрано — команды принимаются от любой колонки в доме, но голосовое озвучивание работать не будет.</small>
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - media_player
+              multiple: true
 
     device_section:
       name: Настройки устройства управления шторами
@@ -826,25 +837,8 @@ triggers:
 
   - trigger: event
     event_type: yandex_intent
-    event_data:
-      text: !input yandex_intent_open
-    id: yandex_open_trigger
+    id: yandex_intent_trigger
     enabled: "{{ is_yandex_enabled }}"
-
-  - trigger: event
-    event_type: yandex_intent
-    event_data:
-      text: !input yandex_intent_close
-    id: yandex_close_trigger
-    enabled: "{{ is_yandex_enabled }}"    
-
-  - trigger: event
-    event_type: yandex_intent
-    event_data:
-      text: !input yandex_intent_status
-    id: yandex_status_trigger
-    enabled: "{{ is_yandex_enabled }}"
-
 
 actions:
 
@@ -997,9 +991,15 @@ actions:
       - conditions: # Голосовая команда: Открыть шторы
           - condition: trigger
             id:
-              - yandex_open_trigger
+              - yandex_intent_trigger
           - condition: template
             value_template: "{{ is_yandex_enabled }}"
+          # Проверяем, входит ли услышанный текст в список разрешенных фраз открытия (регистронезависимо)
+          - condition: template
+            value_template: |
+              {% set phrases = (yandex_intent_open | string).split(';') | map('trim') | map('lower') | list %}
+              {{ trigger.event.data.text | string | trim | lower in phrases }}
+          # Фильтрация по разрешенным колонкам
           - condition: template
             value_template: |
               {{ yandex_media_player | length == 0 or trigger.event.data.entity_id in yandex_media_player }}
@@ -1015,9 +1015,15 @@ actions:
       - conditions: # Голосовая команда: Закрыть шторы
           - condition: trigger
             id:
-              - yandex_close_trigger
+              - yandex_intent_trigger
           - condition: template
             value_template: "{{ is_yandex_enabled }}"
+          # Проверяем, входит ли услышанный текст в список разрешенных фраз закрытия
+          - condition: template
+            value_template: |
+              {% set phrases = (yandex_intent_close | string).split(';') | map('trim') | map('lower') | list %}
+              {{ trigger.event.data.text | string | trim | lower in phrases }}
+          # Фильтрация по разрешенным колонкам
           - condition: template
             value_template: |
               {{ yandex_media_player | length == 0 or trigger.event.data.entity_id in yandex_media_player }}
@@ -1033,11 +1039,17 @@ actions:
       - conditions: # Голосовая команда: Положение штор
           - condition: trigger
             id:
-              - yandex_status_trigger
+              - yandex_intent_trigger
           - condition: template
             value_template: "{{ is_yandex_enabled }}"
           - condition: template
             value_template: "{{ yandex_media_player != [] }}"
+          # Проверяем, входит ли услышанный текст в список разрешенных фраз статуса
+          - condition: template
+            value_template: |
+              {% set phrases = (yandex_intent_status | string).split(';') | map('trim') | map('lower') | list %}
+              {{ trigger.event.data.text | string | trim | lower in phrases }}
+          # Фильтрация по разрешенным колонкам
           - condition: template
             value_template: |
               {{ yandex_media_player | length == 0 or trigger.event.data.entity_id in yandex_media_player }}
@@ -1071,7 +1083,6 @@ actions:
               media_content_id: "{{ status_message }}"
               media_content_type: "text"
             continue_on_error: true
-
 
 #########################################################################################################
 #
