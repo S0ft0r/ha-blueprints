@@ -298,17 +298,19 @@ blueprint:
             text: {}
 
         yandex_media_player:
-          name: Медиаплеер для озвучивания
+          name: Станции Яндекс 
           description: |
-            Яндекс.Станция, через который будет озвучиваться ответ о положении штор и уведомления об ошибках.
-            <small>* Если не выбран — озвучивание работать не будет.</small>
+            Выберите одну или несколько Яндекс Станций.
+            + <small>Голосовые команды будут выполняться только если их услышит одна из этих колонок.</small>
+            + <small>На них же будет озвучиваться статус штор и ошибки.</small>
+            + <small>Если ничего не выбрано — команды принимаются от любой колонки в доме, но голосовое озвучивание работать не будет.</small>
           default: []
           selector:
             entity:
               filter:
                 - domain:
                     - media_player
-              multiple: false
+              multiple: true
 
     options_section:
       name: "Дополнительные настройки"
@@ -998,6 +1000,9 @@ actions:
               - yandex_open_trigger
           - condition: template
             value_template: "{{ is_yandex_enabled }}"
+          - condition: template
+            value_template: |
+              {{ yandex_media_player | length == 0 or trigger.event.data.entity_id in yandex_media_player }}
 
         sequence:
           - variables:
@@ -1013,6 +1018,9 @@ actions:
               - yandex_close_trigger
           - condition: template
             value_template: "{{ is_yandex_enabled }}"
+          - condition: template
+            value_template: |
+              {{ yandex_media_player | length == 0 or trigger.event.data.entity_id in yandex_media_player }}
 
         sequence:
           - variables:
@@ -1030,9 +1038,15 @@ actions:
             value_template: "{{ is_yandex_enabled }}"
           - condition: template
             value_template: "{{ yandex_media_player != [] }}"
+          - condition: template
+            value_template: |
+              {{ yandex_media_player | length == 0 or trigger.event.data.entity_id in yandex_media_player }}
 
         sequence:
           - variables:
+              target_speaker: >-
+                {{ trigger.event.data.entity_id if (trigger.event.data.entity_id is defined and trigger.event.data.entity_id != none) 
+                   else (yandex_media_player | first | default('')) }}
               status_message: >-
                 {% set ns = namespace(items=[]) %}
                 {% for blind in blinds %}
@@ -1052,7 +1066,7 @@ actions:
 
           - action: media_player.play_media
             target:
-              entity_id: "{{ yandex_media_player }}"
+              entity_id: "{{ target_speaker }}"
             data:
               media_content_id: "{{ status_message }}"
               media_content_type: "text"
