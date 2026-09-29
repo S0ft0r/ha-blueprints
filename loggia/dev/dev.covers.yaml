@@ -631,6 +631,7 @@ trigger_variables:
   is_illuminance_enabled: "{{ illuminance_sensor != [] and 'extra_illuminance' in automation_extra }}"
   is_slider_enabled: "{{ slider_device != [] and 'extra_slider' in automation_extra }}"
   is_sun_protect_enabled: "{{ sun_sensor != [] and 'extra_sun_protect' in automation_extra }}"
+  is_yandex_enabled: "{{ 'extra_yandex' in automation_extra }}"
   is_open_until_enabled: "{{ 'extra_opening_until' in automation_extra }}"
   is_close_until_enabled: "{{ 'extra_close_until' in automation_extra }}"
 

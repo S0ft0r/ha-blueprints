@@ -1,0 +1,742 @@
+blueprint:
+  name: Камера. Движение и распознавание объектов
+  description: |
+    ### Обработка движения с камеры видеонаблюдения
+    <small>Версия 1.0</small>
+
+    **Что умеет:**
+     + Снимок и/или запись видео по движению
+     + Распознавание объектов через `image_processing` (DOODS/Deepstack и др.) с фильтром по классам
+     + Push-уведомления на телефоны (с картинкой, тегом, кнопкой и заменой предыдущего уведомления)
+     + Отправка фото в мессенджер (VK/Telegram и любой сервис с параметром `file`)
+     + Загрузка фото и видео в Immich
+     + Всплывающее окно с RTSP-потоком на телевизорах (TVOverlay)
+     + Отдельные переключатели-«разрешения» для тревоги и для вывода на ТВ
+     + Защита от частых повторов (антидребезг)
+
+    **Требования:** Home Assistant 2024.10+
+  domain: automation
+  source_url: https://example.local/blueprints/cctv_motion_detect.yaml
+
+  input:
+
+    #############################################################
+    main_section:
+      name: Основное
+      icon: mdi:motion-sensor
+      collapsed: false
+      input:
+        motion_sensors:
+          name: Датчики движения
+          description: Сенсоры, срабатывание которых запускает сценарий (движение/человек/авто с камеры или ИК-датчик).
+          selector:
+            entity:
+              filter:
+                - domain: [binary_sensor]
+              multiple: true
+
+        camera_entity:
+          name: Камера
+          description: Камера, с которой делается снимок и запись.
+          selector:
+            entity:
+              filter:
+                - domain: [camera]
+              multiple: false
+
+        features:
+          name: Режимы работы
+          description: Включите только те блоки, которые нужны для этой камеры.
+          default:
+            - feat_snapshot
+            - feat_record
+            - feat_detect
+            - feat_mobile
+          selector:
+            select:
+              options:
+                - label: Делать снимок
+                  value: feat_snapshot
+                - label: Записывать видео
+                  value: feat_record
+                - label: Распознавать объекты
+                  value: feat_detect
+                - label: Push на телефоны
+                  value: feat_mobile
+                - label: Отправка фото в мессенджер
+                  value: feat_messenger
+                - label: Загрузка в Immich
+                  value: feat_immich
+                - label: Вывод на телевизоры
+                  value: feat_tv
+              multiple: true
+              mode: list
+              sort: false
+
+        cooldown:
+          name: Пауза между срабатываниями
+          description: |
+            Сколько секунд игнорировать повторное движение после предыдущей обработки.
+             + <small>0 — пауза отключена.</small>
+          default: 30
+          selector:
+            number:
+              min: 0
+              max: 600
+              step: 5
+              unit_of_measurement: "сек"
+              mode: box
+
+    #############################################################
+    guard_section:
+      name: Разрешающие переключатели
+      icon: mdi:shield-home-outline
+      input:
+        alarm_switch:
+          name: Переключатель «Тревога»
+          description: |
+            Пока он включён — выполняются снимок/запись/распознавание/уведомления.
+             + <small>Не обязателен. Если не выбран — блок работает всегда.</small>
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain: [switch, input_boolean, binary_sensor]
+              multiple: false
+
+        tv_switch:
+          name: Переключатель «Вывод на ТВ»
+          description: |
+            Пока он включён — показывается всплывающее окно на телевизорах.
+             + <small>Не обязателен. Если не выбран — блок работает всегда (при включённом режиме).</small>
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain: [switch, input_boolean, binary_sensor]
+              multiple: false
+
+        progress_flag:
+          name: Флаг «идёт запись»
+          description: |
+            `input_boolean`, который включается на время снимка/записи (удобно для карточек и блокировок).
+             + <small>Не обязателен.</small>
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain: [input_boolean]
+              multiple: false
+
+    #############################################################
+    file_section:
+      name: Файлы и пути
+      icon: mdi:folder-multiple-image
+      input:
+        file_name:
+          name: Имя файла (без расширения)
+          description: |
+            Из него собираются пути: `<папка>/<имя>.jpg` и `<папка>/<имя>.mp4`.
+          default: "bath_latest"
+          selector:
+            text:
+
+        snapshot_dir:
+          name: Папка для снимков
+          default: "/config/www/snapshots"
+          selector:
+            text:
+
+        record_dir:
+          name: Папка для видео
+          default: "/config/www/records"
+          selector:
+            text:
+
+        public_url_base:
+          name: Публичный URL папки снимков
+          description: |
+            Используется в push-уведомлении как картинка. Должен быть доступен снаружи.
+             + <small>Например: `https://ha.example.ru/local/snapshots`</small>
+          default: "https://ha-home.cloudpub.ru/local/snapshots"
+          selector:
+            text:
+
+        record_duration:
+          name: Длительность записи
+          default: 20
+          selector:
+            number:
+              min: 5
+              max: 300
+              step: 1
+              unit_of_measurement: "сек"
+              mode: slider
+
+        record_duration_entity:
+          name: Сенсор длительности записи
+          description: |
+            `input_number`/`number` с длительностью записи.
+             + <small>Если выбран — значение из проекта не учитывается.</small>
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain: [input_number, number]
+              multiple: false
+
+    #############################################################
+    detect_section:
+      name: Распознавание объектов
+      icon: mdi:image-search-outline
+      input:
+        detect_entity:
+          name: Сущность image_processing
+          description: |
+            Например `image_processing.doods_bath`.
+             + <small>Обязательна при включённом режиме «Распознавать объекты».</small>
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain: [image_processing]
+              multiple: false
+
+        detect_objects:
+          name: Искомые объекты
+          description: Уведомление отправляется, только если найден хотя бы один из классов.
+          default:
+            - person
+            - car
+            - truck
+            - motorcycle
+            - bicycle
+            - dog
+            - cat
+          selector:
+            select:
+              options:
+                - { label: Человек, value: person }
+                - { label: Автомобиль, value: car }
+                - { label: Грузовик, value: truck }
+                - { label: Автобус, value: bus }
+                - { label: Мотоцикл, value: motorcycle }
+                - { label: Велосипед, value: bicycle }
+                - { label: Собака, value: dog }
+                - { label: Кошка, value: cat }
+                - { label: Птица, value: bird }
+              multiple: true
+              custom_value: true
+              sort: false
+              mode: list
+
+        detect_timeout:
+          name: Ожидание результата распознавания
+          description: Сколько секунд ждать обновления сущности image_processing после запуска сканирования.
+          default: 15
+          selector:
+            number:
+              min: 3
+              max: 60
+              step: 1
+              unit_of_measurement: "сек"
+              mode: box
+
+        detect_in_message:
+          name: Добавлять список объектов в текст уведомления
+          default: true
+          selector:
+            boolean: {}
+
+    #############################################################
+    notify_section:
+      name: Push-уведомления на телефоны
+      icon: mdi:cellphone-message
+      input:
+        notify_title:
+          name: Заголовок
+          default: "Яшково"
+          selector:
+            text:
+
+        notify_message:
+          name: Текст сообщения
+          default: "Движение у бани"
+          selector:
+            text:
+
+        mobile_notify_services:
+          name: Сервисы уведомлений
+          description: |
+            Имена сервисов без префикса `notify.`, по одному в строке.
+             + <small>Например: `mobile_app_25053pc47g`</small>
+          default: []
+          selector:
+            text:
+              multiple: true
+
+        notification_tag:
+          name: Тег уведомления
+          description: Уведомления с одинаковым тегом заменяют друг друга и не засоряют шторку.
+          default: "cam_motion"
+          selector:
+            text:
+
+        click_action:
+          name: Действие по нажатию
+          description: |
+            Например `app://app.alextran.immich` или `/lovelace/cctv`.
+             + <small>Пусто — параметр не отправляется.</small>
+          default: ""
+          selector:
+            text:
+
+        action_title:
+          name: Кнопка: подпись
+          default: "Просмотр камер"
+          selector:
+            text:
+
+        action_uri:
+          name: Кнопка: ссылка
+          description: |
+            Например `homeassistant://navigate/lovelace/cctv`.
+             + <small>Пусто — кнопка не добавляется.</small>
+          default: "homeassistant://navigate/lovelace/cctv"
+          selector:
+            text:
+
+    #############################################################
+    messenger_section:
+      name: Отправка фото в мессенджер
+      icon: mdi:send-outline
+      collapsed: true
+      input:
+        messenger_action:
+          name: Сервис отправки фото
+          description: "Например: `vk_notify.send_photo` или `telegram_bot.send_photo`."
+          default: "vk_notify.send_photo"
+          selector:
+            text:
+
+        messenger_entity:
+          name: Параметр entity_id сервиса
+          description: |
+            Например `notify.vk_notify`.
+             + <small>Пусто — параметр не передаётся (актуально для `telegram_bot.*`).</small>
+          default: "notify.vk_notify"
+          selector:
+            text:
+
+        messenger_message:
+          name: Текст сообщения
+          default: "Деревня. Движение у бани."
+          selector:
+            text:
+
+    #############################################################
+    immich_section:
+      name: Загрузка в Immich
+      icon: mdi:cloud-upload-outline
+      collapsed: true
+      input:
+        immich_entry:
+          name: Интеграция Immich
+          default: []
+          selector:
+            config_entry:
+              integration: immich
+
+        immich_album:
+          name: ID альбома
+          default: ""
+          selector:
+            text:
+
+        immich_snapshot_media_root:
+          name: media-source папки снимков
+          default: "media-source://media_source/snapshots"
+          selector:
+            text:
+
+        immich_record_media_root:
+          name: media-source папки видео
+          default: "media-source://media_source/records"
+          selector:
+            text:
+
+    #############################################################
+    tv_section:
+      name: Вывод на телевизоры (TVOverlay)
+      icon: mdi:television-play
+      collapsed: true
+      input:
+        tv_players:
+          name: Медиаплееры телевизоров
+          description: |
+            Нужны только для проверки доступности ТВ.
+             + <small>Порядок должен совпадать с порядком сервисов ниже.</small>
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain: [media_player]
+              multiple: true
+              reorder: true
+
+        tv_notify_services:
+          name: Сервисы TVOverlay
+          description: |
+            Имена сервисов без `notify.`, по одному в строке, в том же порядке, что и плееры.
+             + <small>Например: `tvoverlaynotify_bedroom`</small>
+          default: []
+          selector:
+            text:
+              multiple: true
+
+        tv_title:
+          name: Заголовок
+          default: "Яшково"
+          selector:
+            text:
+
+        tv_message:
+          name: Текст
+          default: "Баня. Обнаружено движение"
+          selector:
+            text:
+
+        tv_stream_url:
+          name: RTSP-поток (低 разрешение)
+          description: "Например: `rtsp://192.168.1.6:8554/BathSD`"
+          default: ""
+          selector:
+            text:
+
+        tv_seconds:
+          name: Длительность показа
+          default: 20
+          selector:
+            number:
+              min: 5
+              max: 120
+              step: 1
+              unit_of_measurement: "сек"
+              mode: slider
+
+        tv_color:
+          name: Цвет рамки
+          default: "#FFF000"
+          selector:
+            text:
+
+        tv_corner:
+          name: Расположение
+          default: top_end
+          selector:
+            select:
+              options:
+                - { label: Сверху справа, value: top_end }
+                - { label: Сверху слева, value: top_start }
+                - { label: Снизу справа, value: bottom_end }
+                - { label: Снизу слева, value: bottom_start }
+              mode: dropdown
+
+mode: single
+max_exceeded: silent
+
+#################################################################
+
+triggers:
+  - trigger: state
+    entity_id: !input motion_sensors
+    to: "on"
+    id: motion
+
+variables:
+  features: !input features
+  camera_entity: !input camera_entity
+  alarm_switch: !input alarm_switch
+  tv_switch: !input tv_switch
+  progress_flag: !input progress_flag
+
+  file_name: !input file_name
+  snapshot_dir: !input snapshot_dir
+  record_dir: !input record_dir
+  public_url_base: !input public_url_base
+
+  record_duration: !input record_duration
+  record_duration_entity: !input record_duration_entity
+
+  detect_entity: !input detect_entity
+  detect_objects: !input detect_objects
+  detect_timeout: !input detect_timeout
+  detect_in_message: !input detect_in_message
+
+  notify_title: !input notify_title
+  notify_message: !input notify_message
+  mobile_notify_services: !input mobile_notify_services
+  notification_tag: !input notification_tag
+  click_action: !input click_action
+  action_title: !input action_title
+  action_uri: !input action_uri
+
+  messenger_action: !input messenger_action
+  messenger_entity: !input messenger_entity
+  messenger_message: !input messenger_message
+
+  immich_entry: !input immich_entry
+  immich_album: !input immich_album
+  immich_snapshot_media_root: !input immich_snapshot_media_root
+  immich_record_media_root: !input immich_record_media_root
+
+  tv_players: !input tv_players
+  tv_notify_services: !input tv_notify_services
+  tv_title: !input tv_title
+  tv_message: !input tv_message
+  tv_stream_url: !input tv_stream_url
+  tv_seconds: !input tv_seconds
+  tv_color: !input tv_color
+  tv_corner: !input tv_corner
+
+  # --- производные ---
+  f_snapshot: "{{ 'feat_snapshot' in features }}"
+  f_record: "{{ 'feat_record' in features }}"
+  f_detect: "{{ 'feat_detect' in features and detect_entity not in ([], '', none) }}"
+  f_mobile: "{{ 'feat_mobile' in features and mobile_notify_services | count > 0 }}"
+  f_messenger: "{{ 'feat_messenger' in features and messenger_action | trim != '' }}"
+  f_immich: "{{ 'feat_immich' in features and immich_entry not in ([], '', none) }}"
+  f_tv: "{{ 'feat_tv' in features and tv_players | count > 0 }}"
+
+  snapshot_file: "{{ snapshot_dir | regex_replace('/$','') ~ '/' ~ file_name ~ '.jpg' }}"
+  record_file: "{{ record_dir | regex_replace('/$','') ~ '/' ~ file_name ~ '.mp4' }}"
+  image_url: "{{ public_url_base | regex_replace('/$','') ~ '/' ~ file_name ~ '.jpg' }}"
+  snapshot_media_id: "{{ immich_snapshot_media_root | regex_replace('/$','') ~ '/' ~ file_name ~ '.jpg' }}"
+  record_media_id: "{{ immich_record_media_root | regex_replace('/$','') ~ '/' ~ file_name ~ '.mp4' }}"
+
+  rec_seconds: >-
+    {% if record_duration_entity not in ([], '', none) %}
+      {{ states(record_duration_entity) | float(record_duration) | round(0) | int }}
+    {% else %}
+      {{ record_duration | int(20) }}
+    {% endif %}
+
+  alarm_allowed: "{{ alarm_switch in ([], '', none) or is_state(alarm_switch, 'on') }}"
+  tv_allowed: "{{ tv_switch in ([], '', none) or is_state(tv_switch, 'on') }}"
+
+conditions:
+  - alias: Антидребезг
+    condition: template
+    value_template: >-
+      {% set cd = 30 %}
+      {{ this.attributes.last_triggered is none
+         or (now() - this.attributes.last_triggered).total_seconds() > (cooldown | default(cd) | int(0)) }}
+    variables:
+      cooldown: !input cooldown
+  - alias: Камера доступна
+    condition: template
+    value_template: "{{ has_value(camera_entity) }}"
+
+actions:
+
+  ###############################################################
+  # 1. ТРЕВОГА: снимок, запись, распознавание, уведомления
+  ###############################################################
+  - alias: Блок тревоги
+    if:
+      - condition: template
+        value_template: "{{ alarm_allowed and (f_snapshot or f_record or f_detect) }}"
+    then:
+
+      - alias: Флаг «идёт запись» — включить
+        if:
+          - condition: template
+            value_template: "{{ progress_flag not in ([], '', none) }}"
+        then:
+          - action: input_boolean.turn_on
+            target:
+              entity_id: "{{ progress_flag }}"
+
+      - alias: Снимок
+        if:
+          - condition: template
+            value_template: "{{ f_snapshot }}"
+        then:
+          - action: camera.snapshot
+            continue_on_error: true
+            target:
+              entity_id: "{{ camera_entity }}"
+            data:
+              filename: "{{ snapshot_file }}"
+
+      - variables:
+          scan_started: "{{ now().timestamp() }}"
+
+      - alias: Запись и распознавание
+        parallel:
+          - alias: Видеозапись
+            sequence:
+              - if:
+                  - condition: template
+                    value_template: "{{ f_record }}"
+                then:
+                  - action: camera.record
+                    continue_on_error: true
+                    target:
+                      entity_id: "{{ camera_entity }}"
+                    data:
+                      filename: "{{ record_file }}"
+                      duration: "{{ rec_seconds }}"
+
+          - alias: Распознавание объектов
+            sequence:
+              - if:
+                  - condition: template
+                    value_template: "{{ f_detect }}"
+                then:
+                  - action: image_processing.scan
+                    continue_on_error: true
+                    target:
+                      entity_id: "{{ detect_entity }}"
+                  - wait_template: >-
+                      {{ states[detect_entity].last_updated.timestamp() > (scan_started | float(0)) }}
+                    timeout:
+                      seconds: "{{ detect_timeout | int(15) }}"
+                    continue_on_timeout: true
+
+      - alias: Флаг «идёт запись» — выключить
+        if:
+          - condition: template
+            value_template: "{{ progress_flag not in ([], '', none) }}"
+        then:
+          - action: input_boolean.turn_off
+            target:
+              entity_id: "{{ progress_flag }}"
+
+      - alias: Разбор результата распознавания
+        variables:
+          found_objects: >-
+            {% set summary = state_attr(detect_entity, 'summary') if f_detect else none %}
+            {% set summary = summary if summary is mapping else {} %}
+            {% set ns = namespace(items=[]) %}
+            {% for o in detect_objects %}
+              {% if o in summary %}
+                {% set ns.items = ns.items + [o ~ ' × ' ~ summary[o]] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.items }}
+          is_detected: "{{ (not f_detect) or (found_objects | count > 0) }}"
+          final_message: >-
+            {{ notify_message ~ (' (' ~ found_objects | join(', ') ~ ')'
+               if detect_in_message and found_objects | count > 0 else '') }}
+          push_data: >-
+            {% set d = {'tag': notification_tag, 'image': image_url} %}
+            {% set d = d | combine({'clickAction': click_action}) if click_action | trim != '' else d %}
+            {% set d = d | combine({'actions': [{'action': 'URI', 'title': action_title, 'uri': action_uri}]})
+               if action_uri | trim != '' else d %}
+            {{ d }}
+
+      - alias: Объекты найдены — рассылка
+        if:
+          - condition: template
+            value_template: "{{ is_detected }}"
+        then:
+
+          - alias: Фото в мессенджер
+            if:
+              - condition: template
+                value_template: "{{ f_messenger }}"
+            then:
+              - action: "{{ messenger_action }}"
+                continue_on_error: true
+                data: >-
+                  {% set d = {'message': messenger_message, 'file': snapshot_file} %}
+                  {{ d | combine({'entity_id': messenger_entity}) if messenger_entity | trim != '' else d }}
+
+          - alias: Push на телефоны
+            if:
+              - condition: template
+                value_template: "{{ f_mobile }}"
+            then:
+              - repeat:
+                  for_each: "{{ mobile_notify_services }}"
+                  sequence:
+                    - variables:
+                        svc: "notify.{{ repeat.item | replace('notify.', '') | trim }}"
+                    - action: "{{ svc }}"
+                      continue_on_error: true
+                      data:
+                        message: clear_notification
+                        data:
+                          tag: "{{ notification_tag }}"
+                    - action: "{{ svc }}"
+                      continue_on_error: true
+                      data:
+                        title: "{{ notify_title }}"
+                        message: "{{ final_message }}"
+                        data: "{{ push_data }}"
+
+          - alias: Загрузка в Immich
+            if:
+              - condition: template
+                value_template: "{{ f_immich }}"
+            then:
+              - parallel:
+                  - sequence:
+                      - if:
+                          - condition: template
+                            value_template: "{{ f_snapshot }}"
+                        then:
+                          - action: immich.upload_file
+                            continue_on_error: true
+                            data: >-
+                              {% set d = {'config_entry_id': immich_entry,
+                                          'file': {'media_content_id': snapshot_media_id,
+                                                   'media_content_type': 'image/jpeg'}} %}
+                              {{ d | combine({'album_id': immich_album}) if immich_album | trim != '' else d }}
+                  - sequence:
+                      - if:
+                          - condition: template
+                            value_template: "{{ f_record }}"
+                        then:
+                          - action: immich.upload_file
+                            continue_on_error: true
+                            data: >-
+                              {% set d = {'config_entry_id': immich_entry,
+                                          'file': {'media_content_id': record_media_id,
+                                                   'media_content_type': 'video/mp4'}} %}
+                              {{ d | combine({'album_id': immich_album}) if immich_album | trim != '' else d }}
+
+  ###############################################################
+  # 2. ВЫВОД НА ТЕЛЕВИЗОРЫ
+  ###############################################################
+  - alias: Блок телевизоров
+    if:
+      - condition: template
+        value_template: "{{ f_tv and tv_allowed }}"
+    then:
+      - repeat:
+          for_each: "{{ tv_players }}"
+          sequence:
+            - variables:
+                idx: "{{ repeat.index - 1 }}"
+                tv_svc: >-
+                  {{ 'notify.' ~ (tv_notify_services[idx | int] | replace('notify.', '') | trim)
+                     if tv_notify_services | count > (idx | int) else '' }}
+            - if:
+                - condition: template
+                  value_template: "{{ tv_svc != '' and has_value(repeat.item) }}"
+              then:
+                - action: "{{ tv_svc }}"
+                  continue_on_error: true
+                  data:
+                    title: "{{ tv_title }}"
+                    message: "{{ tv_message }}"
+                    data: >-
+                      {% set d = {'id': 'tvoverlay_' ~ file_name,
+                                  'smallIcon': 'mdi:motion-sensor',
+                                  'largeIcon': 'mdi:cctv',
+                                  'color': tv_color,
+                                  'corner': tv_corner,
+                                  'seconds': tv_seconds | int(20)} %}
+                      {{ d | combine({'video': tv_stream_url}) if tv_stream_url | trim != '' else d }}
