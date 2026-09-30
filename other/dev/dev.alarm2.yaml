@@ -481,9 +481,9 @@ variables:
 
   music_before_alarm_in_seconds: |
     {{ set_music_before_alarm.split(':')[0] | int * 3600 + set_music_before_alarm.split(':')[1] | int * 60 + set_music_before_alarm.split(':')[2] | int }}
-  music_delay_seconds: "{{ ((music_before_alarm_in_seconds | int / 20) | round(3) | string).split('.')[0] | int }}"
-  music_delay_milliseconds: "{{ ((music_before_alarm_in_seconds | int / 20) | round(3) | string).split('.')[1] | int }}"
-
+  music_delay_seconds: "{{ ((music_before_alarm_in_seconds | int / 4) | round(3) | string).split('.')[0] | int }}"
+  music_delay_milliseconds: "{{ ((music_before_alarm_in_seconds | int / 4) | round(3) | string).split('.')[1] | int }}"
+  
   commands_music: |
     {{ (set_command_music | regex_replace('\\s+', ' ', true) | replace('; ', ';')).split(';') | list }}
   commands_music_count: "{{ commands_music | count }}"
@@ -680,7 +680,7 @@ actions:
                 value_template: "{{ music_before_alarm_in_seconds | int > 0 }}"
             then:
               - repeat:
-                  count: 20
+                  count: 4
                   sequence:
                     - delay:
                         seconds: "{{ music_delay_seconds }}"
@@ -689,8 +689,8 @@ actions:
                       target:
                         entity_id: !input media_player
                       data:
-                        # Шаг нарастания 0.02 (0.1 + 0.02 * repeat.index)
-                        volume_level: "{{ (0.1 + (0.4 / 20) * repeat.index) | round(2) }}"
+                        # Шаг нарастания ровно 0.1 (0.1 + 0.1 * repeat.index)
+                        volume_level: "{{ (0.1 + 0.1 * repeat.index) | round(1) }}"
 
       #####################################################################
       # ФРАЗА
