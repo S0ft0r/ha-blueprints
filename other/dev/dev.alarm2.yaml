@@ -2,7 +2,7 @@ blueprint:
   name: Управление ночником и чайником по будильнику
   description: |
     ### Будильник с управлением устройствами.
-    <small>Версия 2026.06.01 Сборка 4</small> 
+    <small>Версия 2026.06.01 Сборка 5</small> 
 
     <small><a href="https://github.com/S0ft0r/ha-blueprints/blob/main/as-is.md">Отказ от ответственности</a></small>
   domain: automation
