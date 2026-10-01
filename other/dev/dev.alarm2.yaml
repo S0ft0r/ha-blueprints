@@ -568,10 +568,9 @@ triggers:
       {% set today_key = now().strftime('%a') | lower %}
       {% set today_schedule = alarm_schedule[today_key] %}
       {% set alarm_time = today_schedule.time %}
-      {{ as_timestamp(now()) | timestamp_custom("%H:%M") ==
-        (as_timestamp(today_at(alarm_time)) - 
-          as_timestamp(today_at(set_music_before_alarm)) - 
-          as_timestamp(today_at(set_inet_before_alarm))) | timestamp_custom('%H:%M', false) or 
+      {{ (as_timestamp(today_at(((as_timestamp(today_at(alarm_time)) - 
+            as_timestamp(today_at(set_music_before_alarm))))  | timestamp_custom('%H:%M', false))) -  
+              as_timestamp(today_at(set_inet_before_alarm))) | timestamp_custom('%H:%M', false)) or 
          as_timestamp(now()) | timestamp_custom("%H:%M") ==
         (as_timestamp(today_at(alarm_time)) - 
           as_timestamp(today_at(set_inet_before_alarm))) | timestamp_custom('%H:%M', false)}}
@@ -598,7 +597,7 @@ actions:
               - inet_on
           - condition: template
             value_template: |
-                  {{ true if not inet_switch else (states(inet_switch) not in invalid_states) }}
+                  {{ alarm_active and inet_switch != [] and inet_switch != none and states(inet_switch) not in invalid_states }}
           - condition: template
             value_template: |
               {% set i = namespace(cnt=int(0)) %}
