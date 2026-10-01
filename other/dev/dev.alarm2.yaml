@@ -568,9 +568,9 @@ triggers:
       {% set today_key = now().strftime('%a') | lower %}
       {% set today_schedule = alarm_schedule[today_key] %}
       {% set alarm_time = today_schedule.time %}
-      {{ (as_timestamp(today_at(((as_timestamp(today_at(alarm_time)) - 
+      {{ as_timestamp(now()) | timestamp_custom("%H:%M") == (as_timestamp(today_at(((as_timestamp(today_at(alarm_time)) - 
             as_timestamp(today_at(set_music_before_alarm))))  | timestamp_custom('%H:%M', false))) -  
-              as_timestamp(today_at(set_inet_before_alarm))) | timestamp_custom('%H:%M', false)) or 
+              as_timestamp(today_at(set_inet_before_alarm))) | timestamp_custom('%H:%M', false) or 
          as_timestamp(now()) | timestamp_custom("%H:%M") ==
         (as_timestamp(today_at(alarm_time)) - 
           as_timestamp(today_at(set_inet_before_alarm))) | timestamp_custom('%H:%M', false)}}
