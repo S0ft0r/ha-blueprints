@@ -472,6 +472,8 @@ trigger_variables:
   set_kettle_before_alarm: !input set_kettle_before_alarm
   set_light_before_alarm: !input set_light_before_alarm
   set_music_before_alarm: !input set_music_before_alarm
+  set_phrase_volume_max: !input set_phrase_volume_max
+  set_music_volume_max: !input set_music_volume_max
 
   set_temperature_boil: !input set_temperature_boil
   set_temperature_heat: !input set_temperature_heat
