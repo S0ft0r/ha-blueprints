@@ -705,7 +705,7 @@ actions:
                   seconds: "{{ music_delay_seconds }}"
                   milliseconds: "{{ music_delay_milliseconds }}"
               - repeat:
-                  count: "{{ (set_music_volume_max / 10) - 1 }}
+                  count: "{{ (set_music_volume_max / 10) - 1 }}"
                   sequence:
                     - delay:
                         seconds: "{{ music_delay_seconds }}"
