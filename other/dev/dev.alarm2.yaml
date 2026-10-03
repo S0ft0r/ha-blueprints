@@ -682,7 +682,7 @@ actions:
         sequence:
           - action: media_player.volume_set
             target:
-              entity_id: media_player.yandex_station_m0pckh100e815k
+              entity_id: !input media_player
             data:
               volume_level: 0
           - action: media_player.play_media
@@ -701,8 +701,11 @@ actions:
               - condition: template
                 value_template: "{{ music_before_alarm_in_seconds | int > 0 }}"
             then:
+              - delay:
+                  seconds: "{{ music_delay_seconds }}"
+                  milliseconds: "{{ music_delay_milliseconds }}"
               - repeat:
-                  count: "{{ (set_music_volume_max / 10) }}
+                  count: "{{ (set_music_volume_max / 10) - 1 }}
                   sequence:
                     - delay:
                         seconds: "{{ music_delay_seconds }}"
@@ -734,7 +737,7 @@ actions:
           - action: media_player.volume_set
             metadata: {}
             target:
-              entity_id: media_player.yandex_station_m0pckh100e815k
+              entity_id: !input media_player
             data:
               volume_level: 0
           - action: media_player.play_media
@@ -743,7 +746,7 @@ actions:
               media_content_id: !input set_phrase
               media_content_type: text
               extra:
-                volume_level: 0.5
+                volume_level: "{{ set_phrase_volume_max / 100 }}
 
 
 mode: parallel
