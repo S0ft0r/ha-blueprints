@@ -392,6 +392,7 @@ blueprint:
         set_music_volume_max:
           name: Максимальная громкость музыки
           description: До которой происхолит постепенное повышение начальной громкости.
+          default: 0.5
           selector: 
             number:
               min: 10
@@ -401,6 +402,7 @@ blueprint:
 
         set_phrase_volume_max:
           name: Громкость фразы
+          default: 0.4
           selector: 
             number:
               min: 10
