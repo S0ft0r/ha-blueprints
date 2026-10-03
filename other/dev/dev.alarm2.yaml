@@ -2,7 +2,7 @@ blueprint:
   name: Управление ночником и чайником по будильнику
   description: |
     ### Будильник с управлением устройствами.
-    <small>Версия 2026.06.01 Сборка 5</small> 
+    <small>Версия 2026.06.01 Сборка 4</small> 
 
     <small><a href="https://github.com/S0ft0r/ha-blueprints/blob/main/as-is.md">Отказ от ответственности</a></small>
   domain: automation
@@ -389,21 +389,24 @@ blueprint:
           selector:
             time: {}
 
-        inet_switch:
-          name: Переключатель для подключения колонки к интернету
-          default: []
-          selector:
-            entity:
-              filter:
-                - domain:
-                    - switch
-              multiple: false
+        set_music_volume_max:
+          name: Максимальная громкость музыки
+          description: До которой происхолит постепенное повышение начальной громкости.
+          selector: 
+            number:
+              min: 10
+              max: 100
+              step: 10
+              mode: slider
 
-        set_inet_before_alarm:
-          name: Подключать колонку к интернету перед использованием за
-          default: "00:02:00"
-          selector:
-            time: {}
+        set_phrase_volume_max:
+          name: Громкость фразы
+          selector: 
+            number:
+              min: 10
+              max: 100
+              step: 10
+              mode: slider
 
     person_section:
       name: Настройка персоны
@@ -465,12 +468,10 @@ trigger_variables:
   media_player: !input media_player
   person_sensor: !input person_sensor
   sun_sensor: !input sun_sensor
-  inet_switch: !input inet_switch
 
   set_kettle_before_alarm: !input set_kettle_before_alarm
   set_light_before_alarm: !input set_light_before_alarm
   set_music_before_alarm: !input set_music_before_alarm
-  set_inet_before_alarm: !input set_inet_before_alarm
 
   set_temperature_boil: !input set_temperature_boil
   set_temperature_heat: !input set_temperature_heat
@@ -491,6 +492,9 @@ variables:
   set_command_base: !input set_command_base
   set_command_music: !input set_command_music
   set_random_command: !input set_random_command
+  set_phrase_volume_max: !input set_phrase_volume_max
+  set_music_volume_max: !input set_music_volume_max
+
 
   light_before_alarm_in_seconds: |
     {{ set_light_before_alarm.split(':')[0] | int * 3600 + set_light_before_alarm.split(':')[1] | int * 60 + set_light_before_alarm.split(':')[2] | int }}
@@ -499,9 +503,9 @@ variables:
 
   music_before_alarm_in_seconds: |
     {{ set_music_before_alarm.split(':')[0] | int * 3600 + set_music_before_alarm.split(':')[1] | int * 60 + set_music_before_alarm.split(':')[2] | int }}
-  music_delay_seconds: "{{ ((music_before_alarm_in_seconds | int / 4) | round(3) | string).split('.')[0] | int }}"
-  music_delay_milliseconds: "{{ ((music_before_alarm_in_seconds | int / 4) | round(3) | string).split('.')[1] | int }}"
-  
+  music_delay_seconds: "{{ ((music_before_alarm_in_seconds | int / (set_music_volume_max / 10)) | round(3) | string).split('.')[0] | int }}"
+  music_delay_milliseconds: "{{ ((music_before_alarm_in_seconds | int / (set_music_volume_max / 10)) | round(3) | string).split('.')[1] | int }}"
+
   commands_music: |
     {{ (set_command_music | regex_replace('\\s+', ' ', true) | replace('; ', ';')).split(';') | list }}
   commands_music_count: "{{ commands_music | count }}"
@@ -527,7 +531,7 @@ variables:
 
 triggers:
   - trigger: template
-    id: alarm_on
+    id: alarm_triggered
     value_template: >-
       {% set today_key = now().strftime('%a') | lower %}
       {% set today_schedule = alarm_schedule[today_key] %}
@@ -563,19 +567,6 @@ triggers:
          (as_timestamp(today_at(alarm_time)) - as_timestamp(today_at(set_music_before_alarm))) | timestamp_custom('%H:%M', false) }}
 
   - trigger: template
-    id: inet_on
-    value_template: >-
-      {% set today_key = now().strftime('%a') | lower %}
-      {% set today_schedule = alarm_schedule[today_key] %}
-      {% set alarm_time = today_schedule.time %}
-      {{ as_timestamp(now()) | timestamp_custom("%H:%M") == (as_timestamp(today_at(((as_timestamp(today_at(alarm_time)) - 
-            as_timestamp(today_at(set_music_before_alarm))))  | timestamp_custom('%H:%M', false))) -  
-              as_timestamp(today_at(set_inet_before_alarm))) | timestamp_custom('%H:%M', false) or 
-         as_timestamp(now()) | timestamp_custom("%H:%M") ==
-        (as_timestamp(today_at(alarm_time)) - 
-          as_timestamp(today_at(set_inet_before_alarm))) | timestamp_custom('%H:%M', false)}}
-
-  - trigger: template
     id: phrase_on
     value_template: >-
       {% set today_key = now().strftime('%a') | lower %}
@@ -588,36 +579,13 @@ actions:
   - choose:
 
       #####################################################################
-      # ВКЛЮЧЕНИЕ ИНТЕРНЕТА НА КОЛОНКЕ (ДЕТСКИЙ РЕЖИМ)
-      #####################################################################
-
-      - conditions:
-          - condition: trigger
-            id:
-              - inet_on
-          - condition: template
-            value_template: |
-                  {{ alarm_active and inet_switch != [] and inet_switch != none and states(inet_switch) not in invalid_states }}
-          - condition: template
-            value_template: |
-              {% set i = namespace(cnt=int(0)) %}
-              {% for person in person_sensor %}
-                {% set i.cnt = i.cnt + (1 if is_state(person,'home') else 0) | int %}
-              {% endfor %}
-              {{ true if not set_person_check else i.cnt > 0 }}
-        sequence:
-          - action: switch.turn_on
-            target:
-              entity_id: !input inet_switch
-
-      #####################################################################
       # СОБЫТИЕ
       #####################################################################
 
       - conditions:
           - condition: trigger
             id:
-              - alarm_on
+              - alarm_triggered
         sequence:
           - event: custom_event_alarm
             event_data:
@@ -714,11 +682,9 @@ actions:
         sequence:
           - action: media_player.volume_set
             target:
-              entity_id: !input media_player
+              entity_id: media_player.yandex_station_m0pckh100e815k
             data:
               volume_level: 0
-          - delay:
-              seconds: 1
           - action: media_player.play_media
             entity_id: !input media_player
             data:
@@ -736,7 +702,7 @@ actions:
                 value_template: "{{ music_before_alarm_in_seconds | int > 0 }}"
             then:
               - repeat:
-                  count: 4
+                  count: "{{ (set_music_volume_max / 10) }}
                   sequence:
                     - delay:
                         seconds: "{{ music_delay_seconds }}"
@@ -745,8 +711,7 @@ actions:
                       target:
                         entity_id: !input media_player
                       data:
-                        # Шаг нарастания ровно 0.1 (0.1 + 0.1 * repeat.index)
-                        volume_level: "{{ (0.1 + 0.1 * repeat.index) | round(1) }}"
+                        volume_level: "{{ (0.1 + 0.1 * repeat.index) | round(2) }}"
 
       #####################################################################
       # ФРАЗА
@@ -769,11 +734,9 @@ actions:
           - action: media_player.volume_set
             metadata: {}
             target:
-              entity_id: !input media_player
+              entity_id: media_player.yandex_station_m0pckh100e815k
             data:
               volume_level: 0
-          - delay:
-              seconds: 1
           - action: media_player.play_media
             entity_id: !input media_player
             data:
