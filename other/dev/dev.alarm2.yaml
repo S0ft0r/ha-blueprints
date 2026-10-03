@@ -746,7 +746,7 @@ actions:
               media_content_id: !input set_phrase
               media_content_type: text
               extra:
-                volume_level: "{{ set_phrase_volume_max / 100 }}
+                volume_level: "{{ set_phrase_volume_max / 100 }}"
 
 
 mode: parallel
