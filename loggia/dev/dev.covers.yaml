@@ -910,11 +910,11 @@ actions:
               blinds_target: !input blinds
               target_pos: "{{ up_limit | int(100) }}"
               movement_direction: 'up'
-              limit: !input repeat_for
+              position_tolerance: !input repeat_for
               blinds_to_move: >-
                 {% set ns = namespace(movement=[]) %}
                 {% for blind in (blinds_target | default(blinds)) %}
-                  {% if not ((target_pos - limit) <= state_attr(blind,'current_position') <= (target_pos + limit)) %}
+                  {% if not ((target_pos - position_tolerance) <= state_attr(blind,'current_position') <= (target_pos + position_tolerance)) %}
                     {% set ns.movement = ns.movement + [blind] %}
                   {% endif %}
                 {% endfor %}
@@ -978,11 +978,11 @@ actions:
               blinds_target: !input blinds
               target_pos: "{{ down_limit | int(0) }}"
               movement_direction: 'down'
-              limit: !input repeat_for
+              position_tolerance: !input repeat_for
               blinds_to_move: >-
                 {% set ns = namespace(movement=[]) %}
                 {% for blind in (blinds_target | default(blinds)) %}
-                  {% if not ((target_pos - limit) <= state_attr(blind,'current_position') <= (target_pos + limit)) %}
+                  {% if not ((target_pos - position_tolerance) <= state_attr(blind,'current_position') <= (target_pos + position_tolerance)) %}
                     {% set ns.movement = ns.movement + [blind] %}
                   {% endif %}
                 {% endfor %}
@@ -1035,11 +1035,11 @@ actions:
               blinds_target: !input blinds
               target_pos: "{{ up_limit | int(100) }}"
               movement_direction: 'up'
-              limit: !input repeat_for
+              position_tolerance: !input repeat_for
               blinds_to_move: >-
                 {% set ns = namespace(movement=[]) %}
                 {% for blind in (blinds_target | default(blinds)) %}
-                  {% if not ((target_pos - limit) <= state_attr(blind,'current_position') <= (target_pos + limit)) %}
+                  {% if not ((target_pos - position_tolerance) <= state_attr(blind,'current_position') <= (target_pos + position_tolerance)) %}
                     {% set ns.movement = ns.movement + [blind] %}
                   {% endif %}
                 {% endfor %}
@@ -1068,11 +1068,11 @@ actions:
               blinds_target: !input blinds
               target_pos: "{{ down_limit | int(0) }}"
               movement_direction: 'down'
-              limit: !input repeat_for
+              position_tolerance: !input repeat_for
               blinds_to_move: >-
                 {% set ns = namespace(movement=[]) %}
                 {% for blind in (blinds_target | default(blinds)) %}
-                  {% if not ((target_pos - limit) <= state_attr(blind,'current_position') <= (target_pos + limit)) %}
+                  {% if not ((target_pos - position_tolerance) <= state_attr(blind,'current_position') <= (target_pos + position_tolerance)) %}
                     {% set ns.movement = ns.movement + [blind] %}
                   {% endif %}
                 {% endfor %}
@@ -1149,11 +1149,11 @@ actions:
               blinds_target: !input blinds
               target_pos: "{{ up_limit | int(100) }}"
               movement_direction: 'up'
-              limit: !input repeat_for
+              position_tolerance: !input repeat_for
               blinds_to_move: >-
                 {% set ns = namespace(movement=[]) %}
                 {% for blind in (blinds_target | default(blinds)) %}
-                  {% if not ((target_pos - limit) <= state_attr(blind,'current_position') <= (target_pos + limit)) %}
+                  {% if not ((target_pos - position_tolerance) <= state_attr(blind,'current_position') <= (target_pos + position_tolerance)) %}
                     {% set ns.movement = ns.movement + [blind] %}
                   {% endif %}
                 {% endfor %}
@@ -1176,11 +1176,11 @@ actions:
               blinds_target: !input blinds
               target_pos: "{{ up_limit | int(100) }}"
               movement_direction: 'up'
-              limit: !input repeat_for
+              position_tolerance: !input repeat_for
               blinds_to_move: >-
                 {% set ns = namespace(movement=[]) %}
                 {% for blind in (blinds_target | default(blinds)) %}
-                  {% if not ((target_pos - limit) <= state_attr(blind,'current_position') <= (target_pos + limit)) %}
+                  {% if not ((target_pos - position_tolerance) <= state_attr(blind,'current_position') <= (target_pos + position_tolerance)) %}
                     {% set ns.movement = ns.movement + [blind] %}
                   {% endif %}
                 {% endfor %}
@@ -1198,11 +1198,11 @@ actions:
               blinds_target: !input blinds
               target_pos: "{{ down_limit | int(0) }}"
               movement_direction: 'down'
-              limit: !input repeat_for
+              position_tolerance: !input repeat_for
               blinds_to_move: >-
                 {% set ns = namespace(movement=[]) %}
                 {% for blind in (blinds_target | default(blinds)) %}
-                  {% if not ((target_pos - limit) <= state_attr(blind,'current_position') <= (target_pos + limit)) %}
+                  {% if not ((target_pos - position_tolerance) <= state_attr(blind,'current_position') <= (target_pos + position_tolerance)) %}
                     {% set ns.movement = ns.movement + [blind] %}
                   {% endif %}
                 {% endfor %}
@@ -1228,11 +1228,11 @@ actions:
               blinds_target: !input blinds
               target_pos: "{{ up_limit | int(100) }}"
               movement_direction: 'up'
-              limit: !input repeat_for
+              position_tolerance: !input repeat_for
               blinds_to_move: >-
                 {% set ns = namespace(movement=[]) %}
                 {% for blind in (blinds_target | default(blinds)) %}
-                  {% if not ((target_pos - limit) <= state_attr(blind,'current_position') <= (target_pos + limit)) %}
+                  {% if not ((target_pos - position_tolerance) <= state_attr(blind,'current_position') <= (target_pos + position_tolerance)) %}
                     {% set ns.movement = ns.movement + [blind] %}
                   {% endif %}
                 {% endfor %}
@@ -1250,11 +1250,11 @@ actions:
               blinds_target: !input blinds
               target_pos: "{{ down_limit | int(0) }}"
               movement_direction: 'down'
-              limit: !input repeat_for
+              position_tolerance: !input repeat_for
               blinds_to_move: >-
                 {% set ns = namespace(movement=[]) %}
                 {% for blind in (blinds_target | default(blinds)) %}
-                  {% if not ((target_pos - limit) <= state_attr(blind,'current_position') <= (target_pos + limit)) %}
+                  {% if not ((target_pos - position_tolerance) <= state_attr(blind,'current_position') <= (target_pos + position_tolerance)) %}
                     {% set ns.movement = ns.movement + [blind] %}
                   {% endif %}
                 {% endfor %}
@@ -1281,11 +1281,11 @@ actions:
               blinds_target: "{{ blinds if blinds_for_protect == [] else blinds_for_protect }}"
               target_pos: "{{ up_limit | int(100) }}"
               movement_direction: 'up'
-              limit: !input repeat_for
+              position_tolerance: !input repeat_for
               blinds_to_move: >-
                 {% set ns = namespace(movement=[]) %}
                 {% for blind in (blinds_target | default(blinds)) %}
-                  {% if not ((target_pos - limit) <= state_attr(blind,'current_position') <= (target_pos + limit)) %}
+                  {% if not ((target_pos - position_tolerance) <= state_attr(blind,'current_position') <= (target_pos + position_tolerance)) %}
                     {% set ns.movement = ns.movement + [blind] %}
                   {% endif %}
                 {% endfor %}
@@ -1313,7 +1313,7 @@ actions:
               blinds_to_move: >-
                 {% set ns = namespace(movement=[]) %}
                 {% for blind in (blinds_target | default(blinds)) %}
-                  {% if not ((target_pos - limit) <= state_attr(blind,'current_position') <= (target_pos + limit)) %}
+                  {% if not ((target_pos - position_tolerance) <= state_attr(blind,'current_position') <= (target_pos + position_tolerance)) %}
                     {% set ns.movement = ns.movement + [blind] %}
                   {% endif %}
                 {% endfor %}
@@ -1363,11 +1363,11 @@ actions:
               blinds_target: "{{ blinds if blinds_for_protect == [] else blinds_for_protect }}"
               target_pos: "{{ down_limit | int(0) }}"
               movement_direction: 'down'
-              limit: !input repeat_for
+              position_tolerance: !input repeat_for
               blinds_to_move: >-
                 {% set ns = namespace(movement=[]) %}
                 {% for blind in (blinds_target | default(blinds)) %}
-                  {% if not ((target_pos - limit) <= state_attr(blind,'current_position') <= (target_pos + limit)) %}
+                  {% if not ((target_pos - position_tolerance) <= state_attr(blind,'current_position') <= (target_pos + position_tolerance)) %}
                     {% set ns.movement = ns.movement + [blind] %}
                   {% endif %}
                 {% endfor %}
@@ -1411,11 +1411,11 @@ actions:
               blinds_target: "{{ blinds if blinds_for_protect == [] else blinds_for_protect }}"
               target_pos: "{{ up_limit | int(100) }}"
               movement_direction: 'up'
-              limit: !input repeat_for
+              position_tolerance: !input repeat_for
               blinds_to_move: >-
                 {% set ns = namespace(movement=[]) %}
                 {% for blind in (blinds_target | default(blinds)) %}
-                  {% if not ((target_pos - limit) <= state_attr(blind,'current_position') <= (target_pos + limit)) %}
+                  {% if not ((target_pos - position_tolerance) <= state_attr(blind,'current_position') <= (target_pos + position_tolerance)) %}
                     {% set ns.movement = ns.movement + [blind] %}
                   {% endif %}
                 {% endfor %}
