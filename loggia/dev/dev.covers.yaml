@@ -910,21 +910,34 @@ actions:
               blinds_target: !input blinds
               target_pos: "{{ up_limit | int(100) }}"
               movement_direction: 'up'
+              limit: !input repeat_for
+              blinds_to_move: >-
+                {% set ns = namespace(movement=[]) %}
+                {% for blind in (blinds_target | default(blinds)) %}
+                  {% if not ((target_pos - limit) <= state_attr(blind,'current_position') <= (target_pos + limit)) %}
+                    {% set ns.movement = ns.movement + [blind] %}
+                  {% endif %}
+                {% endfor %}
+                {{ ns.movement }}
           - &open_blinds
-            repeat:
-              count: !input repeat_for
+            if:
+              - condition: template
+                value_template: "{{ blinds_to_move | count > 0 }}"
+            then:
+              repeat:
+                count: !input repeat_for
 
-              sequence:
-                - action: cover.set_cover_position
-                  target:
-                    entity_id: "{{ blinds_target | default(blinds) }}"
-                  data:
-                    position: >-
-                      {% set position = (target_pos | int) - (repeat_for | int(1) - repeat.index) %}
-                      {{ [0, [position, 100] | min] | max }}
+                sequence:
+                  - action: cover.set_cover_position
+                    target:
+                      entity_id: "{{ blinds_to_move }}"
+                    data:
+                      position: >-
+                        {% set position = (target_pos | int) - (repeat_for | int(1) - repeat.index) %}
+                        {{ [0, [position, 100] | min] | max }}
 
-                - delay:
-                    seconds: "{{ delay_for_repeat | int(1) }}"
+                  - delay:
+                      seconds: "{{ delay_for_repeat | int(1) }}"
 
 
       - conditions: # Остановить по кнопке 
@@ -965,21 +978,34 @@ actions:
               blinds_target: !input blinds
               target_pos: "{{ down_limit | int(0) }}"
               movement_direction: 'down'
+              limit: !input repeat_for
+              blinds_to_move: >-
+                {% set ns = namespace(movement=[]) %}
+                {% for blind in (blinds_target | default(blinds)) %}
+                  {% if not ((target_pos - limit) <= state_attr(blind,'current_position') <= (target_pos + limit)) %}
+                    {% set ns.movement = ns.movement + [blind] %}
+                  {% endif %}
+                {% endfor %}
+                {{ ns.movement }}
           - &close_blinds
-            repeat:
-              count: !input repeat_for
+            if:
+              - condition: template
+                value_template: "{{ blinds_to_move | count > 0 }}"
+            then:
+              repeat:
+                count: !input repeat_for
 
-              sequence:
-                - action: cover.set_cover_position
-                  target:
-                    entity_id: "{{ blinds_target | default(blinds) }}"
-                  data:
-                    position: >-
-                      {% set position = (target_pos  | int) + (repeat_for | int(1) - repeat.index) %}
-                      {{ [0, [position, 100] | min] | max }}
+                sequence:
+                  - action: cover.set_cover_position
+                    target:
+                      entity_id: "{{ blinds_to_move }}"
+                    data:
+                      position: >-
+                        {% set position = (target_pos | int) - (repeat_for | int(1) - repeat.index) %}
+                        {{ [0, [position, 100] | min] | max }}
 
-                - delay:
-                    seconds: "{{ delay_for_repeat | int(1) }}"
+                  - delay:
+                      seconds: "{{ delay_for_repeat | int(1) }}"
 
 
 #########################################################################################################
@@ -1009,6 +1035,15 @@ actions:
               blinds_target: !input blinds
               target_pos: "{{ up_limit | int(100) }}"
               movement_direction: 'up'
+              limit: !input repeat_for
+              blinds_to_move: >-
+                {% set ns = namespace(movement=[]) %}
+                {% for blind in (blinds_target | default(blinds)) %}
+                  {% if not ((target_pos - limit) <= state_attr(blind,'current_position') <= (target_pos + limit)) %}
+                    {% set ns.movement = ns.movement + [blind] %}
+                  {% endif %}
+                {% endfor %}
+                {{ ns.movement }}
           - *open_blinds          
           - *verify_blinds
 
@@ -1033,6 +1068,15 @@ actions:
               blinds_target: !input blinds
               target_pos: "{{ down_limit | int(0) }}"
               movement_direction: 'down'
+              limit: !input repeat_for
+              blinds_to_move: >-
+                {% set ns = namespace(movement=[]) %}
+                {% for blind in (blinds_target | default(blinds)) %}
+                  {% if not ((target_pos - limit) <= state_attr(blind,'current_position') <= (target_pos + limit)) %}
+                    {% set ns.movement = ns.movement + [blind] %}
+                  {% endif %}
+                {% endfor %}
+                {{ ns.movement }}
           - *close_blinds          
           - *verify_blinds
 
@@ -1096,12 +1140,24 @@ actions:
               - up_time_workday_trigger
           - condition: template # Будни
             value_template: "{{ workday }}" 
+          - condition: template # Солнце выше горизонта? 
+            value_template: |
+              {{ states(sun_sensor) == 'above_horizon' }}
 
         sequence:
           - variables:
               blinds_target: !input blinds
               target_pos: "{{ up_limit | int(100) }}"
               movement_direction: 'up'
+              limit: !input repeat_for
+              blinds_to_move: >-
+                {% set ns = namespace(movement=[]) %}
+                {% for blind in (blinds_target | default(blinds)) %}
+                  {% if not ((target_pos - limit) <= state_attr(blind,'current_position') <= (target_pos + limit)) %}
+                    {% set ns.movement = ns.movement + [blind] %}
+                  {% endif %}
+                {% endfor %}
+                {{ ns.movement }}
           - *open_blinds          
           - *verify_blinds
 
@@ -1111,12 +1167,24 @@ actions:
               - up_time_weekend_trigger
           - condition: template # Выходные
             value_template: "{{ weekend }}"
+          - condition: template # Солнце выше горизонта? 
+            value_template: |
+              {{ states(sun_sensor) == 'above_horizon' }}
 
         sequence:
           - variables:
               blinds_target: !input blinds
               target_pos: "{{ up_limit | int(100) }}"
               movement_direction: 'up'
+              limit: !input repeat_for
+              blinds_to_move: >-
+                {% set ns = namespace(movement=[]) %}
+                {% for blind in (blinds_target | default(blinds)) %}
+                  {% if not ((target_pos - limit) <= state_attr(blind,'current_position') <= (target_pos + limit)) %}
+                    {% set ns.movement = ns.movement + [blind] %}
+                  {% endif %}
+                {% endfor %}
+                {{ ns.movement }}
           - *open_blinds          
           - *verify_blinds
 
@@ -1130,6 +1198,15 @@ actions:
               blinds_target: !input blinds
               target_pos: "{{ down_limit | int(0) }}"
               movement_direction: 'down'
+              limit: !input repeat_for
+              blinds_to_move: >-
+                {% set ns = namespace(movement=[]) %}
+                {% for blind in (blinds_target | default(blinds)) %}
+                  {% if not ((target_pos - limit) <= state_attr(blind,'current_position') <= (target_pos + limit)) %}
+                    {% set ns.movement = ns.movement + [blind] %}
+                  {% endif %}
+                {% endfor %}
+                {{ ns.movement }}
           - *close_blinds          
           - *verify_blinds
 
@@ -1151,6 +1228,15 @@ actions:
               blinds_target: !input blinds
               target_pos: "{{ up_limit | int(100) }}"
               movement_direction: 'up'
+              limit: !input repeat_for
+              blinds_to_move: >-
+                {% set ns = namespace(movement=[]) %}
+                {% for blind in (blinds_target | default(blinds)) %}
+                  {% if not ((target_pos - limit) <= state_attr(blind,'current_position') <= (target_pos + limit)) %}
+                    {% set ns.movement = ns.movement + [blind] %}
+                  {% endif %}
+                {% endfor %}
+                {{ ns.movement }}
           - *open_blinds          
           - *verify_blinds
 
@@ -1164,6 +1250,15 @@ actions:
               blinds_target: !input blinds
               target_pos: "{{ down_limit | int(0) }}"
               movement_direction: 'down'
+              limit: !input repeat_for
+              blinds_to_move: >-
+                {% set ns = namespace(movement=[]) %}
+                {% for blind in (blinds_target | default(blinds)) %}
+                  {% if not ((target_pos - limit) <= state_attr(blind,'current_position') <= (target_pos + limit)) %}
+                    {% set ns.movement = ns.movement + [blind] %}
+                  {% endif %}
+                {% endfor %}
+                {{ ns.movement }}
           - *close_blinds          
           - *verify_blinds
 
@@ -1186,6 +1281,15 @@ actions:
               blinds_target: "{{ blinds if blinds_for_protect == [] else blinds_for_protect }}"
               target_pos: "{{ up_limit | int(100) }}"
               movement_direction: 'up'
+              limit: !input repeat_for
+              blinds_to_move: >-
+                {% set ns = namespace(movement=[]) %}
+                {% for blind in (blinds_target | default(blinds)) %}
+                  {% if not ((target_pos - limit) <= state_attr(blind,'current_position') <= (target_pos + limit)) %}
+                    {% set ns.movement = ns.movement + [blind] %}
+                  {% endif %}
+                {% endfor %}
+                {{ ns.movement }}
           - *open_blinds
           - *verify_blinds
 
@@ -1205,6 +1309,15 @@ actions:
               blinds_target: "{{ blinds if blinds_for_protect == [] else blinds_for_protect }}"
               target_pos: "{{ down_limit | int(0) }}"
               movement_direction: 'down'
+              limit: !input repeat_for
+              blinds_to_move: >-
+                {% set ns = namespace(movement=[]) %}
+                {% for blind in (blinds_target | default(blinds)) %}
+                  {% if not ((target_pos - limit) <= state_attr(blind,'current_position') <= (target_pos + limit)) %}
+                    {% set ns.movement = ns.movement + [blind] %}
+                  {% endif %}
+                {% endfor %}
+                {{ ns.movement }}
           - *close_blinds
           - *verify_blinds
 
@@ -1250,6 +1363,15 @@ actions:
               blinds_target: "{{ blinds if blinds_for_protect == [] else blinds_for_protect }}"
               target_pos: "{{ down_limit | int(0) }}"
               movement_direction: 'down'
+              limit: !input repeat_for
+              blinds_to_move: >-
+                {% set ns = namespace(movement=[]) %}
+                {% for blind in (blinds_target | default(blinds)) %}
+                  {% if not ((target_pos - limit) <= state_attr(blind,'current_position') <= (target_pos + limit)) %}
+                    {% set ns.movement = ns.movement + [blind] %}
+                  {% endif %}
+                {% endfor %}
+                {{ ns.movement }}
           - *close_blinds
           - *verify_blinds
 
@@ -1289,6 +1411,15 @@ actions:
               blinds_target: "{{ blinds if blinds_for_protect == [] else blinds_for_protect }}"
               target_pos: "{{ up_limit | int(100) }}"
               movement_direction: 'up'
+              limit: !input repeat_for
+              blinds_to_move: >-
+                {% set ns = namespace(movement=[]) %}
+                {% for blind in (blinds_target | default(blinds)) %}
+                  {% if not ((target_pos - limit) <= state_attr(blind,'current_position') <= (target_pos + limit)) %}
+                    {% set ns.movement = ns.movement + [blind] %}
+                  {% endif %}
+                {% endfor %}
+                {{ ns.movement }}
           - *open_blinds
           - *verify_blinds
 
@@ -1340,6 +1471,15 @@ actions:
                   - variables:
                       target_pos: "{{ down_limit | int(0) }}"
                       movement_direction: 'down'
+                      limit: !input repeat_for
+                      blinds_to_move: >-
+                        {% set ns = namespace(movement=[]) %}
+                        {% for blind in (blinds_target | default(blinds)) %}
+                          {% if not ((target_pos - limit) <= state_attr(blind,'current_position') <= (target_pos + limit)) %}
+                            {% set ns.movement = ns.movement + [blind] %}
+                          {% endif %}
+                        {% endfor %}
+                        {{ ns.movement }}
                   - *close_blinds
                   - *verify_blinds
 
@@ -1352,6 +1492,15 @@ actions:
                   - variables:
                       target_pos: "{{ up_limit | int(100) }}"
                       movement_direction: 'up'
+                      limit: !input repeat_for
+                      blinds_to_move: >-
+                        {% set ns = namespace(movement=[]) %}
+                        {% for blind in (blinds_target | default(blinds)) %}
+                          {% if not ((target_pos - limit) <= state_attr(blind,'current_position') <= (target_pos + limit)) %}
+                            {% set ns.movement = ns.movement + [blind] %}
+                          {% endif %}
+                        {% endfor %}
+                        {{ ns.movement }}
                   - *open_blinds
                   - *verify_blinds
 
