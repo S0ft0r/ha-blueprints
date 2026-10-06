@@ -383,6 +383,18 @@ blueprint:
           selector:
             boolean:
 
+        set_loop_music:
+          name: Включить повтор коротких треков
+          default: true
+          selector:
+            boolean:
+
+        set_command_loop:
+          name: Фраза-повтор трека
+          default: "на повторе"
+          selector:
+            text:
+
         set_music_before_alarm:
           name: Включать музыку до будильника за
           default: "00:00:00"
@@ -494,11 +506,12 @@ variables:
   set_light_before_alarm: !input set_light_before_alarm
   set_music_before_alarm: !input set_music_before_alarm
   set_command_base: !input set_command_base
+  set_command_loop: !input set_command_loop
   set_command_music: !input set_command_music
   set_random_command: !input set_random_command
+  set_loop_music: !input set_loop_music
   set_phrase_volume_max: !input set_phrase_volume_max
   set_music_volume_max: !input set_music_volume_max
-
 
   light_before_alarm_in_seconds: |
     {{ set_light_before_alarm.split(':')[0] | int * 3600 + set_light_before_alarm.split(':')[1] | int * 60 + set_light_before_alarm.split(':')[2] | int }}
@@ -515,10 +528,14 @@ variables:
   commands_music_count: "{{ commands_music | count }}"
   command_music: |
     {% if set_random_command %}
-      {{ set_command_base ~ ' ' ~ commands_music[range(0, commands_music_count) | random] }}
+      {% set command = set_command_base ~ ' ' ~ commands_music[range(0, commands_music_count) | random] %}
     {% else %}
-      {{ set_command_base ~ ' ' ~ commands_music[0] }}
+      {% set command = set_command_base ~ ' ' ~ commands_music[0] %}
     {% endif %}
+    {% if set_loop_music %}
+      {% set command = command ~ ' ' ~ set_command_loop %}
+    {% endif %}
+    {{ command }}
   
   today_key: "{{ now().strftime('%a') | lower }}"
   today_schedule: "{{ alarm_schedule[today_key] }}"
