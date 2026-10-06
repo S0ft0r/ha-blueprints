@@ -767,7 +767,7 @@ actions:
               - up_time_workday_trigger
           - condition: template # Будни
             value_template: "{{ workday }}" 
-          - condition: template # Солнце выше горизонта?
+          - condition: template # Солнце выше горизонта? 
             value_template: |
               {{ states(sun_sensor) == 'above_horizon' }}
 
