@@ -1216,7 +1216,7 @@ actions:
                   {% elif pos | int == 100 %}
                     {% set ns.items = ns.items + [name ~ ' открыты полностью'] %}
                   {% else %}
-                    {% set ns.items = ns.items + [name ~ ' открыты на ' ~ pos ~ ' процентов'] %}
+                    {% set ns.items = ns.items + [name ~ ' открыты на ' ~ pos ~ '%'] %}
                   {% endif %}
                 {% endfor %}
                 {{ ns.items | join('. ') }}
