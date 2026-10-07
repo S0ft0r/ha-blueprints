@@ -487,10 +487,17 @@ blueprint:
           selector:
             text: {}
 
-        yandex_intent_status:
+        yandex_intent_position:
           name: Фразы запроса положения штор
           description: Голосовые команды для озвучивания текущего положения штор. Можно указать несколько фраз через точку с запятой (;).
-          default: "Положение штор; Статус штор; Что со шторами"
+          default: "Положение штор"
+          selector:
+            text: {}
+
+        yandex_intent_status:
+          name: Фразы запроса состояния штор
+          description: Голосовые команды для озвучивания текущего состояния штор. Можно указать несколько фраз через точку с запятой (;).
+          default: "Состояние штор; Что со шторами"
           selector:
             text: {}
 
@@ -663,6 +670,8 @@ variables:
   # sun_elevation: "{{ set_sun_elevation if set_sun_elevation_sensor == [] else states(set_sun_elevation_sensor) }}"
   chosen_type_sun_azimuth: "{{ sun_azimuth_config.active_choice }}"
   chosen_type_sun_elevation: "{{ sun_elevation_config.active_choice }}"
+
+  set_movement_direction: ''
 
   # sun_azimuth: |
   #   {{ sun_azimuth_config.угол | int(0)
@@ -852,6 +861,7 @@ actions:
               movement_time: !input set_movement_time
               position_tolerance: !input repeat_for
               direction: "{{ movement_direction | default('down') }}"
+              set_movement_direction: "{{ direction }}"
 
       log_error: &log_error
         sequence:
@@ -1080,7 +1090,7 @@ actions:
           - *close_blinds          
           - *verify_blinds
 
-      - conditions: # Голосовая команда: Положение штор
+      - conditions: # Голосовая команда: Состояния штор
           - condition: trigger
             id:
               - yandex_intent_trigger
@@ -1108,6 +1118,47 @@ actions:
                 {% for blind in blinds %}
                   {% set pos = state_attr(blind, 'current_position') %}
                   {% set name = state_attr(blind, 'friendly_name') or blind %}
+                  {% if pos is none or  up_limit - position_tolerance <= pos | int(0) <= up_limit - position_tolerance %}
+                    {% set ns.items = ns.items + [name] %}
+                  {% endif %}
+                {% endfor %}
+                {% if set_movement_direction == 'up' %}Открыты {% else %}Закрыты {% endif %}все шторы, кроме: {{ ns.items | join('. ') | lower }}
+          - action: media_player.play_media
+            target:
+              entity_id: "{{ target_speaker }}"
+            data:
+              media_content_id: "{{ position_message }}"
+              media_content_type: "text"
+            continue_on_error: true
+
+      - conditions: # Голосовая команда: Положение штор
+          - condition: trigger
+            id:
+              - yandex_intent_trigger
+          - condition: template
+            value_template: "{{ is_yandex_enabled }}"
+          - condition: template
+            value_template: "{{ yandex_media_player != [] }}"
+          # Проверяем, входит ли услышанный текст в список разрешенных фраз статуса
+          - condition: template
+            value_template: |
+              {% set phrases = (yandex_intent_position | string).split(';') | map('trim') | map('lower') | list %}
+              {{ trigger.event.data.text | string | trim | lower in phrases }}
+          # Фильтрация по разрешенным колонкам
+          - condition: template
+            value_template: |
+              {{ yandex_media_player | length == 0 or trigger.event.data.entity_id in yandex_media_player }}
+
+        sequence:
+          - variables:
+              target_speaker: >-
+                {{ trigger.event.data.entity_id if (trigger.event.data.entity_id is defined and trigger.event.data.entity_id != none) 
+                   else (yandex_media_player | first | default('')) }}
+              position_message: >-
+                {% set ns = namespace(items=[]) %}
+                {% for blind in blinds %}
+                  {% set pos = state_attr(blind, 'current_position') %}
+                  {% set name = state_attr(blind, 'friendly_name') or blind %}
                   {% if pos is none %}
                     {% set ns.items = ns.items + [name ~ ' — положение неизвестно'] %}
                   {% elif pos | int == 0 %}
@@ -1124,7 +1175,7 @@ actions:
             target:
               entity_id: "{{ target_speaker }}"
             data:
-              media_content_id: "{{ status_message }}"
+              media_content_id: "{{ position_message }}"
               media_content_type: "text"
             continue_on_error: true
 
