@@ -1115,19 +1115,48 @@ actions:
                 {{ trigger.event.data.entity_id if (trigger.event.data.entity_id is defined and trigger.event.data.entity_id != none) 
                    else (yandex_media_player | first | default('')) }}
               status_message: >-
-                {% set ns = namespace(items=[]) %}
+                {% set up_limit = 98 %}
+                {% set down_limit = 25 %}
+                {% set blinds = ['cover.blinds_balcony_fasad_center_left', 'cover.blinds_balcony_fasad_center_right', 'cover.blinds_balcony_fasad_left', 'cover.blinds_balcony_fasad_right', 'cover.blinds_balcony_left'] %}
+                {% set position_tolerance = 5 %}
+
+                {% set open_blinds = namespace(items=[]) %}
                 {% for blind in blinds %}
                   {% set pos = state_attr(blind, 'current_position') %}
                   {% set name = state_attr(blind, 'friendly_name') or blind %}
-                  {% if pos is none or  up_limit - position_tolerance <= pos | int(0) <= up_limit - position_tolerance %}
-                    {% set ns.items = ns.items + [name] %}
+                  {% if up_limit - position_tolerance <= pos <= up_limit + position_tolerance %}
+                    {% set open_blinds.items = open_blinds.items + [name] %}
                   {% endif %}
                 {% endfor %}
-                {% if ns.items | count > 0 %}
-                  {% if set_movement_direction == 'up' %}Открыты {% else %}Закрыты {% endif %}все шторы, кроме: {{ ns.items | join('. ') | lower }}
+
+                {% set closed_blinds = namespace(items=[]) %}
+                {% for blind in blinds %}
+                  {% set pos = state_attr(blind, 'current_position') %}
+                  {% set name = state_attr(blind, 'friendly_name') or blind %}
+                  {% if down_limit - position_tolerance <= pos <= down_limit + position_tolerance %}
+                    {% set closed_blinds.items = closed_blinds.items + [name] %}
+                  {% endif %}
+                {% endfor %}
+                {% set oc = open_blinds.items | count %}
+                {% set cc = closed_blinds.items | count %}
+                {% set msg = '' %}
+                {% if oc >= cc %}
+                    {% set msg = 'Открыты' %}
+                    {% if oc == blinds | count %}
+                      {% set msg = msg + ' все шторы' %}
+                    {% else %}
+                      {% set msg = msg ~ ' все шторы, кроме ' ~  open_blinds.items | reject('in',blinds) | join('. ') | lower %}
+                  {% endif %}
                 {% else %}
-                  {% if set_movement_direction == 'up' %}Открыты {% else %}Закрыты {% endif %}все шторы
+                    {% set msg = 'Закрыты' %}
+                    {% if oc == blinds | count %}
+                      {% set msg = msg + ' все шторы' %}
+                    {% else %}
+                      {% set msg = msg ~ ' все шторы, кроме ' ~  open_blinds.items | reject('in',blinds) | join('. ') | lower %}
+                  {% endif %}
                 {% endif %}
+                      
+                {{ msg }}
 
           - action: media_player.play_media
             target:
