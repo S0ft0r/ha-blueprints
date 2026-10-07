@@ -1133,7 +1133,7 @@ actions:
             target:
               entity_id: "{{ target_speaker }}"
             data:
-              media_content_id: "{{ position_message }}"
+              media_content_id: "{{ status_message }}"
               media_content_type: "text"
             continue_on_error: true
 
