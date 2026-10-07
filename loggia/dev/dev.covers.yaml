@@ -633,6 +633,7 @@ trigger_variables:
   yandex_intent_open: !input yandex_intent_open
   yandex_intent_close: !input yandex_intent_close
   yandex_intent_status: !input yandex_intent_status
+  yandex_intent_position: !input yandex_intent_position
   yandex_media_player: !input yandex_media_player
   yandex_volume_level: !input yandex_volume_level
 
