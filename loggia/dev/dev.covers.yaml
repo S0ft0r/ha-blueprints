@@ -911,7 +911,7 @@ actions:
                       media_content_id: "{{ tts_message | default(log_message | default('Произошла ошибка со шторами')) }}"
                       media_content_type: "text"
                       extra:
-                        volume_level: "{{ volume_level / 100 }}"
+                        volume_level: "{{ volume_level }}"
                     continue_on_error: true
 
   - choose:
@@ -1178,7 +1178,7 @@ actions:
               media_content_id: "{{ status_message }}"
               media_content_type: "text"
               extra:
-                volume_level: "{{ volume_level / 100 }}"
+                volume_level: "{{ volume_level }}"
             continue_on_error: true
 
       - conditions: # Голосовая команда: Положение штор
@@ -1228,7 +1228,7 @@ actions:
               media_content_id: "{{ position_message }}"
               media_content_type: "text"
               extra:
-                volume_level: "{{ volume_level / 100 }}"
+                volume_level: "{{ volume_level }}"
             continue_on_error: true
 
 #########################################################################################################
