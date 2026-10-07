@@ -861,7 +861,7 @@ actions:
               movement_time: !input set_movement_time
               position_tolerance: !input repeat_for
               direction: "{{ movement_direction | default('down') }}"
-              set_movement_direction: "{{ direction }}"
+              set_movement_direction: "{{ movement_direction | default('down') }}"
 
       log_error: &log_error
         sequence:
