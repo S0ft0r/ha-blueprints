@@ -1162,10 +1162,10 @@ actions:
                   {% endif %}
                 {% else %}
                     {% set msg = 'Закрыты' %}
-                    {% if oc == blinds_target | count %}
+                    {% if cc == blinds_target | count %}
                       {% set msg = msg + ' все шторы' %}
                     {% else %}
-                      {% set msg = msg ~ ' все шторы, кроме ' ~  open_blinds.items | reject('in',blinds) | join('. ') | lower %}
+                      {% set msg = msg ~ ' все шторы, кроме ' ~  closed_blinds.items | reject('in',blinds) | join('. ') | lower %}
                   {% endif %}
                 {% endif %}
                       
