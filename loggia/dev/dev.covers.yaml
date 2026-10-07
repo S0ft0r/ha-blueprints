@@ -1110,6 +1110,7 @@ actions:
 
         sequence:
           - variables:
+              position_tolerance: 5
               target_speaker: >-
                 {{ trigger.event.data.entity_id if (trigger.event.data.entity_id is defined and trigger.event.data.entity_id != none) 
                    else (yandex_media_player | first | default('')) }}
@@ -1122,7 +1123,12 @@ actions:
                     {% set ns.items = ns.items + [name] %}
                   {% endif %}
                 {% endfor %}
-                {% if set_movement_direction == 'up' %}Открыты {% else %}Закрыты {% endif %}все шторы, кроме: {{ ns.items | join('. ') | lower }}
+                {% if ns.items | count > 0 %}
+                  {% if set_movement_direction == 'up' %}Открыты {% else %}Закрыты {% endif %}все шторы, кроме: {{ ns.items | join('. ') | lower }}
+                {% else %}
+                  {% if set_movement_direction == 'up' %}Открыты {% else %}Закрыты {% endif %}все шторы
+                {% endif %}
+
           - action: media_player.play_media
             target:
               entity_id: "{{ target_speaker }}"
