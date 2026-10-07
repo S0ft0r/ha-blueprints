@@ -516,6 +516,16 @@ blueprint:
                     - media_player
               multiple: true
 
+        yandex_volume_level:
+          name: Громкость ответа
+          default: 30
+          selector:
+            number:
+              min: 10
+              max: 100
+              step: 10
+              mode: slider
+
     device_section:
       name: Настройки устройства управления шторами
       icon: mdi:dip-switch
@@ -624,6 +634,7 @@ trigger_variables:
   yandex_intent_close: !input yandex_intent_close
   yandex_intent_status: !input yandex_intent_status
   yandex_media_player: !input yandex_media_player
+  yandex_volume_level: !input yandex_volume_level
 
 #  text_rising_setting_sensor: !input text_rising_setting_sensor
 
@@ -646,6 +657,7 @@ trigger_variables:
   set_min_illuminance: !input set_min_illuminance
   set_max_illuminance: !input set_max_illuminance
   set_illuminance_delay: !input set_illuminance_delay
+  
 
   is_forecast_enabled: "{{ forecast_sensor != [] and 'extra_forecast' in automation_extra }}"
   is_illuminance_enabled: "{{ illuminance_sensor != [] and 'extra_illuminance' in automation_extra }}"
@@ -659,6 +671,8 @@ variables:
   workday: "{{ now().weekday() < 5 }}"
   weekend: "{{ not workday }}"
   nextday: "{{ (now().weekday() + 1) % 7 }}"
+
+  volume_level: "{{ yandex_volume_level / 100 }}"
   
   is_mqtt_device: "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device) | first | default('')), 'domain') == 'mqtt' }}"
   is_zha_device: "{{ slider_device != [] and config_entry_attr(config_entry_id(device_entities(slider_device) | first | default('')), 'domain') == 'zha' }}"
@@ -670,6 +684,7 @@ variables:
   # sun_elevation: "{{ set_sun_elevation if set_sun_elevation_sensor == [] else states(set_sun_elevation_sensor) }}"
   chosen_type_sun_azimuth: "{{ sun_azimuth_config.active_choice }}"
   chosen_type_sun_elevation: "{{ sun_elevation_config.active_choice }}"
+
 
   set_movement_direction: ''
 
@@ -1110,18 +1125,14 @@ actions:
 
         sequence:
           - variables:
+              blinds_target: !input blinds
               position_tolerance: 5
               target_speaker: >-
                 {{ trigger.event.data.entity_id if (trigger.event.data.entity_id is defined and trigger.event.data.entity_id != none) 
                    else (yandex_media_player | first | default('')) }}
               status_message: >-
-                {% set up_limit = 98 %}
-                {% set down_limit = 25 %}
-                {% set blinds = ['cover.blinds_balcony_fasad_center_left', 'cover.blinds_balcony_fasad_center_right', 'cover.blinds_balcony_fasad_left', 'cover.blinds_balcony_fasad_right', 'cover.blinds_balcony_left'] %}
-                {% set position_tolerance = 5 %}
-
                 {% set open_blinds = namespace(items=[]) %}
-                {% for blind in blinds %}
+                {% for blind in blinds_target %}
                   {% set pos = state_attr(blind, 'current_position') %}
                   {% set name = state_attr(blind, 'friendly_name') or blind %}
                   {% if up_limit - position_tolerance <= pos <= up_limit + position_tolerance %}
@@ -1130,7 +1141,7 @@ actions:
                 {% endfor %}
 
                 {% set closed_blinds = namespace(items=[]) %}
-                {% for blind in blinds %}
+                {% for blind in blinds_target %}
                   {% set pos = state_attr(blind, 'current_position') %}
                   {% set name = state_attr(blind, 'friendly_name') or blind %}
                   {% if down_limit - position_tolerance <= pos <= down_limit + position_tolerance %}
@@ -1142,14 +1153,14 @@ actions:
                 {% set msg = '' %}
                 {% if oc >= cc %}
                     {% set msg = 'Открыты' %}
-                    {% if oc == blinds | count %}
+                    {% if oc == blinds_target | count %}
                       {% set msg = msg + ' все шторы' %}
                     {% else %}
                       {% set msg = msg ~ ' все шторы, кроме ' ~  open_blinds.items | reject('in',blinds) | join('. ') | lower %}
                   {% endif %}
                 {% else %}
                     {% set msg = 'Закрыты' %}
-                    {% if oc == blinds | count %}
+                    {% if oc == blinds_target | count %}
                       {% set msg = msg + ' все шторы' %}
                     {% else %}
                       {% set msg = msg ~ ' все шторы, кроме ' ~  open_blinds.items | reject('in',blinds) | join('. ') | lower %}
@@ -1205,6 +1216,12 @@ actions:
                   {% endif %}
                 {% endfor %}
                 {{ ns.items | join('. ') }}
+
+          - action: media_player.volume_set
+            target:
+              entity_id: !input media_player
+            data:
+              volume_level: "{{ volume_level }}"
 
           - action: media_player.play_media
             target:
