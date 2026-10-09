@@ -165,27 +165,27 @@ trigger_variables:
 # Variables
 variables:
   # Команды и их целевые температуры
-  command_map:
-    boil: 100
-    tea: "{{ target_temperatures.tea | int(70) }}"
-    coffee: "{{ target_temperatures.coffee | int(85) }}"
+  # command_map:
+  #   boil: 100
+  #   tea: "{{ target_temperatures.tea | int(70) }}"
+  #   coffee: "{{ target_temperatures.coffee | int(85) }}"
   
-  # Вычисляемые значения
-  is_target_reached: >-
-    {% set current_temp = state_attr(water_heater, 'temperature') | float(0) %}
-    {% set target_temp = target_temperatures.boil | int(100) %}
-    {{ current_temp >= target_temp }}
+  # # Вычисляемые значения
+  # is_target_reached: >-
+  #   {% set current_temp = state_attr(water_heater, 'temperature') | float(0) %}
+  #   {% set target_temp = target_temperatures.boil | int(100) %}
+  #   {{ current_temp >= target_temp }}
   
-  target_temperature: >-
-    {% set current_temp = state_attr(water_heater, 'temperature') | float(0) %}
-    {% set target_temp = target_temperatures.boil | int(100) %}
-    {{ [current_temp, target_temp] | max }}
+  # target_temperature: >-
+  #   {% set current_temp = state_attr(water_heater, 'temperature') | float(0) %}
+  #   {% set target_temp = target_temperatures.boil | int(100) %}
+  #   {{ [current_temp, target_temp] | max }}
 
-  # История состояний для отслеживания изменений
-  last_command: ""
-  last_target_temp: "{{ target_temperatures.boil | int(100) }}"
-  last_state: "{{ states(water_heater) }}"
-  last_temperature: "{{ state_attr(water_heater, 'temperature') | float(0) }}"
+  # # История состояний для отслеживания изменений
+  # last_command: ""
+  # last_target_temp: "{{ target_temperatures.boil | int(100) }}"
+  # last_state: "{{ states(water_heater) }}"
+  # last_temperature: "{{ state_attr(water_heater, 'temperature') | float(0) }}"
 
   water_heater: !input water_heater
   media_player: !input media_player
@@ -243,7 +243,7 @@ actions:
           # Фильтрация по разрешенным колонкам
           - condition: template
             value_template: |
-              {{ yandex_media_player | length == 0 or trigger.event.data.entity_id in yandex_media_player }}
+              {{ media_player | length == 0 or trigger.event.data.entity_id in media_player }}
 
         sequence:
           - action: water_heater.set_operation_mode
@@ -263,7 +263,7 @@ actions:
               {{ trigger.event.data.text | string | trim | lower in phrases }}
           - condition: template
             value_template: |
-              {{ yandex_media_player | length == 0 or trigger.event.data.entity_id in yandex_media_player }}
+              {{ media_player | length == 0 or trigger.event.data.entity_id in media_player }}
 
         sequence:
           - action: water_heater.set_temperature
@@ -288,7 +288,7 @@ actions:
               {{ trigger.event.data.text | string | trim | lower in phrases }}
           - condition: template
             value_template: |
-              {{ yandex_media_player | length == 0 or trigger.event.data.entity_id in yandex_media_player }}
+              {{ media_player | length == 0 or trigger.event.data.entity_id in media_player }}
 
         sequence:
           - action: water_heater.set_temperature
@@ -313,7 +313,7 @@ actions:
               {{ trigger.event.data.text | string | trim | lower in phrases }}
           - condition: template
             value_template: |
-              {{ yandex_media_player | length == 0 or trigger.event.data.entity_id in yandex_media_player }}
+              {{ media_player | length == 0 or trigger.event.data.entity_id in media_player }}
 
         sequence:
           - action: water_heater.set_temperature
@@ -334,18 +334,18 @@ actions:
               - yandex_intent_trigger
           - condition: template
             value_template: |
-              {% set phrases = (coffe_heat_phrase | string).split(';') | map('trim') | map('lower') | list %}
+              {% set phrases = (coffee_heat_phrase | string).split(';') | map('trim') | map('lower') | list %}
               {{ trigger.event.data.text | string | trim | lower in phrases }}
           - condition: template
             value_template: |
-              {{ yandex_media_player | length == 0 or trigger.event.data.entity_id in yandex_media_player }}
+              {{ media_player | length == 0 or trigger.event.data.entity_id in media_player }}
 
         sequence:
           - action: water_heater.set_temperature
             target:
               entity_id: !input water_heater
             data:
-              temperature: "{{ cofee_target_temperature | int }}"
+              temperature: "{{ coffee_target_temperature | int }}"
           - action: water_heater.set_operation_mode
             target:
               entity_id: !input water_heater
