@@ -110,7 +110,7 @@ blueprint:
         input:
           set_phrase_volume_max:
             name: Громкость фразы
-            default: 0.4
+            default: 40
             selector: 
               number:
                 min: 10
