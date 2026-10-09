@@ -181,7 +181,7 @@ variables:
     - 'unavailable'
     - 'unknown'
     - 'none'
-    
+
   tea_target_temperature: !input tea_target_temperature
   coffee_target_temperature: !input coffee_target_temperature
 
@@ -325,6 +325,14 @@ actions:
                     value_template: |
                       {{ not states(water_heater) in invalid_states }}
                 sequence:
+                  - action: media_player.play_media
+                    entity_id: !input media_player
+                    data:
+                      media_content_id: >
+                        {{ "Включаю чайник, температура воды установлена на" ~ tea_target_temperature ~ "°C" }}
+                      media_content_type: text
+                      extra:
+                        volume_level: "{{ set_phrase_volume_max / 100 }}"
                   - action: water_heater.set_temperature
                     target:
                       entity_id: !input water_heater
@@ -336,6 +344,21 @@ actions:
                     data:
                       operation_mode: |
                         {{ 'heat' }}
+                  - wait_for_trigger:
+                      - trigger: template
+                        value_template: "{{ state_attr(water_heater,'current_temperature') == state_attr(water_heater,'temperature') or states(water_heater) == 'off' }}"
+                        for:
+                          hours: 0
+                          minutes: 0
+                          seconds: 10
+                          milliseconds: 0
+                  - action: media_player.play_media
+                    entity_id: !input media_player
+                    data:
+                      media_content_id: "Чайник подогрет"
+                      media_content_type: text
+                      extra:
+                        volume_level: "{{ set_phrase_volume_max / 100 }}"
 
       - conditions: # Голосовая команда: Вскипятить для кофе
           - condition: trigger
