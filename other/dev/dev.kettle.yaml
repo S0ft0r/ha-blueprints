@@ -169,8 +169,6 @@ trigger_variables:
   coffee_boil_phrase: !input coffee_boil_phrase
   tea_heat_phrase: !input tea_heat_phrase
   coffee_heat_phrase: !input coffee_heat_phrase
-  tea_target_temperature: !input tea_target_temperature
-  coffee_target_temperature: !input coffee_target_temperature
 
 # Variables
 variables:
@@ -183,6 +181,9 @@ variables:
     - 'unavailable'
     - 'unknown'
     - 'none'
+    
+  tea_target_temperature: !input tea_target_temperature
+  coffee_target_temperature: !input coffee_target_temperature
 
 triggers:
   - trigger: event
