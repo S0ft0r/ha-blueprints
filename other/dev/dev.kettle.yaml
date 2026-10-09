@@ -174,6 +174,256 @@ trigger_variables:
 
 # Variables
 variables:
+  water_heater: !input water_heater
+  media_player: !input media_player
+  set_phrase_volume_max: !input set_phrase_volume_max
+
+  invalid_states:
+    - ''
+    - 'unavailable'
+    - 'unknown'
+    - 'none'
+
+triggers:
+  - trigger: event
+    event_type: yandex_intent
+    id: yandex_intent_trigger
+
+
+actions:
+  - choose:
+      - conditions: # Голосовая команда: Вскипятить
+          - condition: trigger
+            id:
+              - yandex_intent_trigger
+          # Проверяем, входит ли услышанный текст в список разрешенных фраз открытия (регистронезависимо)
+          - condition: template
+            value_template: |
+              {% set phrases = (boil_phrase | string).split(';') | map('trim') | map('lower') | list %}
+              {{ trigger.event.data.text | string | trim | lower in phrases }}
+          # Фильтрация по разрешенным колонкам
+          - condition: template
+            value_template: |
+              {{ media_player | length == 0 or trigger.event.data.entity_id in media_player }}
+
+        sequence:
+          - choose:
+              - conditions: 
+                  - condition: template
+                    value_template: |
+                      {{ states(water_heater) in invalid_states }}
+                sequence:
+                  - action: media_player.play_media
+                    entity_id: !input media_player
+                    data:
+                      media_content_id: "Не могу вскипятить воду. Чайник не доступен"
+                      media_content_type: text
+                      extra:
+                        volume_level: "{{ set_phrase_volume_max / 100 }}"
+          - choose:
+              - conditions: 
+                  - condition: template
+                    value_template: |
+                      {{ not states(water_heater) in invalid_states }}
+                sequence:
+                  - action: water_heater.set_operation_mode
+                    target:
+                      entity_id: !input water_heater
+                    data:
+                      operation_mode: |
+                        {{ 'boil' }}
+                  - wait_for_trigger:
+                      - trigger: template
+                        value_template: "{{ state_attr(water_heater,'current_temperature') == state_attr(water_heater,'temperature') or states(water_heater) == 'off' }}"
+                        for:
+                          hours: 0
+                          minutes: 0
+                          seconds: 10
+                          milliseconds: 0
+                  - action: media_player.play_media
+                    entity_id: !input media_player
+                    data:
+                      media_content_id: "Чайник вскипел"
+                      media_content_type: text
+                      extra:
+                        volume_level: "{{ set_phrase_volume_max / 100 }}"
+                      
+      - conditions: # Голосовая команда: Вскипятить для чая
+          - condition: trigger
+            id:
+              - yandex_intent_trigger
+          - condition: template
+            value_template: |
+              {% set phrases = (tea_boil_phrase | string).split(';') | map('trim') | map('lower') | list %}
+              {{ trigger.event.data.text | string | trim | lower in phrases }}
+          - condition: template
+            value_template: |
+              {{ media_player | length == 0 or trigger.event.data.entity_id in media_player }}
+
+        sequence:
+          - choose:
+              - conditions: 
+                  - condition: template
+                    value_template: |
+                      {{ states(water_heater) in invalid_states }}
+                sequence:
+                  - action: media_player.play_media
+                    entity_id: !input media_player
+                    data:
+                      media_content_id: "Не могу вскипятить воду для чая. Чайник не доступен"
+                      media_content_type: text
+                      extra:
+                        volume_level: "{{ set_phrase_volume_max / 100 }}"
+          - choose:
+              - conditions: 
+                  - condition: template
+                    value_template: |
+                      {{ not states(water_heater) in invalid_states }}
+                sequence:
+                  - action: water_heater.set_temperature
+                    target:
+                      entity_id: !input water_heater
+                    data:
+                      temperature: "{{ tea_target_temperature | int }}"
+                  - action: water_heater.set_operation_mode
+                    target:
+                      entity_id: !input water_heater
+                    data:
+                      operation_mode: |
+                        {{ 'boil_heat' if (state_attr(water_heater,'current_temperature') | int < tea_target_temperature | int) else 'heat' }}
+
+      - conditions: # Голосовая команда: Подгреть для чая
+          - condition: trigger
+            id:
+              - yandex_intent_trigger
+          - condition: template
+            value_template: |
+              {% set phrases = (tea_heat_phrase | string).split(';') | map('trim') | map('lower') | list %}
+              {{ trigger.event.data.text | string | trim | lower in phrases }}
+          - condition: template
+            value_template: |
+              {{ media_player | length == 0 or trigger.event.data.entity_id in media_player }}
+
+        sequence:
+          - choose:
+              - conditions: 
+                  - condition: template
+                    value_template: |
+                      {{ states(water_heater) in invalid_states }}
+                sequence:
+                  - action: media_player.play_media
+                    entity_id: !input media_player
+                    data:
+                      media_content_id: "Не могу Подгреть воду. Чайник не доступен"
+                      media_content_type: text
+                      extra:
+                        volume_level: "{{ set_phrase_volume_max / 100 }}"
+          - choose:
+              - conditions: 
+                  - condition: template
+                    value_template: |
+                      {{ not states(water_heater) in invalid_states }}
+                sequence:
+                  - action: water_heater.set_temperature
+                    target:
+                      entity_id: !input water_heater
+                    data:
+                      temperature: "{{ tea_target_temperature | int }}"
+                  - action: water_heater.set_operation_mode
+                    target:
+                      entity_id: !input water_heater
+                    data:
+                      operation_mode: |
+                        {{ 'heat' }}
+
+      - conditions: # Голосовая команда: Вскипятить для кофе
+          - condition: trigger
+            id:
+              - yandex_intent_trigger
+          - condition: template
+            value_template: |
+              {% set phrases = (coffee_boil_phrase | string).split(';') | map('trim') | map('lower') | list %}
+              {{ trigger.event.data.text | string | trim | lower in phrases }}
+          - condition: template
+            value_template: |
+              {{ media_player | length == 0 or trigger.event.data.entity_id in media_player }}
+
+        sequence:
+          - choose:
+              - conditions: 
+                  - condition: template
+                    value_template: |
+                      {{ states(water_heater) in invalid_states }}
+                sequence:
+                  - action: media_player.play_media
+                    entity_id: !input media_player
+                    data:
+                      media_content_id: "Не могу вскипятить воду для кофе. Чайник не доступен"
+                      media_content_type: text
+                      extra:
+                        volume_level: "{{ set_phrase_volume_max / 100 }}"
+          - choose:
+              - conditions: 
+                  - condition: template
+                    value_template: |
+                      {{ not states(water_heater) in invalid_states }}
+                sequence:
+                  - action: water_heater.set_temperature
+                    target:
+                      entity_id: !input water_heater
+                    data:
+                      temperature: "{{ coffee_target_temperature | int }}"
+                  - action: water_heater.set_operation_mode
+                    target:
+                      entity_id: !input water_heater
+                    data:
+                      operation_mode: |
+                        {{ 'boil_heat' if (state_attr(water_heater,'current_temperature') | int < coffee_target_temperature | int) else 'heat' }}
+
+      - conditions: # Голосовая команда: Подгреть для чая
+          - condition: trigger
+            id:
+              - yandex_intent_trigger
+          - condition: template
+            value_template: |
+              {% set phrases = (coffee_heat_phrase | string).split(';') | map('trim') | map('lower') | list %}
+              {{ trigger.event.data.text | string | trim | lower in phrases }}
+          - condition: template
+            value_template: |
+              {{ media_player | length == 0 or trigger.event.data.entity_id in media_player }}
+
+        sequence:
+          - choose:
+              - conditions: 
+                  - condition: template
+                    value_template: |
+                      {{ states(water_heater) in invalid_states }}
+                sequence:
+                  - action: media_player.play_media
+                    entity_id: !input media_player
+                    data:
+                      media_content_id: "Не могу подогреть воду. Чайник не доступен"
+                      media_content_type: text
+                      extra:
+                        volume_level: "{{ set_phrase_volume_max / 100 }}"
+          - choose:
+              - conditions: 
+                  - condition: template
+                    value_template: |
+                      {{ not states(water_heater) in invalid_states }}
+                sequence:
+                  - action: water_heater.set_temperature
+                    target:
+                      entity_id: !input water_heater
+                    data:
+                      temperature: "{{ coffee_target_temperature | int }}"
+                  - action: water_heater.set_operation_mode
+                    target:
+                      entity_id: !input water_heater
+                    data:
+                      operation_mode: |
+                        {{ 'heat' }}
+
   # Команды и их целевые температуры
   # command_map:
   #   boil: 100
@@ -197,20 +447,7 @@ variables:
   # last_state: "{{ states(water_heater) }}"
   # last_temperature: "{{ state_attr(water_heater, 'temperature') | float(0) }}"
 
-  water_heater: !input water_heater
-  media_player: !input media_player
-  set_phrase_volume_max: !input set_phrase_volume_max
 
-  invalid_states:
-    - ''
-    - 'unavailable'
-    - 'unknown'
-    - 'none'
-
-triggers:
-  - trigger: event
-    event_type: yandex_intent
-    id: yandex_intent_trigger
 
   # - trigger: event
   #   event_type: kettle_command
@@ -243,151 +480,6 @@ triggers:
   #     {% set tolerance = 0.5 %}
   #     {{ current_temp >= target_temp - tolerance and current_temp >= target_temp - tolerance }}
   #   id: target_reached_trigger
-
-
-actions:
-  - choose:
-      - conditions: # Голосовая команда: Вскипятить
-          - condition: trigger
-            id:
-              - yandex_intent_trigger
-          # Проверяем, входит ли услышанный текст в список разрешенных фраз открытия (регистронезависимо)
-          - condition: template
-            value_template: |
-              {% set phrases = (boil_phrase | string).split(';') | map('trim') | map('lower') | list %}
-              {{ trigger.event.data.text | string | trim | lower in phrases }}
-          # Фильтрация по разрешенным колонкам
-          - condition: template
-            value_template: |
-              {{ media_player | length == 0 or trigger.event.data.entity_id in media_player }}
-
-        sequence:
-          - action: water_heater.set_operation_mode
-            target:
-              entity_id: !input water_heater
-            data:
-              operation_mode: |
-                {{ 'boil' }}
-
-      - conditions: # Голосовая команда: Вскипятить для чая
-          - condition: trigger
-            id:
-              - yandex_intent_trigger
-          - condition: template
-            value_template: |
-              {% set phrases = (tea_boil_phrase | string).split(';') | map('trim') | map('lower') | list %}
-              {{ trigger.event.data.text | string | trim | lower in phrases }}
-          - condition: template
-            value_template: |
-              {{ media_player | length == 0 or trigger.event.data.entity_id in media_player }}
-
-        sequence:
-          - choose:
-              - conditions: # Голосовая команда: Вскипятить
-                  - condition: template
-                    value_template: |
-                      {{ state(water_heater) in invalid_state }}
-                sequence:
-                  - action: media_player.play_media
-                    entity_id: !input media_player
-                    data:
-                      media_content_id: >
-                         {{ 'Не могу вскипятить воду для чая. Чайник не доступен' }}
-                      media_content_type: text
-                      extra:
-                        volume_level: "{{ set_phrase_volume_max / 100 }}"
-          - choose:
-              - conditions: # Голосовая команда: Вскипятить
-                  - condition: template
-                    value_template: |
-                      {{ not state(water_heater) in invalid_state }}
-                sequence:
-                  - action: water_heater.set_temperature
-                    target:
-                      entity_id: !input water_heater
-                    data:
-                      temperature: "{{ tea_target_temperature | int }}"
-                  - action: water_heater.set_operation_mode
-                    target:
-                      entity_id: !input water_heater
-                    data:
-                      operation_mode: |
-                        {{ 'boil_heat' if (state_attr(water_heater,'current_temperature') | int < tea_target_temperature | int) else 'heat' }}
-
-      - conditions: # Голосовая команда: Подгреть для чая
-          - condition: trigger
-            id:
-              - yandex_intent_trigger
-          - condition: template
-            value_template: |
-              {% set phrases = (tea_heat_phrase | string).split(';') | map('trim') | map('lower') | list %}
-              {{ trigger.event.data.text | string | trim | lower in phrases }}
-          - condition: template
-            value_template: |
-              {{ media_player | length == 0 or trigger.event.data.entity_id in media_player }}
-
-        sequence:
-          - action: water_heater.set_temperature
-            target:
-              entity_id: !input water_heater
-            data:
-              temperature: "{{ tea_target_temperature | int }}"
-          - action: water_heater.set_operation_mode
-            target:
-              entity_id: !input water_heater
-            data:
-              operation_mode: |
-                {{ 'heat' }}
-
-      - conditions: # Голосовая команда: Вскипятить для кофе
-          - condition: trigger
-            id:
-              - yandex_intent_trigger
-          - condition: template
-            value_template: |
-              {% set phrases = (coffee_boil_phrase | string).split(';') | map('trim') | map('lower') | list %}
-              {{ trigger.event.data.text | string | trim | lower in phrases }}
-          - condition: template
-            value_template: |
-              {{ media_player | length == 0 or trigger.event.data.entity_id in media_player }}
-
-        sequence:
-          - action: water_heater.set_temperature
-            target:
-              entity_id: !input water_heater
-            data:
-              temperature: "{{ coffee_target_temperature | int }}"
-          - action: water_heater.set_operation_mode
-            target:
-              entity_id: !input water_heater
-            data:
-              operation_mode: |
-                {{ 'boil_heat' if (state_attr(water_heater,'current_temperature') | int < coffee_target_temperature | int) else 'heat' }}
-
-      - conditions: # Голосовая команда: Подгреть для чая
-          - condition: trigger
-            id:
-              - yandex_intent_trigger
-          - condition: template
-            value_template: |
-              {% set phrases = (coffee_heat_phrase | string).split(';') | map('trim') | map('lower') | list %}
-              {{ trigger.event.data.text | string | trim | lower in phrases }}
-          - condition: template
-            value_template: |
-              {{ media_player | length == 0 or trigger.event.data.entity_id in media_player }}
-
-        sequence:
-          - action: water_heater.set_temperature
-            target:
-              entity_id: !input water_heater
-            data:
-              temperature: "{{ coffee_target_temperature | int }}"
-          - action: water_heater.set_operation_mode
-            target:
-              entity_id: !input water_heater
-            data:
-              operation_mode: |
-                {{ 'heat' }}
 
 
   # # Логирование
