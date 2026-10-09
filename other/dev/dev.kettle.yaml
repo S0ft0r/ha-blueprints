@@ -18,137 +18,149 @@ blueprint:
   source_url: https://github.com/S0ft0r/ha-blueprints/blob/main/other/dev/dev.kettle.yaml
   author: Softor
 
-input:
-  water_heater:
-    name: Чайник (Water Heater)
-    description: |
-      Сущность water_heater, управляющая чайником.
-      Если ничего не выбрано — используется первый доступный water_heater.
-    default: ""
-    selector:
-      entity:
-        filter:
-          - domain:
-              - water_heater
-        multiple: false
+  input:
+    water_heater:
+      name: Чайник (Water Heater)
+      description: |
+        Сущность water_heater, управляющая чайником.
+        Если ничего не выбрано — используется первый доступный water_heater.
+      default: ""
+      selector:
+        entity:
+          filter:
+            - domain:
+                - water_heater
+          multiple: false
 
-  media_player:
-    name: Голосовой ассистент
-    description: |
-      Яндекс Станция или другой media_player для голосового уведомления.
-      Если ничего не выбрано — уведомление отправляется на первый доступный media_player.
-    default: []
-    selector:
-      entity:
-        filter:
-          - domain:
-              - media_player
-        multiple: true
+    media_player:
+      name: Голосовой ассистент
+      description: |
+        Яндекс Станция или другой media_player для голосового уведомления.
+        Если ничего не выбрано — уведомление отправляется на первый доступный media_player.
+      default: []
+      selector:
+        entity:
+          filter:
+            - domain:
+                - media_player
+          multiple: true
 
-  boil_phrase:
-    name: Команда на кипячение
-    default: "Вскипяти воду"
-    selector:
-      text:
+    boil_phrase:
+      name: Команда на кипячение
+      default: "Вскипяти воду"
+      selector:
+        text:
 
-  tea_section:
-      name: Настройки чайника для чая
-      icon: mdi:tea
-      collapsed: true
-      input:
-        tea_boil_phrase:
-          name: Команда на кипячение и подогрев для чая
-          default: "Вскипяти воду для чая"
-          selector:
-            text:
-        tea_heat_phrase:
-          name: Команда на кипячение и подогрев для чая
-          default: "Подогрей воду для чая"
-          selector:
-            text:
-        tea_target_temperature:
-          name: Температура воды для чая
-          default: 70
-          selector:
-            number:
-              min: 50
-              max: 100
-              step: 1
-              unit_of_measurement: "°C"
-              mode: slider
+    tea_section:
+        name: Настройки чайника для чая
+        icon: mdi:tea
+        collapsed: true
+        input:
+          tea_boil_phrase:
+            name: Команда на кипячение и подогрев для чая
+            default: "Вскипяти воду для чая"
+            selector:
+              text:
+          tea_heat_phrase:
+            name: Команда на кипячение и подогрев для чая
+            default: "Подогрей воду для чая"
+            selector:
+              text:
+          tea_target_temperature:
+            name: Температура воды для чая
+            default: 70
+            selector:
+              number:
+                min: 50
+                max: 100
+                step: 1
+                unit_of_measurement: "°C"
+                mode: slider
 
-  coffee_section:
-      name: Настройки чайника для кофе
-      icon: mdi:coffee
-      collapsed: true
-      input:
-        coffee_boil_phrase:
-          name: Команда на кипячение и подогрев для кофе
-          default: "Вскипяти воду для кофе"
-          selector:
-            text:
-        coffee_heat_phrase:
-          name: Команда на подогрев для кофе
-          default: "Подогрей воду для кофе"
-          selector:
-            text:
-        coffee_target_temperature:
-          name: Температура воды для чая
-          default: 85
-          selector:
-            number:
-              min: 50
-              max: 100
-              step: 1
-              unit_of_measurement: "°C"
-              mode: slider
+    coffee_section:
+        name: Настройки чайника для кофе
+        icon: mdi:coffee
+        collapsed: true
+        input:
+          coffee_boil_phrase:
+            name: Команда на кипячение и подогрев для кофе
+            default: "Вскипяти воду для кофе"
+            selector:
+              text:
+          coffee_heat_phrase:
+            name: Команда на подогрев для кофе
+            default: "Подогрей воду для кофе"
+            selector:
+              text:
+          coffee_target_temperature:
+            name: Температура воды для чая
+            default: 85
+            selector:
+              number:
+                min: 50
+                max: 100
+                step: 1
+                unit_of_measurement: "°C"
+                mode: slider
 
-  extra_section:
-      name: Дополнительные настройки
-      icon: tune-vertical
-      collapsed: true
-      input:
-        voice_notification_delay:
-          name: Задержка уведомления
-          description: |
-            Задержка в секундах после достижения целевой температуры
-            перед голосовым уведомлением.
-          default: 5
-          selector:
-            number:
-              min: 0
-              max: 60
-              step: 1
-              unit_of_measurement: "сек"
-              mode: box
+    extra_section:
+        name: Дополнительные настройки
+        icon: tune-vertical
+        collapsed: true
+        input:
+          voice_notification_delay:
+            name: Задержка уведомления
+            description: |
+              Задержка в секундах после достижения целевой температуры
+              перед голосовым уведомлением.
+            default: 5
+            selector:
+              number:
+                min: 0
+                max: 60
+                step: 1
+                unit_of_measurement: "сек"
+                mode: box
 
-        voice_command_status:
-          name: Команда на проверку состояния чайника
-          description: |
-            Команда на проверку досупности, режима, температуры воды и т.д.
-          default: "Состояние чайника"
-          selector:
-            text:
+          voice_command_status:
+            name: Команда на проверку состояния чайника
+            description: |
+              Команда на проверку досупности, режима, температуры воды и т.д.
+            default: "Состояние чайника"
+            selector:
+              text:
 
-        logging_enabled:
-          name: Включить логирование
-          description: |
-            Включает детальное логирование работы автоматизации.
-          default: true
-          selector:
-            boolean: {}
+          logging_enabled:
+            name: Включить логирование
+            description: |
+              Включает детальное логирование работы автоматизации.
+            default: true
+            selector:
+              boolean: {}
 
-        debug_mode:
-          name: Режим отладки
-          description: |
-            Включает подробную отладку с каждым изменением состояния.
-          default: false
-          selector:
-            boolean: {}
+          debug_mode:
+            name: Режим отладки
+            description: |
+              Включает подробную отладку с каждым изменением состояния.
+            default: false
+            selector:
+              boolean: {}
 
 mode: queued
 max: 20
 max_exceeded: silent
+
+trigger_variables:
+  water_heater: !input water_heater
+  media_player: !input media_player
+
+  boil_phrase: !input boil_phrase
+  tea_boil_phrase: !input tea_boil_phrase
+  coffee_boil_phrase: !input coffee_boil_phrase
+  tea_heat_phrase: !input tea_heat_phrase
+  coffee_heat_phrase: !input coffee_heat_phrase
+  tea_target_temperature: !input tea_target_temperature
+  coffee_target_temperature: !input coffee_target_temperature
 
 # Variables
 variables:
@@ -179,15 +191,6 @@ variables:
   media_player: !input media_player
 
 
-trigger_variables:
-  boil_phrase: !input boil_phrase
-  tea_boil_phrase: !input tea_boil_phrase
-  coffee_boil_phrase: !input coffee_boil_phrase
-  tea_heat_phrase: !input tea_heat_phrase
-  coffee_heat_phrase: !input coffee_heat_phrase
-  tea_target_temperature: !input tea_target_temperature
-  coffee_target_temperature: !input coffee_target_temperature
-
 triggers:
   - trigger: event
     event_type: yandex_intent
@@ -217,13 +220,13 @@ triggers:
   #   event_type: kettle_state_change
   #   id: kettle_state_change_trigger
 
-  - trigger: template
-    value_template: |
-      {% set current_temp = state_attr(water_heater, 'temperature') | float(0) %}
-      {% set target_temp = target_temperatures.boil | int(100) %}
-      {% set tolerance = 0.5 %}
-      {{ current_temp >= target_temp - tolerance and current_temp >= target_temp - tolerance }}
-    id: target_reached_trigger
+  # - trigger: template
+  #   value_template: |
+  #     {% set current_temp = state_attr(water_heater, 'temperature') | float(0) %}
+  #     {% set target_temp = target_temperatures.boil | int(100) %}
+  #     {% set tolerance = 0.5 %}
+  #     {{ current_temp >= target_temp - tolerance and current_temp >= target_temp - tolerance }}
+  #   id: target_reached_trigger
 
 
 actions:
