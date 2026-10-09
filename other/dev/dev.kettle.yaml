@@ -62,7 +62,7 @@ blueprint:
             selector:
               text:
           tea_heat_phrase:
-            name: Команда на кипячение и подогрев для чая
+            name: Команда на подогрев для чая
             default: "Подогрей воду для чая"
             selector:
               text:
@@ -108,6 +108,16 @@ blueprint:
         icon: tune-vertical
         collapsed: true
         input:
+          set_phrase_volume_max:
+            name: Громкость фразы
+            default: 0.4
+            selector: 
+              number:
+                min: 10
+                max: 100
+                step: 10
+                mode: slider
+
           voice_notification_delay:
             name: Задержка уведомления
             description: |
@@ -189,7 +199,13 @@ variables:
 
   water_heater: !input water_heater
   media_player: !input media_player
+  set_phrase_volume_max: !input set_phrase_volume_max
 
+  invalid_states:
+    - ''
+    - 'unavailable'
+    - 'unknown'
+    - 'none'
 
 triggers:
   - trigger: event
@@ -266,17 +282,37 @@ actions:
               {{ media_player | length == 0 or trigger.event.data.entity_id in media_player }}
 
         sequence:
-          - action: water_heater.set_temperature
-            target:
-              entity_id: !input water_heater
-            data:
-              temperature: "{{ tea_target_temperature | int }}"
-          - action: water_heater.set_operation_mode
-            target:
-              entity_id: !input water_heater
-            data:
-              operation_mode: |
-                {{ 'boil_heat' if (state_attr(water_heater,'current_temperature') | int < tea_target_temperature | int) else 'heat' }}
+          - choose:
+              - conditions: # Голосовая команда: Вскипятить
+                  - condition: template
+                    value_template: |
+                      {{ state(water_heater) in invalid_state }}
+                sequence:
+                  - action: media_player.play_media
+                    entity_id: !input media_player
+                    data:
+                      media_content_id: >
+                         {{ 'Не могу вскипятить воду для чая. Чайник не доступен' }}
+                      media_content_type: text
+                      extra:
+                        volume_level: "{{ set_phrase_volume_max / 100 }}"
+          - choose:
+              - conditions: # Голосовая команда: Вскипятить
+                  - condition: template
+                    value_template: |
+                      {{ not state(water_heater) in invalid_state }}
+                sequence:
+                  - action: water_heater.set_temperature
+                    target:
+                      entity_id: !input water_heater
+                    data:
+                      temperature: "{{ tea_target_temperature | int }}"
+                  - action: water_heater.set_operation_mode
+                    target:
+                      entity_id: !input water_heater
+                    data:
+                      operation_mode: |
+                        {{ 'boil_heat' if (state_attr(water_heater,'current_temperature') | int < tea_target_temperature | int) else 'heat' }}
 
       - conditions: # Голосовая команда: Подгреть для чая
           - condition: trigger
