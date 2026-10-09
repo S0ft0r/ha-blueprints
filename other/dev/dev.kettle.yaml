@@ -217,7 +217,7 @@ actions:
                   - action: media_player.play_media
                     entity_id: !input media_player
                     data:
-                      media_content_id: "Не могу вскипятить воду. Чайник не доступен"
+                      media_content_id: "Не могу вскипятить воду. Чайник недоступен"
                       media_content_type: text
                       extra:
                         volume_level: "{{ set_phrase_volume_max / 100 }}"
@@ -271,7 +271,7 @@ actions:
                   - action: media_player.play_media
                     entity_id: !input media_player
                     data:
-                      media_content_id: "Не могу вскипятить воду для чая. Чайник не доступен"
+                      media_content_id: "Не могу вскипятить воду для чая. Чайник недоступен"
                       media_content_type: text
                       extra:
                         volume_level: "{{ set_phrase_volume_max / 100 }}"
@@ -338,7 +338,7 @@ actions:
                   - action: media_player.play_media
                     entity_id: !input media_player
                     data:
-                      media_content_id: "Не могу Подгреть воду. Чайник не доступен"
+                      media_content_id: "Не могу Подгреть воду. Чайник недоступен"
                       media_content_type: text
                       extra:
                         volume_level: "{{ set_phrase_volume_max / 100 }}"
@@ -405,7 +405,7 @@ actions:
                   - action: media_player.play_media
                     entity_id: !input media_player
                     data:
-                      media_content_id: "Не могу вскипятить воду для кофе. Чайник не доступен"
+                      media_content_id: "Не могу вскипятить воду для кофе. Чайник недоступен"
                       media_content_type: text
                       extra:
                         volume_level: "{{ set_phrase_volume_max / 100 }}"
@@ -472,7 +472,7 @@ actions:
                   - action: media_player.play_media
                     entity_id: !input media_player
                     data:
-                      media_content_id: "Не могу подогреть воду. Чайник не доступен"
+                      media_content_id: "Не могу подогреть воду. Чайник недоступен"
                       media_content_type: text
                       extra:
                         volume_level: "{{ set_phrase_volume_max / 100 }}"
