@@ -755,12 +755,12 @@ actions:
               {% endfor %}
               {{ true if not set_person_check else i.cnt > 0 }}
         sequence:
-          - action: media_player.volume_set
-            metadata: {}
-            target:
-              entity_id: !input media_player
-            data:
-              volume_level: 0
+          # - action: media_player.volume_set
+          #   metadata: {}
+          #   target:
+          #     entity_id: !input media_player
+          #   data:
+          #     volume_level: 0
           - action: media_player.play_media
             entity_id: !input media_player
             data:
