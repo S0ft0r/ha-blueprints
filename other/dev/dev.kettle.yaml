@@ -217,6 +217,7 @@ actions:
           # Фильтрация по разрешенным колонкам
           - condition: template
             value_template: |
+              {{ media_player | length == 0 or trigger.event.data.entity_id in media_player }}
         sequence:
           - choose:
               - conditions: 
