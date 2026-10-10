@@ -270,8 +270,6 @@ blueprint:
         #             - input_number
         #       multiple: false
 
-
-
     options_section:
       name: "Дополнительные настройки"
       icon: mdi:cog
@@ -1034,7 +1032,6 @@ actions:
 
                   - delay:
                       seconds: "{{ delay_for_repeat | int(1) }}"
-
 
 #########################################################################################################
 #
