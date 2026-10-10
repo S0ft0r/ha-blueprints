@@ -290,7 +290,7 @@ actions:
                       entity_id: "{{ trigger.event.data.entity_id }}"
                     data:
                       media_content_id: >
-                        {{ "Кипячу чайник, ожидайте" }}
+                        {{ "Включаю чайник, Сначала кипячу воду, затем остужаю до " ~ tea_target_temperature ~ "°" }}
                       media_content_type: text
                       extra:
                         volume_level: "{{ set_phrase_volume_max / 100 }}"
@@ -360,7 +360,7 @@ actions:
                       entity_id: "{{ trigger.event.data.entity_id }}"
                     data:
                       media_content_id: >
-                        {{ "Включаю чайник, Сначала кипячу воду, затем остужаю до " ~ tea_target_temperature ~ "°C" }}
+                        {{ "Включаю чайник, температура воды установлена на " ~ tea_target_temperature ~ "°" }}
                       media_content_type: text
                       extra:
                         volume_level: "{{ set_phrase_volume_max / 100 }}"
@@ -430,7 +430,7 @@ actions:
                       entity_id: "{{ trigger.event.data.entity_id }}"
                     data:
                       media_content_id: >
-                        {{ "Включаю чайник, Сначала кипячу воду, затем остужаю до " ~ coffee_target_temperature ~ "°C" }}
+                        {{ "Включаю чайник. Сначала кипячу воду, затем остужаю до " ~ coffee_target_temperature ~ "°" }}
                       media_content_type: text
                       extra:
                         volume_level: "{{ set_phrase_volume_max / 100 }}"
@@ -500,7 +500,7 @@ actions:
                       entity_id: "{{ trigger.event.data.entity_id }}"
                     data:
                       media_content_id: >
-                        {{ "Включаю чайник, температура воды установлена на " ~ coffee_target_temperature ~ "°C" }}
+                        {{ "Включаю чайник, температура воды установлена на " ~ coffee_target_temperature ~ "°" }}
                       media_content_type: text
                       extra:
                         volume_level: "{{ set_phrase_volume_max / 100 }}"
@@ -553,7 +553,7 @@ actions:
                 {% set state = states(water_heater) %}
                 {% set current_temp = state_attr(water_heater, 'current_temperature') %}
                 {% set target_temp = state_attr(water_heater, 'temperature') %}
-                {% set is_heating = (state in ['on', 'heating']) %}
+                {% set is_heating = (state in ['boil', 'heat', 'boil_heat']) %}
 
                 {% if state in invalid_states %}
                   Чайник сейчас недоступен. Проверьте подключение.
