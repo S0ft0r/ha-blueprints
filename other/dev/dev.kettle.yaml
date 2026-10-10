@@ -93,7 +93,7 @@ blueprint:
             selector:
               text:
           coffee_target_temperature:
-            name: Температура воды для чая
+            name: Температура воды для кофе
             default: 85
             selector:
               number:
@@ -130,7 +130,7 @@ blueprint:
                 max: 60
                 step: 1
                 unit_of_measurement: "сек"
-                mode: box
+                mode: slider
 
           voice_command_status:
             name: Команда на проверку состояния чайника
@@ -215,7 +215,7 @@ actions:
                       {{ states(water_heater) in invalid_states }}
                 sequence:
                   - action: media_player.play_media
-                    entity_id: !input media_player
+                    entity_id: "{{ trigger.event.data.entity_id }}"
                     data:
                       media_content_id: "Не могу вскипятить воду. Чайник недоступен"
                       media_content_type: text
@@ -242,7 +242,7 @@ actions:
                           seconds: 10
                           milliseconds: 0
                   - action: media_player.play_media
-                    entity_id: !input media_player
+                    entity_id: "{{ trigger.event.data.entity_id }}"
                     data:
                       media_content_id: "Чайник вскипел"
                       media_content_type: text
@@ -269,7 +269,7 @@ actions:
                       {{ states(water_heater) in invalid_states }}
                 sequence:
                   - action: media_player.play_media
-                    entity_id: !input media_player
+                    entity_id: "{{ trigger.event.data.entity_id }}"
                     data:
                       media_content_id: "Не могу вскипятить воду для чая. Чайник недоступен"
                       media_content_type: text
@@ -282,7 +282,7 @@ actions:
                       {{ not states(water_heater) in invalid_states }}
                 sequence:
                   - action: media_player.play_media
-                    entity_id: !input media_player
+                    entity_id: "{{ trigger.event.data.entity_id }}"
                     data:
                       media_content_id: >
                         {{ "Кипячу чайник, ожидайте" }}
@@ -309,7 +309,7 @@ actions:
                           seconds: 10
                           milliseconds: 0
                   - action: media_player.play_media
-                    entity_id: !input media_player
+                    entity_id: "{{ trigger.event.data.entity_id }}"
                     data:
                       media_content_id: "Чайник подогрет"
                       media_content_type: text
@@ -336,7 +336,7 @@ actions:
                       {{ states(water_heater) in invalid_states }}
                 sequence:
                   - action: media_player.play_media
-                    entity_id: !input media_player
+                    entity_id: "{{ trigger.event.data.entity_id }}"
                     data:
                       media_content_id: "Не могу Подгреть воду. Чайник недоступен"
                       media_content_type: text
@@ -349,10 +349,10 @@ actions:
                       {{ not states(water_heater) in invalid_states }}
                 sequence:
                   - action: media_player.play_media
-                    entity_id: !input media_player
+                    entity_id: "{{ trigger.event.data.entity_id }}"
                     data:
                       media_content_id: >
-                        {{ "Включаю чайник, температура воды установлена на " ~ tea_target_temperature ~ "°C. После такого, как вода закипт" }}
+                        {{ "Включаю чайник, Сначала кипячу воду, затем остужаю до " ~ tea_target_temperature ~ "°C" }}
                       media_content_type: text
                       extra:
                         volume_level: "{{ set_phrase_volume_max / 100 }}"
@@ -376,7 +376,7 @@ actions:
                           seconds: 10
                           milliseconds: 0
                   - action: media_player.play_media
-                    entity_id: !input media_player
+                    entity_id: "{{ trigger.event.data.entity_id }}"
                     data:
                       media_content_id: "Чайник подогрет"
                       media_content_type: text
@@ -403,7 +403,7 @@ actions:
                       {{ states(water_heater) in invalid_states }}
                 sequence:
                   - action: media_player.play_media
-                    entity_id: !input media_player
+                    entity_id: "{{ trigger.event.data.entity_id }}"
                     data:
                       media_content_id: "Не могу вскипятить воду для кофе. Чайник недоступен"
                       media_content_type: text
@@ -416,10 +416,10 @@ actions:
                       {{ not states(water_heater) in invalid_states }}
                 sequence:
                   - action: media_player.play_media
-                    entity_id: !input media_player
+                    entity_id: "{{ trigger.event.data.entity_id }}"
                     data:
                       media_content_id: >
-                        {{ "Включаю чайник, температура воды установлена на " ~ coffee_target_temperature ~ "°C. После такого, как вода закипт" }}
+                        {{ "Включаю чайник, Сначала кипячу воду, затем остужаю до " ~ coffee_target_temperature ~ "°C" }}
                       media_content_type: text
                       extra:
                         volume_level: "{{ set_phrase_volume_max / 100 }}"
@@ -443,7 +443,7 @@ actions:
                           seconds: 10
                           milliseconds: 0
                   - action: media_player.play_media
-                    entity_id: !input media_player
+                    entity_id: "{{ trigger.event.data.entity_id }}"
                     data:
                       media_content_id: "Чайник подогрет"
                       media_content_type: text
@@ -470,7 +470,7 @@ actions:
                       {{ states(water_heater) in invalid_states }}
                 sequence:
                   - action: media_player.play_media
-                    entity_id: !input media_player
+                    entity_id: "{{ trigger.event.data.entity_id }}"
                     data:
                       media_content_id: "Не могу подогреть воду. Чайник недоступен"
                       media_content_type: text
@@ -483,7 +483,7 @@ actions:
                       {{ not states(water_heater) in invalid_states }}
                 sequence:
                   - action: media_player.play_media
-                    entity_id: !input media_player
+                    entity_id: "{{ trigger.event.data.entity_id }}"
                     data:
                       media_content_id: >
                         {{ "Включаю чайник, температура воды установлена на " ~ coffee_target_temperature ~ "°C" }}
@@ -510,7 +510,7 @@ actions:
                           seconds: 10
                           milliseconds: 0
                   - action: media_player.play_media
-                    entity_id: !input media_player
+                    entity_id: "{{ trigger.event.data.entity_id }}"
                     data:
                       media_content_id: "Чайник подогрет"
                       media_content_type: text
