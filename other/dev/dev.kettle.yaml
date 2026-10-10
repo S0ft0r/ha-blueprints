@@ -243,6 +243,11 @@ actions:
                           minutes: 0
                           seconds: 10
                           milliseconds: 0
+                    timeout:
+                      hours: 0
+                      minutes: 10
+                      seconds: 0
+                      milliseconds: 0
                   - action: media_player.play_media
                     target:
                       entity_id: "{{ trigger.event.data.entity_id }}"
@@ -313,6 +318,11 @@ actions:
                           minutes: 0
                           seconds: 10
                           milliseconds: 0
+                    timeout:
+                      hours: 0
+                      minutes: 10
+                      seconds: 0
+                      milliseconds: 0
                   - action: media_player.play_media
                     target:
                       entity_id: "{{ trigger.event.data.entity_id }}"
@@ -383,6 +393,11 @@ actions:
                           minutes: 0
                           seconds: 10
                           milliseconds: 0
+                    timeout:
+                      hours: 0
+                      minutes: 10
+                      seconds: 0
+                      milliseconds: 0
                   - action: media_player.play_media
                     target:
                       entity_id: "{{ trigger.event.data.entity_id }}"
@@ -453,6 +468,11 @@ actions:
                           minutes: 0
                           seconds: 10
                           milliseconds: 0
+                    timeout:
+                      hours: 0
+                      minutes: 10
+                      seconds: 0
+                      milliseconds: 0
                   - action: media_player.play_media
                     target:
                       entity_id: "{{ trigger.event.data.entity_id }}"
@@ -523,6 +543,11 @@ actions:
                           minutes: 0
                           seconds: 10
                           milliseconds: 0
+                    timeout:
+                      hours: 0
+                      minutes: 10
+                      seconds: 0
+                      milliseconds: 0
                   - action: media_player.play_media
                     target:
                       entity_id: "{{ trigger.event.data.entity_id }}"
@@ -532,7 +557,7 @@ actions:
                       extra:
                         volume_level: "{{ set_phrase_volume_max / 100 }}"
 
-      - conditions: # Голосовая команда: Подгреть для чая
+      - conditions: # Голосовая команда: Состояние
           - condition: trigger
             id:
               - yandex_intent_trigger
