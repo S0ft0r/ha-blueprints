@@ -36,8 +36,7 @@ jobs:
               document-start: disable
               truthy: disable
               trailing-spaces: disable
-              new-line-at-end-of-file: 
-                level: warning
+              new-line-at-end-of-file: disable
               braces: disable
               brackets: disable
               comments: disable
