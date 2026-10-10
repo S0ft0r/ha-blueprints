@@ -52,109 +52,113 @@ blueprint:
         text:
 
     tea_section:
-        name: Настройки чайника для чая
-        icon: mdi:tea
-        collapsed: true
-        input:
-          tea_boil_phrase:
-            name: Команда на кипячение и подогрев для чая
-            default: "Вскипяти воду для чая"
-            selector:
-              text:
-          tea_heat_phrase:
-            name: Команда на подогрев для чая
-            default: "Подогрей воду для чая"
-            selector:
-              text:
-          tea_target_temperature:
-            name: Температура воды для чая
-            default: 70
-            selector:
-              number:
-                min: 50
-                max: 100
-                step: 1
-                unit_of_measurement: "°C"
-                mode: slider
+      name: Настройки чайника для чая
+      icon: mdi:tea
+      collapsed: true
+      input:
+        tea_boil_phrase:
+          name: Команда на кипячение и подогрев для чая
+          default: "Вскипяти воду для чая"
+          selector:
+            text:
+        
+        tea_heat_phrase:
+          name: Команда на подогрев для чая
+          default: "Подогрей воду для чая"
+          selector:
+            text:
+        
+        tea_target_temperature:
+          name: Температура воды для чая
+          default: 70
+          selector:
+            number:
+              min: 50
+              max: 100
+              step: 1
+              unit_of_measurement: "°C"
+              mode: slider
 
     coffee_section:
-        name: Настройки чайника для кофе
-        icon: mdi:coffee
-        collapsed: true
-        input:
-          coffee_boil_phrase:
-            name: Команда на кипячение и подогрев для кофе
-            default: "Вскипяти воду для кофе"
-            selector:
-              text:
-          coffee_heat_phrase:
-            name: Команда на подогрев для кофе
-            default: "Подогрей воду для кофе"
-            selector:
-              text:
-          coffee_target_temperature:
-            name: Температура воды для кофе
-            default: 85
-            selector:
-              number:
-                min: 50
-                max: 100
-                step: 1
-                unit_of_measurement: "°C"
-                mode: slider
+      name: Настройки чайника для кофе
+      icon: mdi:coffee
+      collapsed: true
+      input:
+        coffee_boil_phrase:
+          name: Команда на кипячение и подогрев для кофе
+          default: "Вскипяти воду для кофе"
+          selector:
+            text:
+        
+        coffee_heat_phrase:
+          name: Команда на подогрев для кофе
+          default: "Подогрей воду для кофе"
+          selector:
+            text:
+        
+        coffee_target_temperature:
+          name: Температура воды для кофе
+          default: 85
+          selector:
+            number:
+              min: 50
+              max: 100
+              step: 1
+              unit_of_measurement: "°C"
+              mode: slider
 
     extra_section:
-        name: Дополнительные настройки
-        icon: tune-vertical
-        collapsed: true
-        input:
-          set_phrase_volume_max:
-            name: Громкость фразы
-            default: 40
-            selector: 
-              number:
-                min: 10
-                max: 100
-                step: 10
-                mode: slider
+      name: Дополнительные настройки
+      icon: tune-vertical
+      collapsed: true
+      input:
+        set_phrase_volume_max:
+          name: Громкость фразы
+          default: 40
+          selector: 
+            number:
+              min: 10
+              max: 100
+              step: 10
+              mode: slider
 
-          voice_notification_delay:
-            name: Задержка уведомления
-            description: |
-              Задержка в секундах после достижения целевой температуры
-              перед голосовым уведомлением.
-            default: 5
-            selector:
-              number:
-                min: 0
-                max: 60
-                step: 1
-                unit_of_measurement: "сек"
-                mode: slider
+        voice_notification_delay:
+          name: Задержка уведомления
+          description: |
+            Задержка в секундах после достижения целевой температуры
+            перед голосовым уведомлением.
+          default: 5
+          selector:
+            number:
+              min: 0
+              max: 60
+              step: 1
+              unit_of_measurement: "сек"
+              mode: slider
 
-          status_phrase:
-            name: Команда на проверку состояния чайника
-            description: |
-              Команда на проверку досупности, режима, температуры воды и т.д.
-            default: "Состояние чайника"
-            selector:
-              text:
+        status_phrase:
+          name: Команда на проверку состояния чайника
+          description: |
+            Команда на проверку досупности, режима, температуры воды и т.д.
+          default: "Состояние чайника"
+          selector:
+            text:
 
-          logging_enabled:
-            name: Включить логирование
-            description: |
-              Включает детальное логирование работы автоматизации.
-            default: true
-            selector:
-              boolean: {}
+        logging_enabled:
+          name: Включить логирование
+          description: |
+            Включает детальное логирование работы автоматизации.
+          default: true
+          selector:
+            boolean: {}
 
-          debug_mode:
-            name: Режим отладки
-            description: |
-              Включает подробную отладку с каждым изменением состояния.
-            default: false
-            selector:
-              boolean: {}
+        debug_mode:
+          name: Режим отладки
+          description: |
+            Включает подробную отладку с каждым изменением состояния.
+          default: false
+          selector:
+            boolean: {}
 
 mode: queued
 max: 20
