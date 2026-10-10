@@ -132,7 +132,7 @@ blueprint:
                 unit_of_measurement: "сек"
                 mode: slider
 
-          voice_command_status:
+          status_phrase:
             name: Команда на проверку состояния чайника
             description: |
               Команда на проверку досупности, режима, температуры воды и т.д.
@@ -169,6 +169,7 @@ trigger_variables:
   coffee_boil_phrase: !input coffee_boil_phrase
   tea_heat_phrase: !input tea_heat_phrase
   coffee_heat_phrase: !input coffee_heat_phrase
+  status_phrase: !input status_phrase
 
 # Variables
 variables:
@@ -530,6 +531,42 @@ actions:
                       media_content_type: text
                       extra:
                         volume_level: "{{ set_phrase_volume_max / 100 }}"
+
+      - conditions: # Голосовая команда: Подгреть для чая
+          - condition: trigger
+            id:
+              - yandex_intent_trigger
+          - condition: template
+            value_template: |
+              {% set phrases = (status_phrase | string).split(';') | map('trim') | map('lower') | list %}
+              {{ trigger.event.data.text | string | trim | lower in phrases }}
+          - condition: template
+            value_template: |
+              {{ media_player | length == 0 or trigger.event.data.entity_id in media_player }}
+
+        sequence:
+          - action: media_player.play_media
+            target:
+              entity_id: "{{ trigger.event.data.entity_id }}"
+            data:
+              media_content_id: >
+                {% set state = states(water_heater) %}
+                {% set current_temp = state_attr(water_heater, 'current_temperature') %}
+                {% set target_temp = state_attr(water_heater, 'temperature') %}
+                {% set is_heating = (state in ['on', 'heating']) %}
+
+                {% if state in invalid_states %}
+                  Чайник сейчас недоступен. Проверьте подключение.
+                {% elif current_temp is none or current_temp == 0 %}
+                  Не удаётся считать текущую температуру. Возможно, чайник ещё не передал данные.
+                {% elif is_heating %}
+                  Чайник греет воду. Текущая температура {{ current_temp }}°. Целевая — {{ target_temp | default('не задана') }}°.
+                {% else %}
+                  Чайник выключен. Текущая температура — {{ current_temp }}°.
+                {% endif %}
+              media_content_type: text
+              extra:
+                volume_level: "{{ set_phrase_volume_max / 100 }}"
 
   # Команды и их целевые температуры
   # command_map:
