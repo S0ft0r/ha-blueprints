@@ -605,7 +605,6 @@ blueprint:
     #                 - input_text
     #           multiple: false
 
-
 mode: queued
 max: 10
 max_exceeded: silent
