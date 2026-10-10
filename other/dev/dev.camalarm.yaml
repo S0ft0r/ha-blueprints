@@ -292,13 +292,13 @@ blueprint:
             text:
 
         action_title:
-          name: Кнопка: подпись
+          name: 'Кнопка: подпись'
           default: "Просмотр камер"
           selector:
             text:
 
         action_uri:
-          name: Кнопка: ссылка
+          name: 'Кнопка: ссылка'
           description: |
             Например `homeassistant://navigate/lovelace/cctv`.
              + <small>Пусто — кнопка не добавляется.</small>
