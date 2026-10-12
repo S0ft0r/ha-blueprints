@@ -417,6 +417,16 @@ blueprint:
           selector:
             boolean: {}
 
+        set_max_distance: 
+          name: Расстояние до дома, при котором считается присутствие/отсутствие людей
+          default: 300
+          selector:
+            number:
+              min: 1
+              max: 10000
+              mode: slider
+              unit_of_measurement: "м"
+
     ####################################################################
     # Секция: Влажность почвы (второстепенно)
     ####################################################################
@@ -1094,6 +1104,8 @@ variables:
   any_device_unavailable: >
     {{ unavailable_devices | length > 0 }}
 
+  set_max_distance: !input set_max_distance
+
 triggers:
   - trigger: state # Ручное переключение направления
     entity_id: !input watervalve_switch
@@ -1178,11 +1190,19 @@ actions:
         {% set zlo = 0 if state_attr('zone.home', 'longitude') is none else state_attr('zone.home', 'longitude') | round(3) %}
         {% for item in items %}
           {% if (now() - states[item].last_updated).total_seconds() < (stale_seconds | int(7200)) %}
-            {% set ila = 0 if state_attr(item, 'latitude') is none else state_attr(item, 'latitude') | round(3) %}
-            {% set ilo = 0 if state_attr(item, 'longitude') is none else state_attr(item, 'longitude') | round(3) %}
-            {% set la = (zla - ila) | abs | round(3) | float < 0.003 %} {# ~ 300 метров #}
-            {% set lo = (zlo - ilo) | abs | round(3) | float < 0.003 %} {# ~ 190 метров #}
-            {% set i.item = i.item + (1 if (la and lo) else 0) %}
+            {% set ila = state_attr(item, 'latitude') | float(0) %}
+            {% set ilo = state_attr(item, 'longitude') | float(0) %}
+            
+            {% if ila != 0 and ilo != 0 and zla != 0 %}
+              {% set delta_lat = (zla - ila) | abs %}
+              {% set delta_lon = (zlo - ilo) | abs %}
+              
+              {% set meters_lat = delta_lat * 111132 %}
+              {% set meters_lon = delta_lon * 111132 * cos_lat %}
+              
+              {% set distance = (meters_lat**2 + meters_lon**2) | sqrt %}
+              {% set i.item = i.item + (1 if distance < set_max_distance else 0) %}
+            {% endif %}
           {% endif %}
         {% endfor %}
         {{ true if not set_person_check else i.item == 0 }}
