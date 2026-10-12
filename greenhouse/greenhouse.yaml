@@ -1192,6 +1192,7 @@ actions:
           {% if (now() - states[item].last_updated).total_seconds() < (stale_seconds | int(7200)) %}
             {% set ila = state_attr(item, 'latitude') | float(0) %}
             {% set ilo = state_attr(item, 'longitude') | float(0) %}
+            {% set cos_lat = cos(zla * (pi / 180)) if zla != 0 else 1 %}
             
             {% if ila != 0 and ilo != 0 and zla != 0 %}
               {% set delta_lat = (zla - ila) | abs %}
