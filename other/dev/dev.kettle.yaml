@@ -116,7 +116,7 @@ blueprint:
 
     extra_section:
       name: Дополнительные настройки
-      icon: tune-vertical
+      icon: mdi:tune-vertical
       collapsed: true
       input:
         set_phrase_volume_max:
