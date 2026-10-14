@@ -184,8 +184,6 @@ mode: queued
 max: 20
 max_exceeded: silent
 
-
-
 variables:
   water_heater: !input water_heater
   media_player: !input media_player
