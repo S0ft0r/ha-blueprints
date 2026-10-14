@@ -216,7 +216,6 @@ max_exceeded: silent
 #     event_type: yandex_intent
 #     id: yandex_intent_trigger
 
-
 # actions:
 #   - choose:
 #       - conditions: # Голосовая команда: Выключить
@@ -266,8 +265,6 @@ max_exceeded: silent
 #                       media_content_type: text
 #                       extra:
 #                         volume_level: "{{ set_phrase_volume_max / 100 }}"
-
-
 
 #       - conditions: # Голосовая команда: Вскипятить
 #           - condition: trigger
@@ -663,7 +660,6 @@ max_exceeded: silent
 #               extra:
 #                 volume_level: "{{ set_phrase_volume_max / 100 }}"
 
-
 variables:
   water_heater: !input water_heater
   media_player: !input media_player
@@ -672,6 +668,14 @@ variables:
   tea_target_temperature: !input tea_target_temperature
   coffee_target_temperature: !input coffee_target_temperature
 #  set_timeout: !input set_timeout
+
+  off_phrase: !input off_phrase
+  boil_phrase: !input boil_phrase
+  tea_boil_phrase: !input tea_boil_phrase
+  tea_heat_phrase: !input tea_heat_phrase
+  coffee_boil_phrase: !input coffee_boil_phrase
+  coffee_heat_phrase: !input coffee_heat_phrase
+  status_phrase: !input status_phrase
 
   invalid_states:
     - ""
@@ -731,7 +735,7 @@ variables:
     {% endif %}
 
   finish_msg: >
-    {{ 'Чайник вскипел' if command_match == 'boil' else 'Чайник подогрет' }}
+    {{ 'Чайник вскипел' if command_match == 'boil' else 'Чайник подогрел воду' }}
 
 # ─── Триггер ───────────────────────────────────────────────────
 triggers:
