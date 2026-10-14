@@ -678,6 +678,14 @@ variables:
     - "unavailable"
     - "unknown"
 
+  off_phrase: !input off_phrase
+  boil_phrase: !input boil_phrase
+  tea_boil_phrase: !input tea_boil_phrase
+  tea_heat_phrase: !input tea_heat_phrase
+  coffee_boil_phrase: !input coffee_boil_phrase
+  coffee_heat_phrase: !input coffee_heat_phrase
+  status_phrase: !input status_phrase
+  
   # ── Распознавание команды ──
   command_match: >
     {% set text = trigger.event.data.text | string | trim | lower %}
