@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- солнце -->
+  <circle cx="146" cy="116" r="64" fill="#F5B841"/>
+  <g stroke="#F5B841" stroke-width="12" stroke-linecap="round">
+    <line x1="146" y1="32" x2="146" y2="14"/>
+    <line x1="203" y1="59" x2="216" y2="46"/>
+    <line x1="226" y1="116" x2="244" y2="116"/>
+  </g>
+
+  <!-- карниз -->
+  <rect x="18" y="28" width="88" height="20" rx="10" fill="#E8EAED"/>
+
+  <!-- штора -->
+  <path d="M30 48 h64 v158 q-16 -14 -32 0 t-32 0 z" fill="#4A90D9"/>
+
+  <!-- листья -->
+  <g fill="#4E9F3D">
+    <path d="M177 188 C153 179 142 159 146 139 C170 145 181 166 177 188 Z"/>
+    <path d="M185 188 C209 179 220 159 216 139 C192 145 181 166 185 188 Z"/>
+  </g>
+  <path d="M181 190 C179 174 180 157 183 142" fill="none" stroke="#4E9F3D"
+        stroke-width="9" stroke-linecap="round"/>
+  <g fill="#E2574C">
+    <circle cx="183" cy="120" r="9"/>
+    <circle cx="193" cy="128" r="9"/>
+    <circle cx="189" cy="140" r="9"/>
+    <circle cx="177" cy="140" r="9"/>
+    <circle cx="173" cy="128" r="9"/>
+  </g>
+  <circle cx="183" cy="131" r="6" fill="#FFFFFF"/>
+
+  <!-- горшок -->
+  <rect x="146" y="186" width="70" height="16" rx="6" fill="#E8EAED"/>
+  <path d="M152 202 H210 L201 232 H161 Z" fill="#E8EAED"/>
+
+  <!-- подоконник -->
+  <rect x="12" y="232" width="232" height="18" rx="9" fill="#E8EAED"/>
+</svg>
